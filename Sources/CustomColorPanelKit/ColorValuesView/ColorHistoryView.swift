@@ -33,7 +33,7 @@ struct ColorHistoryView: View {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: 12)
-                .fill(.background.quaternary)
+                .fill(.thinMaterial)
                 .stroke(.gray.opacity(0.2), lineWidth: 1)
         }
         .overlay { hoverTooltip }

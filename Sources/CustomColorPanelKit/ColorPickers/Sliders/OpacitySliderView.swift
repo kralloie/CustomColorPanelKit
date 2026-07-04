@@ -17,11 +17,15 @@ struct OpacitySliderView: View {
             OpacitySlider(color: $color, width: width)
                 .frame(width: width, height: 20)
                 .overlay {
-                    RoundedRectangle(cornerRadius: 2)
-                        .stroke(.gray.opacity(0.2), lineWidth: 1)
+                    Rectangle()
+                        .stroke(.thickMaterial, lineWidth: 1)
+                }
+                .overlay {
+                    Rectangle()
+                        .fill(.thickMaterial)
+                        .frame(width: 2, height: geo.size.height)
                 }
                 .background(CheckerboardView())
-                .clipShape(RoundedRectangle(cornerRadius: 2))
                 .overlay(alignment: .topLeading) {
                     LeftPointingTriangle()
                         .fill(.primary)

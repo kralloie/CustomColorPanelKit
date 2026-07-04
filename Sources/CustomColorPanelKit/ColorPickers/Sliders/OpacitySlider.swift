@@ -58,6 +58,9 @@ struct OpacitySlider: NSViewRepresentable {
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
+    private var centerLock = false
+    private let snapDistance: CGFloat = 6
+    
     init(color: HSBAColor, width: CGFloat, updateIndicatorPosition: @escaping (CGFloat) -> Void) {
         self.color = color
         self.width = width
@@ -95,8 +98,25 @@ struct OpacitySlider: NSViewRepresentable {
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         var pos = gesture.location(in: view).x
-        if pos > width { pos = width }
-        if pos < 0 { pos = 0 }
+        pos = min(max(pos, 0), width)
+        
+        let center = width * 0.5
+        
+        if !centerLock && abs(pos - center) < snapDistance {
+            centerLock = true
+            updateOpacity(center)
+            return
+        }
+        
+        if centerLock {
+            if abs(pos - center) < snapDistance * 2 {
+                updateOpacity(center)
+                return
+            } else {
+                centerLock = false
+            }
+        }
+
         updateOpacity(pos)
     }
     
