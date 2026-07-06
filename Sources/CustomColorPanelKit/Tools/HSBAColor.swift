@@ -40,7 +40,6 @@ public struct HSBAColor: Equatable, Hashable {
         }
         
         set {
-            print(newValue)
             let color = Color(red: newValue.red, green: newValue.green, blue: newValue.blue)
             self = HSBAColor(with: color)
         }

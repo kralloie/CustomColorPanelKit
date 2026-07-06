@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OpacitySliderView: View {
     @Binding var color: HSBAColor
+    @State private var isHovering: Bool = false
     
     var body: some View {
         GeometryReader { geo in
@@ -25,6 +26,14 @@ struct OpacitySliderView: View {
                         .fill(.thickMaterial)
                         .frame(width: 2, height: geo.size.height)
                 }
+                .background(
+                    ScrollWheelMonitor { _, event in
+                        guard isHovering else { return }
+                        let step: Double = 0.01
+                        let delta = event.scrollingDeltaY > 0 ? step : -step
+                        color.alpha = min(max(color.alpha + delta, 0), 1)
+                    }
+                )
                 .background(CheckerboardView())
                 .overlay(alignment: .topLeading) {
                     LeftPointingTriangle()
@@ -35,6 +44,7 @@ struct OpacitySliderView: View {
                         .position(x: OSIndicatorPosition)
                         .allowsHitTesting(false)
                 }
+                .onHover { isHovering = $0 }
         }
         .frame(height: 25)
     }

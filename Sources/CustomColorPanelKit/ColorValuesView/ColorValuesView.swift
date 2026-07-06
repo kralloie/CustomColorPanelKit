@@ -123,16 +123,19 @@ struct ColorValuesView: View {
     }
 }
 
-struct ColorValueLabel: View {
+private struct ColorValueLabel: View {
     let label: String
+    let inputType: InputType
     @Binding var value: String
     @State private var text: String
     let storeColor: () -> Void
     @FocusState private var isFocused: Bool
+    @State private var isHovering: Bool = false
     
     init(label: String, value: Binding<CGFloat>, inputType: InputType, storeColor: @escaping () -> Void) {
         let valueStr = String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier))
         self.label = label
+        self.inputType = inputType
         self._value = Binding(
             get: { String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier)) },
             set: { value.wrappedValue = inputType.validate($0) }
@@ -144,6 +147,7 @@ struct ColorValueLabel: View {
     init(label: String, value: Binding<UInt32>, inputType: InputType, storeColor: @escaping () -> Void) {
         let valueStr = String(format: inputType.format, value.wrappedValue)
         self.label = label
+        self.inputType = inputType
         self._value = Binding(
             get: { String(format: inputType.format, value.wrappedValue) },
             set: { value.wrappedValue = UInt32(inputType.validate($0)) }
@@ -181,6 +185,25 @@ struct ColorValueLabel: View {
                 .onChange(of: isFocused) {_ , focused in
                     if !focused { text = value }
                 }
+                .onHover { isHovering = $0 }
+                .background(
+                    ScrollWheelMonitor { _, event in
+                        guard !(inputType == .hex) else { return }
+                        guard isHovering || isFocused else { return }
+                        let step: Double = 1
+                        let delta = event.scrollingDeltaY > 0 ? step : -step
+                        
+                        var current = inputType.validate(text) * CGFloat(inputType.multiplier)
+                        current = inputType.validate(String(format: inputType.format, current + delta))
+                        let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
+                        
+                        if isFocused {
+                            text = newValueString
+                        } else {
+                            value = newValueString
+                        }
+                    }
+                )
                 .frame(width: 75)
         }
     }
