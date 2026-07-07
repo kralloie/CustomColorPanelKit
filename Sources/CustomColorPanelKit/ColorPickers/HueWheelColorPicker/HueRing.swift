@@ -15,7 +15,7 @@ struct HueRing: NSViewRepresentable {
     var storeColor: (HSBAColor) -> Void
     
     func makeCoordinator() -> HueRingCoordinator {
-        HueRingCoordinator(brightness: Float(color.brightness), size: size, antialiasing: antialiasing, storeColor: { storeColor(color) }) { point in
+        HueRingCoordinator(size: size, antialiasing: antialiasing, storeColor: { storeColor(color) }) { point in
             let angle = atan2(-point.y, point.x)
             let normalized = angle < 0 ? angle + 2 * .pi : angle
             color.hue = normalized / (2 * .pi)
@@ -40,11 +40,6 @@ struct HueRing: NSViewRepresentable {
         if context.coordinator.size != size {
             context.coordinator.size = size
         }
-        
-        if context.coordinator.brightness != Float(color.brightness) {
-            context.coordinator.brightness = Float(color.brightness)
-            nsView.setNeedsDisplay(nsView.bounds)
-        }
     }
 }
 
@@ -52,7 +47,6 @@ struct HueRing: NSViewRepresentable {
     static let vertexShader: String = "HueRingVertexShader"
     static let fragmentShader: String = "HueRingFragmentShader"
     
-    var brightness: Float
     var size: CGFloat
     private var antialiasing: Bool
     private var draggingStart: CGPoint?
@@ -63,13 +57,11 @@ struct HueRing: NSViewRepresentable {
     var renderPipeline: MTLRenderPipelineState
     
     init(
-        brightness: Float,
         size: CGFloat,
         antialiasing: Bool,
         storeColor: @escaping () -> Void,
         updateIndicatorPosition: @escaping (CGPoint) -> Void
     ) {
-        self.brightness = brightness
         self.size = size
         self.antialiasing = antialiasing
         self.storeColor = storeColor

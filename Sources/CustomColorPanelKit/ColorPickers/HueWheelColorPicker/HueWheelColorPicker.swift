@@ -56,26 +56,22 @@ public struct HueWheelColorPicker: View {
                             }
                             .background(
                                 ScrollWheelMonitor { point, event in
-                                    if point.x < 0 || point.y < 0 || point.x > size || point.y > size{
+                                    if point.x < 0 || point.y < 0 || point.x > size || point.y > size {
                                         return
                                     }
                                     
                                     let r = size * 0.5
-                                    
-                                    let center = CGPoint(x: r, y: r)
-                                    
-                                    let dx = point.x - center.x
-                                    let dy = point.y - center.y
-                                    
+                                    let dx = point.x - r
+                                    let dy = point.y - r
                                     let dist = hypot(dx, dy)
-                                    
                                     if dist > r || dist < r * 0.75 { return }
                                     
                                     let step: Double = 1 / 360
                                     let delta = event.scrollingDeltaY > 0 ? step : -step
-                                    var newValue = color.hue + delta
-                                    newValue = newValue > 1 ? 0 : newValue < 0 ? 1 : newValue
-                                    color.hue = newValue
+                                    
+                                    var hue = color.hue + delta
+                                    hue = (hue > 1) ? 0 :(hue < 0) ? 1 : hue
+                                    color.hue = hue
                                 }
                             )
                         
