@@ -32,7 +32,7 @@ enum InputType {
         switch self {
         case .degrees:
             return {
-                if let match = $0.firstMatch(of: /^-?(\d+)°?$/) {
+                if let match = $0.firstMatch(of: /^(-?\d+)°?$/) {
                     var n = Int(match.1)!
                     n = n > 360 ? 0 : n < 0 ? 360 : n
                     return CGFloat(min(max(n, 0), 360)) / 360
