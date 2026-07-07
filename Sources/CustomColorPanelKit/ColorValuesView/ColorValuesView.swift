@@ -165,6 +165,18 @@ private struct ColorValueLabel: View {
             TextField("", text: $text)
                 .monospaced()
                 .multilineTextAlignment(.trailing)
+                .onKeyPress(keys: [.upArrow, .downArrow]) { press in
+                    guard !(inputType == .hex) else { return .handled }
+                    guard isFocused else { return .handled }
+                    
+                    let step: CGFloat = press.key == .upArrow ? 1 : -1
+                    var current = inputType.validate(text) * CGFloat(inputType.multiplier)
+                    current = inputType.validate(String(format: inputType.format, current + step))
+                    let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
+                    text = newValueString
+                    
+                    return .handled
+                }
                 .onSubmit {
                     isFocused = false
                     value = text
