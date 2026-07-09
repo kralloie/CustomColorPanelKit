@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct HueWheelGeometry {
+struct HueRingPickerGeometry {
     let color: HSBAColor
     let viewSize: CGSize
     let viewRadius: CGFloat

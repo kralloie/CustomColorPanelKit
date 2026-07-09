@@ -23,7 +23,7 @@ public struct ColorPanelView: View {
     
     public var body: some View {
         HStack(spacing: 0) {
-            HueWheelColorPicker(color: $color, colorHistory: colorHistory)
+            HueRingPickerView(color: $color, colorHistory: colorHistory)
                 .padding(8)
             ColorValuesView(color: $color, colorHistory: colorHistory)
                 .padding(8)

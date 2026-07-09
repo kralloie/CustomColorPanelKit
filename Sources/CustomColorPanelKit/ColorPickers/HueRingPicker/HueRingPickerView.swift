@@ -1,5 +1,5 @@
 //
-//  HueWheelColorPicker.swift
+//  HueRingPickerView.swift
 //  CustomColorPanel
 //
 //  Created by Franco Gargiulo on 07/06/2026.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct HueWheelColorPicker: View {
+public struct HueRingPickerView: View {
     @Binding var color: HSBAColor
     var antialiasing: Bool = true
     var hueRotation: Bool = true
@@ -24,7 +24,7 @@ public struct HueWheelColorPicker: View {
         VStack {
             GeometryReader { geo in
                 let size = geo.size.width
-                let colorPickerGeometry = HueWheelGeometry(color: color, viewSize: geo.size, hueRotation: hueRotation)
+                let colorPickerGeometry = HueRingPickerGeometry(color: color, viewSize: geo.size, hueRotation: hueRotation)
 
                 VStack {
                     ZStack {

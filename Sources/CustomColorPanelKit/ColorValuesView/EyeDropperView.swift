@@ -1,5 +1,5 @@
 //
-//  ColorSampler.swift
+//  EyeDropperView.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 27/06/2026.

@@ -165,58 +165,58 @@ private struct ColorValueLabel: View {
             TextField("", text: $text)
                 .monospaced()
                 .multilineTextAlignment(.trailing)
-                .onKeyPress(keys: [.upArrow, .downArrow]) { press in
-                    guard !(inputType == .hex) else { return .handled }
-                    guard isFocused else { return .handled }
-                    
-                    let step: CGFloat = press.key == .upArrow ? 1 : -1
-                    var current = inputType.validate(text) * CGFloat(inputType.multiplier)
-                    current = inputType.validate(String(format: inputType.format, current + step))
-                    let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
-                    text = newValueString
-                    
-                    return .handled
-                }
-                .onSubmit {
-                    isFocused = false
-                    value = text
-                    storeColor()
-                }
-                .onExitCommand {
-                    if isFocused {
-                        text = value
-                        isFocused = false
-                    }
-                }
+                .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
+                .onSubmit(commit)
+                .onExitCommand(perform: cancel)
                 .textFieldStyle(.plain)
                 .focused($isFocused)
-                .onChange(of: value) { _, newValue in
-                    isFocused = false
-                    text = newValue
-                }
-                .onChange(of: isFocused) {_ , focused in
-                    if !focused { text = value }
-                }
+                .onChange(of: value, perform: updateText)
                 .onHover { isHovering = $0 }
-                .background(
-                    ScrollWheelMonitor { _, event in
-                        guard !(inputType == .hex) else { return }
-                        guard isHovering || isFocused else { return }
-                        let step: Double = 1
-                        let delta = event.scrollingDeltaY > 0 ? step : -step
-                        
-                        var current = inputType.validate(text) * CGFloat(inputType.multiplier)
-                        current = inputType.validate(String(format: inputType.format, current + delta))
-                        let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
-                        
-                        if isFocused {
-                            text = newValueString
-                        } else {
-                            value = newValueString
-                        }
-                    }
-                )
+                .background(ScrollWheelMonitor(onScroll: handleScroll))
                 .frame(width: 75)
+        }
+    }
+    
+    private func updateText(newValue: String) {
+        isFocused = false
+        text = newValue
+    }
+    
+    private func handleArrows(press: KeyPress) -> KeyPress.Result {
+        guard !(inputType == .hex) else { return .handled }
+        guard isFocused else { return .handled }
+        
+        let step: CGFloat = press.key == .upArrow ? 1 : -1
+        var current = inputType.validate(text) * CGFloat(inputType.multiplier)
+        current = inputType.validate(String(format: inputType.format, current + step))
+        let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
+        text = newValueString
+        
+        return .handled
+    }
+    
+    private func handleScroll(_: CGPoint, event: NSEvent) {
+        guard inputType != .hex else { return }
+        guard isHovering else { return }
+        let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
+        
+        var current = inputType.validate(text) * CGFloat(inputType.multiplier)
+        current = inputType.validate(String(format: inputType.format, current + delta))
+        let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
+        
+        value = newValueString
+    }
+    
+    private func commit() {
+        isFocused = false
+        value = text
+        storeColor()
+    }
+    
+    private func cancel() {
+        if isFocused {
+            text = value
+            isFocused = false
         }
     }
 }
