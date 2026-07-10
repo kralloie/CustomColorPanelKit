@@ -1,6 +1,6 @@
 //
 //  HSBTriangle.swift
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 09/06/2026.
 //
@@ -127,7 +127,7 @@ struct HSBTriangle: NSViewRepresentable {
     }
     
     private func getVerticesForTriangle(size: CGFloat, angle: CGFloat) -> [CGPoint] {
-        let offset: CGFloat = 2 * .pi / 3
+        let offset: CGFloat = GeometryConstants.triangleVertexSpacing
         let radius = size * 0.5
         return [
             CGPoint(x: cos(angle) * radius + radius, y: sin(angle) * radius + radius),

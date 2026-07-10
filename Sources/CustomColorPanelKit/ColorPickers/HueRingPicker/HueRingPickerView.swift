@@ -1,6 +1,6 @@
 //
 //  HueRingPickerView.swift
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 07/06/2026.
 //
@@ -9,9 +9,9 @@ import SwiftUI
 
 public struct HueRingPickerView: View {
     @Binding var color: HSBAColor
-    var antialiasing: Bool = true
-    var hueRotation: Bool = true
-    var colorHistory: ColorHistory
+    let antialiasing: Bool
+    let hueRotation: Bool
+    let colorHistory: ColorHistory
     
     init(color: Binding<HSBAColor>, antialiasing: Bool = true, hueRotation: Bool = true, colorHistory: ColorHistory) {
         self._color = color
@@ -36,44 +36,8 @@ public struct HueRingPickerView: View {
                         )
                             .frame(width: size, height: size)
                             .frame(maxWidth: .infinity)
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(.clear)
-                                    .frame(
-                                        width: colorPickerGeometry.hueRingIndicatorSize.width,
-                                        height: colorPickerGeometry.hueRingIndicatorSize.height
-                                    )
-                                    .overlay(alignment: .trailing) {
-                                        LeftPointingTriangle()
-                                            .fill(.primary)
-                                            .frame(width: 20, height: 20)
-                                            .shadow(radius: 2)
-                                            .padding(.trailing, -10)
-                                    }
-                                    .rotationEffect(Angle(radians: -colorPickerGeometry.hueAngle))
-                                    .offset(colorPickerGeometry.hueRingIndicatorOffset)
-                                    .allowsHitTesting(false)
-                            }
-                            .background(
-                                ScrollWheelMonitor { point, event in
-                                    if point.x < 0 || point.y < 0 || point.x > size || point.y > size {
-                                        return
-                                    }
-                                    
-                                    let r = size * 0.5
-                                    let dx = point.x - r
-                                    let dy = point.y - r
-                                    let dist = hypot(dx, dy)
-                                    if dist > r || dist < r * 0.75 { return }
-                                    
-                                    let step: Double = 1 / 360
-                                    let delta = event.scrollingDeltaY > 0 ? step : -step
-                                    
-                                    var hue = color.hue + delta
-                                    hue = (hue > 1) ? 0 :(hue < 0) ? 1 : hue
-                                    color.hue = hue
-                                }
-                            )
+                            .overlay { HueRingPositionIndicator(colorPickerGeometry: colorPickerGeometry) }
+                            .background(HueRingScrollHandler(hueRingSize: size, hue: $color.hue))
                         
                         HSBTriangle(
                             color: $color,
@@ -98,5 +62,55 @@ public struct HueRingPickerView: View {
             OpacitySliderView(color: $color)
         }
         .frame(minWidth: 250, minHeight: 250)
+    }
+    
+    private struct HueRingScrollHandler: View {
+        private static let hueStep: Double = 1.0 / 360.0
+        
+        let hueRingSize: CGFloat
+        @Binding var hue: CGFloat
+        
+        var body: some View {
+            ScrollWheelMonitor { point, event in
+                if point.x < 0 || point.y < 0 || point.x > hueRingSize || point.y > hueRingSize {
+                    return
+                }
+                
+                let r = hueRingSize * 0.5
+                let dx = point.x - r
+                let dy = point.y - r
+                let dist = hypot(dx, dy)
+                if dist > r || dist < r * 0.75 { return }
+                
+                let delta = event.scrollingDeltaY > 0 ? Self.hueStep: -Self.hueStep
+                
+                var newHue = (hue + delta).truncatingRemainder(dividingBy: 1)
+                if newHue < 0 { newHue += 1 }
+                hue = newHue
+            }
+        }
+    }
+    
+    private struct HueRingPositionIndicator: View {
+        let colorPickerGeometry: HueRingPickerGeometry
+        
+        var body: some View {
+            Rectangle()
+                .fill(.clear)
+                .frame(
+                    width: colorPickerGeometry.hueRingIndicatorSize.width,
+                    height: colorPickerGeometry.hueRingIndicatorSize.height
+                )
+                .overlay(alignment: .trailing) {
+                    LeftPointingTriangle()
+                        .fill(.primary)
+                        .frame(width: 20, height: 20)
+                        .shadow(radius: 2)
+                        .padding(.trailing, -10)
+                }
+                .rotationEffect(Angle(radians: -colorPickerGeometry.hueAngle))
+                .offset(colorPickerGeometry.hueRingIndicatorOffset)
+                .allowsHitTesting(false)
+        }
     }
 }

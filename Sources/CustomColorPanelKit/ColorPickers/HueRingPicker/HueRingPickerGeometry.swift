@@ -1,6 +1,6 @@
 //
-//  HueWheelGeometry.swift
-//  CustomColorPanel
+//  HueRingPickerGeometry.swift
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 17/06/2026.
 //
@@ -33,7 +33,7 @@ struct HueRingPickerGeometry {
 
         let r = triangleSize * 0.5
         let angle = hueRotation ? hueAngle : .pi * 0.5
-        let offset: CGFloat = 2 * .pi / 3
+        let offset: CGFloat = GeometryConstants.triangleVertexSpacing
 
         let v0 = CGPoint(x: cos(angle) * r, y: sin(angle) * r)
         let v1 = CGPoint(x: cos(angle + offset) * r, y: sin(angle + offset) * r)
