@@ -9,10 +9,14 @@ import SwiftUI
 
 struct ColorHistoryView: View {
     @Binding var color: HSBAColor
+    @State var hoveredIndex: Int? = nil
+    
     var colorHistory: ColorHistory
+    
     private let colorSize: CGFloat = 10
     private let spacing: CGFloat = 4
     private let columns: Int = 12
+    
     private var frameSize: CGFloat {
         CGFloat(columns) * (colorSize + spacing)
     }
@@ -21,7 +25,6 @@ struct ColorHistoryView: View {
         Array(repeating: GridItem(.fixed(colorSize), spacing: spacing), count: columns)
     }
     
-    @State var hoveredIndex: Int? = nil
     
     var body: some View {
         LazyVGrid(columns: gridItems, spacing: spacing) {
@@ -36,29 +39,11 @@ struct ColorHistoryView: View {
                 .fill(.thinMaterial)
                 .stroke(.gray.opacity(0.2), lineWidth: 1)
         }
-        .overlay { hoverTooltip }
         .padding(.top, 16)
     }
-    
-    @ViewBuilder
-    private var hoverTooltip: some View {
-        if let index = hoveredIndex {
-            let cellStep = colorSize + spacing
-            Text(String(format: "#%06X", colorHistory.colors[index].hex))
-                .font(.system(size: 11, design: .monospaced))
-                .padding(2)
-                .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 4))
-                .fixedSize()
-                .allowsHitTesting(false)
-                .position(
-                    x: cellStep * CGFloat(index).truncatingRemainder(dividingBy: 12) + cellStep,
-                    y: 14 * CGFloat(index / 12) - cellStep * 0.5
-                )
-        } else {
-            EmptyView()
-        }
-    }
-    
+}
+
+extension ColorHistoryView {
     private struct ColorHistoryEntry: View {
         @Binding var color: HSBAColor
         @Binding var hoveredIndex: Int?
@@ -80,7 +65,7 @@ struct ColorHistoryView: View {
                         color = newColor
                         hoveredIndex = nil
                     }
-                    .scaleEffect(isHovering ? 1.5 : 1)
+                    .scaleEffect(isHovering ? 1.25 : 1)
                     .animation(.easeInOut(duration: 0.1), value: isHovering)
             } else {
                 RoundedRectangle(cornerRadius: 2)
