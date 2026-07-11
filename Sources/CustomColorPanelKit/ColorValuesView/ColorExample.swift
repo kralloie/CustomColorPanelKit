@@ -10,10 +10,9 @@ import MetalKit
 
 struct ColorExample: NSViewRepresentable {
     var color: HSBAColor
-    var size: CGFloat
     
     func makeCoordinator() -> ColorExampleCoordinator {
-        ColorExampleCoordinator(color: color, size: size)
+        ColorExampleCoordinator(color: color)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -41,14 +40,12 @@ struct ColorExample: NSViewRepresentable {
     static let fragmentShader: String = "ColorExampleFragmentShader"
     
     var color: HSBAColor
-    var size: CGFloat
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
-    init(color: HSBAColor, size: CGFloat) {
+    init(color: HSBAColor) {
         self.color = color
-        self.size = size
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device

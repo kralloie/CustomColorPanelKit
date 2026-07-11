@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+private enum Layout {
+    static let panelWidth: CGFloat = 200
+    static let panelInnerPadding: CGFloat = 20
+    static let panelOuterPadding: CGFloat = 10
+    static let panelCornerRadius: CGFloat = 16
+}
+
 struct ColorValuesView: View {
     @Binding var color: HSBAColor
     var colorHistory: ColorHistory
@@ -15,93 +22,127 @@ struct ColorValuesView: View {
     @State private var isOpen: Bool = true
     @State private var isHoveringTogglePanel: Bool = false
     
+    private func storeColor() { colorHistory.add(color) }
+    
     var body: some View {
-        let rgb = color.rgb
-        let cmyk = color.cmyk
-        let hsl = color.hsl
-        let hex = color.hex
-        let storeColor = { colorHistory.add(color) }
-        
         ScrollView {
             VStack(spacing: 4) {
-                ColorExample(color: color, size: 80)
-                    .frame(width: 80, height: 80)
-                    .background(CheckerboardView())
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(.tertiary, lineWidth: 2)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .overlay(alignment: .trailing) {
-                        EyeDropperView(pickedColor: $color, storeColor: { colorHistory.add($0) })
-                            .offset(x: 30)
-                            .onHover { hoveringEyedropper = $0 }
-                            .scaleEffect(hoveringEyedropper ? 1.05 : 1)
-                            .animation(.easeInOut(duration: 0.1), value: hoveringEyedropper)
-                    }
-                    .padding(.bottom, 10)
+                colorPreview
                 
-                Divider()
+                hexValue
                 
-                ColorValueLabel(label: "HEX", value: $color.hex, inputType: .hex, storeColor: storeColor)
+                hsvValues
                 
-                Divider()
-                
-                ColorValueLabel(label: "H", value: $color.hue, inputType: .degrees, storeColor: storeColor)
-                ColorValueLabel(label: "S", value: $color.saturation, inputType: .percentage, storeColor: storeColor)
-                ColorValueLabel(label: "V", value: $color.brightness, inputType: .percentage, storeColor: storeColor)
-                
-                Divider()
-              
-                ColorValueLabel(label: "H", value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
-                ColorValueLabel(label: "S", value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
-                ColorValueLabel(label: "L", value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
+                hslValues
 
-                Divider()
+                rgbValues
                 
-                ColorValueLabel(label: "R", value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
-                ColorValueLabel(label: "G", value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
-                ColorValueLabel(label: "B", value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
+                cmykValues
                 
-                Divider()
-  
-                ColorValueLabel(label: "C", value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
-                ColorValueLabel(label: "M", value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
-                ColorValueLabel(label: "Y", value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
-                ColorValueLabel(label: "K", value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
-
-                Divider()
-                
-                ColorValueLabel(label: "Opacity", value: $color.alpha, inputType: .percentage, storeColor: {})
+                opacityValue
                 
                 Divider()
                 
                 ColorHistoryView(color: $color, colorHistory: colorHistory)
             }
             .background {
-                GeometryReader { geo in
-                    Color.clear
-                        .onAppear { contentHeight = geo.size.height }
-                        .onChange(of: geo.size.height) { contentHeight = geo.size.height }
-                }
+                Color.clear
+                    .onGeometryChange(for: CGFloat.self) {
+                        $0.size.height
+                    } action: {
+                        contentHeight = $0
+                    }
             }
         }
         .frame(maxHeight: contentHeight == 0 ? .infinity : contentHeight)
-        .frame(width: isOpen ? 200 : 0)
+        .frame(width: isOpen ? Layout.panelWidth : 0)
         .scrollIndicators(.hidden)
         .clipped()
-        .padding(isOpen ? 20 : 0)
+        .padding(isOpen ? Layout.panelInnerPadding : 0)
         .background {
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: Layout.panelCornerRadius)
                 .fill(.ultraThinMaterial)
                 .stroke(.gray.opacity(0.2), lineWidth: 1)
         }
         .overlay(alignment: .leading, content: { togglePanelButton })
-        .padding(10)
+        .padding(Layout.panelOuterPadding)
+    }
+}
+
+extension ColorValuesView {
+    private var colorPreview: some View {
+        ColorExample(color: color)
+            .frame(width: 80, height: 80)
+            .background(CheckerboardView())
+            .overlay {
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(.tertiary, lineWidth: 2)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(alignment: .trailing) {
+                EyeDropperView(pickedColor: $color, storeColor: { colorHistory.add($0) })
+                    .offset(x: 30)
+                    .onHover { hoveringEyedropper = $0 }
+                    .scaleEffect(hoveringEyedropper ? 1.05 : 1)
+                    .animation(.easeInOut(duration: 0.1), value: hoveringEyedropper)
+            }
+            .padding(.bottom, 10)
     }
     
+    private var hexValue: some View {
+        section {
+            ColorValueLabelView(label: "HEX", value: $color.hex, inputType: .hex, storeColor: storeColor)
+        }
+    }
+    
+    private var hsvValues: some View {
+        section {
+            ColorValueLabelView(label: "H", value: $color.hue, inputType: .degrees, storeColor: storeColor)
+            ColorValueLabelView(label: "S", value: $color.saturation, inputType: .percentage, storeColor: storeColor)
+            ColorValueLabelView(label: "V", value: $color.brightness, inputType: .percentage, storeColor: storeColor)
+        }
+    }
+    
+    private var hslValues: some View {
+        section {
+            ColorValueLabelView(label: "H", value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
+            ColorValueLabelView(label: "S", value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
+            ColorValueLabelView(label: "L", value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
+        }
+    }
+    
+    private var rgbValues: some View {
+        section {
+            ColorValueLabelView(label: "R", value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
+            ColorValueLabelView(label: "G", value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
+            ColorValueLabelView(label: "B", value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
+        }
+    }
+    
+    private var cmykValues: some View {
+        section {
+            ColorValueLabelView(label: "C", value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
+            ColorValueLabelView(label: "M", value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
+            ColorValueLabelView(label: "Y", value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
+            ColorValueLabelView(label: "K", value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
+        }
+    }
+    
+    private var opacityValue: some View {
+        section {
+            ColorValueLabelView(label: "Opacity", value: $color.alpha, inputType: .percentage)
+        }
+    }
+    
+    private func section<Content: View> (@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 4) {
+            Divider()
+            content()
+        }
+    }
+
     private var togglePanelButton: some View {
-        return Image(systemName: isOpen ? "chevron.left" : "chevron.right")
+        Image(systemName: isOpen ? "chevron.left" : "chevron.right")
             .frame(width: 20, height: 20)
             .background {
                 Circle()
@@ -121,102 +162,102 @@ struct ColorValuesView: View {
             .onHover { isHoveringTogglePanel = $0 }
             .animation(.easeInOut(duration: 0.1), value: isHoveringTogglePanel)
     }
-}
-
-private struct ColorValueLabel: View {
-    let label: String
-    let inputType: InputType
-    @Binding var value: String
-    @State private var text: String
-    let storeColor: () -> Void
-    @FocusState private var isFocused: Bool
-    @State private var isHovering: Bool = false
     
-    init(label: String, value: Binding<CGFloat>, inputType: InputType, storeColor: @escaping () -> Void) {
-        let valueStr = String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier))
-        self.label = label
-        self.inputType = inputType
-        self._value = Binding(
-            get: { String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier)) },
-            set: { value.wrappedValue = inputType.validate($0) }
-        )
-        self.storeColor = storeColor
-        self._text = .init(initialValue: valueStr)
-    }
-    
-    init(label: String, value: Binding<UInt32>, inputType: InputType, storeColor: @escaping () -> Void) {
-        let valueStr = String(format: inputType.format, value.wrappedValue)
-        self.label = label
-        self.inputType = inputType
-        self._value = Binding(
-            get: { String(format: inputType.format, value.wrappedValue) },
-            set: { value.wrappedValue = UInt32(inputType.validate($0)) }
-        )
-        self.storeColor = storeColor
-        self._text = .init(initialValue: valueStr)
-    }
-    
-    var body: some View {
-        HStack {
-            Text(label)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
-            Spacer()
-            TextField("", text: $text)
-                .monospaced()
-                .multilineTextAlignment(.trailing)
-                .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
-                .onSubmit(commit)
-                .onExitCommand(perform: cancel)
-                .textFieldStyle(.plain)
-                .focused($isFocused)
-                .onChange(of: value, perform: updateText)
-                .onHover { isHovering = $0 }
-                .background(ScrollWheelMonitor(onScroll: handleScroll))
-                .frame(width: 75)
+    private struct ColorValueLabelView: View {
+        let label: String
+        let inputType: InputType
+        @Binding var value: String
+        @State private var text: String
+        let storeColor: () -> Void
+        @FocusState private var isFocused: Bool
+        @State private var isHovering: Bool = false
+        
+        init(label: String, value: Binding<CGFloat>, inputType: InputType, storeColor: @escaping () -> Void = {}) {
+            let valueStr = String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier))
+            self.label = label
+            self.inputType = inputType
+            self._value = Binding(
+                get: { String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier)) },
+                set: { value.wrappedValue = inputType.validate($0) }
+            )
+            self.storeColor = storeColor
+            self._text = .init(initialValue: valueStr)
         }
-    }
-    
-    private func updateText(newValue: String) {
-        isFocused = false
-        text = newValue
-    }
-    
-    private func handleArrows(press: KeyPress) -> KeyPress.Result {
-        guard !(inputType == .hex) else { return .handled }
-        guard isFocused else { return .handled }
         
-        let step: CGFloat = press.key == .upArrow ? 1 : -1
-        var current = inputType.validate(text) * CGFloat(inputType.multiplier)
-        current = inputType.validate(String(format: inputType.format, current + step))
-        let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
-        text = newValueString
+        init(label: String, value: Binding<UInt32>, inputType: InputType, storeColor: @escaping () -> Void) {
+            let valueStr = String(format: inputType.format, value.wrappedValue)
+            self.label = label
+            self.inputType = inputType
+            self._value = Binding(
+                get: { String(format: inputType.format, value.wrappedValue) },
+                set: { value.wrappedValue = UInt32(inputType.validate($0)) }
+            )
+            self.storeColor = storeColor
+            self._text = .init(initialValue: valueStr)
+        }
         
-        return .handled
-    }
-    
-    private func handleScroll(_: CGPoint, event: NSEvent) {
-        guard inputType != .hex else { return }
-        guard isHovering else { return }
-        let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
+        var body: some View {
+            HStack {
+                Text(label)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                Spacer()
+                TextField("", text: $text)
+                    .monospaced()
+                    .multilineTextAlignment(.trailing)
+                    .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
+                    .onSubmit(commit)
+                    .onExitCommand(perform: cancel)
+                    .textFieldStyle(.plain)
+                    .focused($isFocused)
+                    .onChange(of: value, perform: updateText)
+                    .onHover { isHovering = $0 }
+                    .background(ScrollWheelMonitor(onScroll: handleScroll))
+                    .frame(width: 75)
+            }
+        }
         
-        var current = inputType.validate(text) * CGFloat(inputType.multiplier)
-        current = inputType.validate(String(format: inputType.format, current + delta))
-        let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
-        
-        value = newValueString
-    }
-    
-    private func commit() {
-        isFocused = false
-        value = text
-        storeColor()
-    }
-    
-    private func cancel() {
-        if isFocused {
-            text = value
+        private func updateText(newValue: String) {
             isFocused = false
+            text = newValue
+        }
+        
+        private func handleArrows(press: KeyPress) -> KeyPress.Result {
+            guard !(inputType == .hex) else { return .handled }
+            guard isFocused else { return .handled }
+            
+            let step: CGFloat = press.key == .upArrow ? 1 : -1
+            var current = inputType.validate(text) * CGFloat(inputType.multiplier)
+            current = inputType.validate(String(format: inputType.format, current + step))
+            let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
+            text = newValueString
+            
+            return .handled
+        }
+        
+        private func handleScroll(_: CGPoint, event: NSEvent) {
+            guard inputType != .hex else { return }
+            guard isHovering else { return }
+            let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
+            
+            var current = inputType.validate(text) * CGFloat(inputType.multiplier)
+            current = inputType.validate(String(format: inputType.format, current + delta))
+            let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
+            
+            value = newValueString
+        }
+        
+        private func commit() {
+            isFocused = false
+            value = text
+            storeColor()
+        }
+        
+        private func cancel() {
+            if isFocused {
+                text = value
+                isFocused = false
+            }
         }
     }
 }
