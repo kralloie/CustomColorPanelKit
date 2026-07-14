@@ -250,6 +250,7 @@ extension ColorValuesView {
         private func commit() {
             isFocused = false
             value = text
+            text = value
             storeColor()
         }
         

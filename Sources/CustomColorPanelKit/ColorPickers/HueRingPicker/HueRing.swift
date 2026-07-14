@@ -10,12 +10,11 @@ import MetalKit
 
 struct HueRing: NSViewRepresentable {
     @Binding var color: HSBAColor
-    var size: CGFloat
     var antialiasing: Bool
     var storeColor: (HSBAColor) -> Void
     
     func makeCoordinator() -> HueRingCoordinator {
-        HueRingCoordinator(size: size, antialiasing: antialiasing, storeColor: { storeColor(color) }) { point in
+        HueRingCoordinator(antialiasing: antialiasing, storeColor: { storeColor(color) }) { point in
             let angle = atan2(-point.y, point.x)
             let normalized = angle < 0 ? angle + 2 * .pi : angle
             color.hue = normalized / (2 * .pi)
@@ -36,18 +35,14 @@ struct HueRing: NSViewRepresentable {
         return mtkView
     }
     
-    func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.size != size {
-            context.coordinator.size = size
-        }
-    }
+    func updateNSView(_ nsView: MTKView, context: Context) {}
 }
 
 @MainActor final class HueRingCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HueRingVertexShader"
     static let fragmentShader: String = "HueRingFragmentShader"
     
-    var size: CGFloat
+    var size: CGFloat = 0
     private var antialiasing: Bool
     private var draggingStart: CGPoint?
     private var storeColor: () -> Void
@@ -57,12 +52,10 @@ struct HueRing: NSViewRepresentable {
     var renderPipeline: MTLRenderPipelineState
     
     init(
-        size: CGFloat,
         antialiasing: Bool,
         storeColor: @escaping () -> Void,
         updateIndicatorPosition: @escaping (CGPoint) -> Void
     ) {
-        self.size = size
         self.antialiasing = antialiasing
         self.storeColor = storeColor
         self.updateIndicatorPosition = updateIndicatorPosition
@@ -75,7 +68,9 @@ struct HueRing: NSViewRepresentable {
         super.init()
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
+    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {
+        size = min(view.bounds.width, view.bounds.height)
+    }
     
     func draw(in view: MTKView) {
         guard let drawable = view.currentDrawable,
