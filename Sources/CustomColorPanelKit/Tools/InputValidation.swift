@@ -18,6 +18,7 @@ enum InputType {
         case .hex: "#%06X"
         }
     }
+
     
     var multiplier: Int {
         switch self {
@@ -28,48 +29,58 @@ enum InputType {
         }
     }
     
-    var validate: (String) -> CGFloat {
+    func format(_ value: CGFloat) -> String {
+        var v = value * CGFloat(multiplier)
+        if self == .degrees { v = min(v, 359) }
+        return String(format: format, v)
+    }
+    
+    func format(_ value: UInt32) -> String {
+        return String(format: format, value)
+    }
+    
+    func parse(_ text: String) -> Int? {
         switch self {
         case .degrees:
-            return {
-                if let match = $0.firstMatch(of: /^(-?\d+)°?$/) {
-                    var n = Int(match.1)!
-                    n = n > 360 ? 0 : n < 0 ? 360 : n
-                    return CGFloat(min(max(n, 0), 360)) / 360
-                } else {
-                    return 0
-                }
+            guard let match = text.firstMatch(of: /^(-?\d+)°?$/) else { return nil }
+            return Int(match.1)
+
+        case .percentage:
+            guard let match = text.firstMatch(of: /^(-?\d+)%?$/) else { return nil }
+            return Int(match.1)
+
+        case .numerical:
+            guard let match = text.firstMatch(of: /^(-?\d+)$/) else { return nil }
+            return Int(match.1)
+
+        case .hex:
+            guard let match = text.firstMatch(of: /^#?([0-9A-Fa-f]{6})$/) else { return nil }
+            return Int(match.1, radix: 16)
+        }
+    }
+    
+    func normalize(_ text: String) -> CGFloat {
+        switch self {
+        case .degrees:
+            if let match = parse(text) {
+                let wrapped = ((match % 360) + 360) % 360
+                return CGFloat(wrapped) / 360
             }
         case .percentage:
-            return {
-                if let match = $0.firstMatch(of: /^(\d+)%?$/) {
-                    let n = Int(match.1)!
-                    return CGFloat(min(max(n, 0), 100)) / 100
-                } else {
-                    return 0
-                }
+            if let match = parse(text)?.clamped(to: 0...100) {
+                return CGFloat(match) / 100
             }
         case .numerical:
-            return {
-                if let match = $0.firstMatch(of: /^\d+$/) {
-                    let n = Int(match.0)!
-                    return CGFloat(min(max(n, 0), 255)) / 255
-                } else {
-                    return 0
-                }
+            if let match = parse(text)?.clamped(to: 0...255) {
+                return CGFloat(match) / 255
             }
         case .hex:
-            return {
-                if let match = $0.firstMatch(of: /^#?([0-9A-Fa-f]{6})$/) {
-                    let hex = String(match.1)
-                    let r = Int(hex.prefix(2), radix: 16)!
-                    let g = Int(hex.dropFirst(2).prefix(2), radix: 16)!
-                    let b = Int(hex.dropFirst(4), radix: 16)!
-                    return CGFloat(r << 16 | g << 8 | b)
-                } else {
-                    return 0
+            if let match = text.firstMatch(of: /^#?([0-9A-Fa-f]{6})$/) {
+                if let n = UInt32(match.1, radix: 16) {
+                    return CGFloat(n)
                 }
             }
         }
+        return 0
     }
 }

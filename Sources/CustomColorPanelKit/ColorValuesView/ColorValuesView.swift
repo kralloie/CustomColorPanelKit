@@ -173,24 +173,24 @@ extension ColorValuesView {
         @State private var isHovering: Bool = false
         
         init(label: String, value: Binding<CGFloat>, inputType: InputType, storeColor: @escaping () -> Void = {}) {
-            let valueStr = String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier))
+            let valueStr = inputType.format(value.wrappedValue)
             self.label = label
             self.inputType = inputType
             self._value = Binding(
-                get: { String(format: inputType.format, value.wrappedValue * CGFloat(inputType.multiplier)) },
-                set: { value.wrappedValue = inputType.validate($0) }
+                get: { inputType.format(value.wrappedValue) },
+                set: { value.wrappedValue = inputType.normalize($0) }
             )
             self.storeColor = storeColor
             self._text = .init(initialValue: valueStr)
         }
         
         init(label: String, value: Binding<UInt32>, inputType: InputType, storeColor: @escaping () -> Void) {
-            let valueStr = String(format: inputType.format, value.wrappedValue)
+            let valueStr = inputType.format(value.wrappedValue)
             self.label = label
             self.inputType = inputType
             self._value = Binding(
                 get: { String(format: inputType.format, value.wrappedValue) },
-                set: { value.wrappedValue = UInt32(inputType.validate($0)) }
+                set: { value.wrappedValue = UInt32(inputType.normalize($0)) }
             )
             self.storeColor = storeColor
             self._text = .init(initialValue: valueStr)
@@ -206,13 +206,14 @@ extension ColorValuesView {
                     .monospaced()
                     .multilineTextAlignment(.trailing)
                     .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
-                    .onSubmit(commit)
+                    .onSubmit(submit)
                     .onExitCommand(perform: cancel)
                     .textFieldStyle(.plain)
                     .focused($isFocused)
                     .onChange(of: value, perform: updateText)
+                    .onChange(of: isFocused, perform: blur)
                     .onHover { isHovering = $0 }
-                    .background(ScrollWheelMonitor(onScroll: handleScroll))
+                    .background(ScrollWheelMonitor(onScroll: handleScroll, storeColor: storeColor))
                     .frame(width: 75)
             }
         }
@@ -226,11 +227,16 @@ extension ColorValuesView {
             guard !(inputType == .hex) else { return .handled }
             guard isFocused else { return .handled }
             
-            let step: CGFloat = press.key == .upArrow ? 1 : -1
-            var current = inputType.validate(text) * CGFloat(inputType.multiplier)
-            current = inputType.validate(String(format: inputType.format, current + step))
-            let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
-            text = newValueString
+            var step = press.key == .upArrow ? 1.0 : -1.0
+            if press.modifiers.contains([.command]) {
+                let normalizedValue = (step + 1) * 0.5
+                text = inputType.format(normalizedValue)
+                return .handled
+            }
+            
+            var current = inputType.normalize(text) * CGFloat(inputType.multiplier)
+            current = inputType.normalize(String(format: inputType.format, current + step))
+            text = inputType.format(current)
             
             return .handled
         }
@@ -238,17 +244,25 @@ extension ColorValuesView {
         private func handleScroll(_: CGPoint, event: NSEvent) {
             guard inputType != .hex else { return }
             guard isHovering else { return }
-            let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
+            let step = event.scrollingDeltaY > 0 ? 1.0 : -1.0
             
-            var current = inputType.validate(text) * CGFloat(inputType.multiplier)
-            current = inputType.validate(String(format: inputType.format, current + delta))
-            let newValueString = String(format: inputType.format, current * CGFloat(inputType.multiplier))
-            
-            value = newValueString
+            var current = inputType.normalize(text) * CGFloat(inputType.multiplier)
+            current = inputType.normalize(String(format: inputType.format, current + step))
+            value = inputType.format(current)
+        }
+        
+        private func blur(isFocused: Bool) {
+            if !isFocused && inputType.parse(text) != inputType.parse(value) {
+                commit()
+            }
+        }
+        
+        private func submit() {
+            commit()
+            isFocused = false
         }
         
         private func commit() {
-            isFocused = false
             value = text
             text = value
             storeColor()

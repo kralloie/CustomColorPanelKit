@@ -9,9 +9,10 @@ import SwiftUI
 
 struct ScrollWheelMonitor: NSViewRepresentable {
     var onScroll: (CGPoint, NSEvent) -> Void
+    var storeColor: () -> Void
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(onScroll)
+        Coordinator(onScroll, storeColor)
     }
     
     func makeNSView(context: Context) -> some NSView {
@@ -19,14 +20,26 @@ struct ScrollWheelMonitor: NSViewRepresentable {
         context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
             let point = view.convert(event.locationInWindow, from: nil)
             context.coordinator.onScroll(point, event)
+            context.coordinator.historyTask?.cancel()
+            context.coordinator.historyTask = Task { @MainActor in
+                do {
+                    try await Task.sleep(for: .milliseconds(450))
+                    context.coordinator.storeColor()
+                } catch {}
+            }
             return event
         }
         return view
     }
     
-    func updateNSView(_ nsView: NSViewType, context: Context) { context.coordinator.onScroll = onScroll }
+    func updateNSView(_ nsView: NSViewType, context: Context) {
+        context.coordinator.onScroll = onScroll
+        context.coordinator.storeColor = storeColor
+    }
     
     static func dismantleNSView(_ nsView: NSViewType, coordinator: Coordinator) {
+        coordinator.historyTask?.cancel()
+        
         if let monitor = coordinator.monitor {
             NSEvent.removeMonitor(monitor)
         }
@@ -35,9 +48,12 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     final class Coordinator {
         var onScroll: (CGPoint, NSEvent) -> Void
         var monitor: Any?
+        var storeColor: () -> Void
+        var historyTask: Task<Void, Never>?
         
-        init(_ onScroll: @escaping (CGPoint, NSEvent) -> Void) {
+        init(_ onScroll: @escaping (CGPoint, NSEvent) -> Void, _ storeColor: @escaping () -> Void) {
             self.onScroll = onScroll
+            self.storeColor = storeColor
         }
     }
 }

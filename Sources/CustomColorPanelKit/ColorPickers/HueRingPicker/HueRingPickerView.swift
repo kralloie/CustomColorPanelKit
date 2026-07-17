@@ -47,7 +47,7 @@ public struct HueRingPickerView: View {
                         storeColor: storeColor
                     )
                     .positionIndicator(geometry: geometry)
-                    .hueRingScrollHandler(size: size, hue: $color.hue)
+                    .hueRingScrollHandler(size: size, hue: $color.hue, storeColor: { storeColor(color) })
                     .frame(width: size, height: size)
                     .frame(maxWidth: .infinity)
                     
@@ -73,7 +73,7 @@ public struct HueRingPickerView: View {
 // MARK: - View Modifiers
 
 private extension View {
-    func hueRingScrollHandler(size: CGFloat, hue: Binding<CGFloat>) -> some View {
+    func hueRingScrollHandler(size: CGFloat, hue: Binding<CGFloat>, storeColor: @escaping () -> Void) -> some View {
         background {
             ScrollWheelMonitor { point, event in
                 if point.x < 0 || point.y < 0 || point.x > size || point.y > size {
@@ -91,6 +91,8 @@ private extension View {
                 var newHue = (hue.wrappedValue + delta).truncatingRemainder(dividingBy: 1)
                 if newHue < 0 { newHue += 1 }
                 hue.wrappedValue = newHue
+            } storeColor: {
+                storeColor()
             }
         }
     }
