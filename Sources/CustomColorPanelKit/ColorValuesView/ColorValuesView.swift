@@ -10,17 +10,27 @@ import SwiftUI
 private enum Layout {
     static let panelWidth: CGFloat = 200
     static let panelInnerPadding: CGFloat = 20
-    static let panelOuterPadding: CGFloat = 10
-    static let panelCornerRadius: CGFloat = 16
+    static let panelOuterPadding: CGFloat = 6
+    static let panelCornerRadius: CGFloat = 12
 }
 
 struct ColorValuesView: View {
     @Binding var color: HSBAColor
     var colorHistory: ColorHistory
+    var alignment: Alignment
+    var oppositeAlignment: Alignment {
+        if alignment == .leading { .trailing } else { .leading }
+    }
     @State private var contentHeight: CGFloat = 0
-    @State private var hoveringEyedropper: Bool = false
     @State private var isOpen: Bool = true
-    @State private var isHoveringTogglePanel: Bool = false
+    @State private var panelWidth = Layout.panelWidth
+    
+    init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, colorHistory: ColorHistory) {
+        var alignment = alignment == .center ? .leading : alignment
+        self.alignment = Alignment(horizontal: alignment, vertical: .center)
+        _color = color
+        self.colorHistory = colorHistory
+    }
     
     private func storeColor() { colorHistory.add(color) }
     
@@ -54,17 +64,39 @@ struct ColorValuesView: View {
                     }
             }
         }
-        .frame(maxHeight: contentHeight == 0 ? .infinity : contentHeight)
-        .frame(width: isOpen ? Layout.panelWidth : 0)
+        .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
         .clipped()
         .padding(isOpen ? Layout.panelInnerPadding : 0)
         .background {
             RoundedRectangle(cornerRadius: Layout.panelCornerRadius)
-                .fill(.ultraThinMaterial)
+                .fill(.ultraThickMaterial)
                 .stroke(.gray.opacity(0.2), lineWidth: 1)
         }
-        .overlay(alignment: .leading, content: { togglePanelButton })
+        .overlay(alignment: oppositeAlignment) {
+            if isOpen {
+                Rectangle()
+                    .fill(.clear)
+                    .frame(width: 8)
+                    .contentShape(Rectangle())
+                    .onHover { hovering in
+                        if hovering {
+                            NSCursor.resizeLeftRight.push()
+                        } else {
+                            NSCursor.pop()
+                        }
+                    }
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                var direction = alignment == .trailing ? -value.translation.width : value.translation.width
+                                panelWidth += direction
+                                panelWidth = max(100, min(500, panelWidth))
+                            }
+                    )
+            }
+        }
+        .overlay(alignment: oppositeAlignment, content: { togglePanelButton(alignment: alignment, isOpen: $isOpen) })
         .padding(Layout.panelOuterPadding)
     }
 }
@@ -82,9 +114,6 @@ extension ColorValuesView {
             .overlay(alignment: .trailing) {
                 EyeDropperView(pickedColor: $color, storeColor: { colorHistory.add($0) })
                     .offset(x: 30)
-                    .onHover { hoveringEyedropper = $0 }
-                    .scaleEffect(hoveringEyedropper ? 1.05 : 1)
-                    .animation(.easeInOut(duration: 0.1), value: hoveringEyedropper)
             }
             .padding(.bottom, 10)
     }
@@ -141,26 +170,39 @@ extension ColorValuesView {
         }
     }
 
-    private var togglePanelButton: some View {
-        Image(systemName: isOpen ? "chevron.left" : "chevron.right")
-            .frame(width: 20, height: 20)
-            .background {
-                Circle()
-                    .fill(.thickMaterial)
-                    .stroke(.gray.opacity(0.2), lineWidth: 1)
+    private struct togglePanelButton: View {
+        var alignment: Alignment
+        @Binding var isOpen: Bool
+        @State private var isHoveringTogglePanel: Bool = false
+        var chevron: String {
+            if alignment == .trailing {
+                isOpen ? "chevron.left" : "chevron.right"
+            } else {
+                isOpen ? "chevron.right" : "chevron.left"
             }
-            .overlay {
-                Circle()
-                    .fill(isHoveringTogglePanel ? .gray.opacity(0.2) : .clear)
-            }
-            .offset(x: -10)
-            .onTapGesture {
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isOpen.toggle()
+        }
+        
+        var body: some View {
+            Image(systemName: chevron)
+                .frame(width: 20, height: 20)
+                .background {
+                    Circle()
+                        .fill(.thickMaterial)
+                        .stroke(.gray.opacity(0.2), lineWidth: 1)
                 }
-            }
-            .onHover { isHoveringTogglePanel = $0 }
-            .animation(.easeInOut(duration: 0.1), value: isHoveringTogglePanel)
+                .overlay {
+                    Circle()
+                        .fill(isHoveringTogglePanel ? .gray.opacity(0.2) : .clear)
+                }
+                .offset(x: alignment == .trailing ? -10 : 10)
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.1)) {
+                        isOpen.toggle()
+                    }
+                }
+                .onHover { isHoveringTogglePanel = $0 }
+                .animation(.easeInOut(duration: 0.1), value: isHoveringTogglePanel)
+        }
     }
     
     private struct ColorValueLabelView: View {
@@ -200,10 +242,11 @@ extension ColorValuesView {
             HStack {
                 Text(label)
                     .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.primary)
+                    .onTapGesture { isFocused.toggle() }
                 Spacer()
                 TextField("", text: $text)
-                    .monospaced()
+                    .foregroundColor(isFocused ? .primary : .secondary)
                     .multilineTextAlignment(.trailing)
                     .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
                     .onSubmit(submit)
@@ -278,7 +321,7 @@ extension ColorValuesView {
 }
 
 #Preview {
-    ColorValuesView(color: .constant(HSBAColor(with: .orange)), colorHistory: ColorHistory())
+    ColorValuesView(alignment: .trailing, color: .constant(HSBAColor(with: .orange)), colorHistory: ColorHistory())
         .frame(width: 200)
         .padding()
 }

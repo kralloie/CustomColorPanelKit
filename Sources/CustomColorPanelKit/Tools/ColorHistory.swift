@@ -10,19 +10,26 @@ import SwiftUI
 @Observable
 final class ColorHistory {
     var colors: [HSBAColor] = []
-    private let maxCapacity = 144
+    private let capacity = 144
     
-    init() { colors.reserveCapacity(maxCapacity) }
+    init() { colors.reserveCapacity(capacity) }
     
     func add(_ color: HSBAColor) {
-        if let index = colors.firstIndex(where: { $0.hex == color.hex }) {
+        var color = color
+        color.alpha = 1.0
+        
+        if let index = colors.firstIndex(of: color) {
             colors.remove(at: index)
         }
         
-        if colors.count == maxCapacity { colors.removeLast() }
+        if colors.count == capacity { colors.removeLast() }
         
-        var c = color
-        c.alpha = 1.0
-        colors.insert(c, at: 0)
+        colors.insert(color, at: 0)
+    }
+    
+    func delete(_ color: HSBAColor) {
+        if let index = colors.firstIndex(of: color) {
+            colors.remove(at: index)
+        }
     }
 }

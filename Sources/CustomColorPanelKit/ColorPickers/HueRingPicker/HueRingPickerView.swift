@@ -81,9 +81,7 @@ private extension View {
                 }
                 
                 let r = size * 0.5
-                let dx = point.x - r
-                let dy = point.y - r
-                let dist = hypot(dx, dy)
+                let dist = hypot(point.x - r, point.y - r)
                 if dist > r || dist < r * 0.75 { return }
                 
                 let delta = event.scrollingDeltaY > 0 ? GeometryConstants.hueStep: -GeometryConstants.hueStep
