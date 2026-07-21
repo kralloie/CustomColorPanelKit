@@ -14,25 +14,27 @@ public struct ColorPanelView: View {
     }
     @State var colorHistory = ColorHistory()
     var sidebarAligment: SidebarAlignment
+    var antialiasing: Bool
     
-    public init(_ c: Binding<Color>, sidebarAlignment: SidebarAlignment = .leading) {
+    public init(_ c: Binding<Color>, sidebarAlignment: SidebarAlignment = .leading, antialiasing: Bool = true) {
         self._colorBinding = c
         self.color = HSBAColor(with: c.wrappedValue)
         self.sidebarAligment = sidebarAlignment
+        self.antialiasing = antialiasing
     }
     
     public var body: some View {
         HStack(spacing: 0) {
             if sidebarAligment == .leading {
                 ColorValuesView(alignment: .leading, color: $color, colorHistory: colorHistory)
-                    .padding(8)
-                HueRingPickerView(color: $color, colorHistory: colorHistory)
+                
+                HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
                     .padding(8)
             } else {
-                HueRingPickerView(color: $color, colorHistory: colorHistory)
+                HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
                     .padding(8)
+                
                 ColorValuesView(alignment: .trailing, color: $color, colorHistory: colorHistory)
-                    .padding(8)
             }
         }
     }

@@ -18,7 +18,7 @@ final class ColorHistory {
         var color = color
         color.alpha = 1.0
         
-        if let index = colors.firstIndex(of: color) {
+        if let index = colors.firstIndex(where: { $0.hex == color.hex }) {
             colors.remove(at: index)
         }
         

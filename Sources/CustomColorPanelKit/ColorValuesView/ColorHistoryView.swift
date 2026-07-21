@@ -15,23 +15,21 @@ struct ColorHistoryView: View {
     
     private let colorSize: CGFloat = 10
     private let spacing: CGFloat = 4
-    private let columns: Int = 12
-    
-    private var frameSize: CGFloat {
-        CGFloat(columns) * (colorSize + spacing)
-    }
-    
-    private var gridItems: [GridItem] {
-        Array(repeating: GridItem(.fixed(colorSize), spacing: spacing), count: columns)
-    }
+    private let maxColumns: CGFloat = 12
+    private var maxWidth: CGFloat { maxColumns * colorSize + (maxColumns - 1) * spacing }
     
     var body: some View {
-        LazyVGrid(columns: gridItems, spacing: spacing) {
-            ForEach(0..<(columns * columns), id: \.self) { i in
+        LazyVGrid(
+            columns: [
+                GridItem(.adaptive(minimum: colorSize, maximum: colorSize), spacing: spacing)
+            ],
+            spacing: spacing
+        ) {
+            ForEach(0..<144, id: \.self) { i in
                 ColorHistoryEntry(color: $color, hoveredIndex: $hoveredIndex, index: i, colorSize: colorSize, colorHistory: colorHistory)
             }
         }
-        .frame(width: frameSize, height: frameSize)
+        .frame(maxWidth: maxWidth)
         .padding(.top, 16)
     }
 }
@@ -80,45 +78,15 @@ extension ColorHistoryView {
             Button("Select") { color = entryColor }
             
             Menu {
-                Button("HEX") {
-                    NSPasteboard.copy(String(format: "#%06X", color.hex))
-                }
+                Button("HEX") { NSPasteboard.copy(color.hexString) }
                 
-                Button("HSV") {
-                    NSPasteboard.copy(
-                        String(
-                            format: "hsv(%1$.0f°, %2$.0f%%, %3$.0f%%)",
-                            color.hue * 360, color.saturation * 100, color.brightness * 100
-                        )
-                    )
-                }
+                Button("HSV") { NSPasteboard.copy(color.hsvString) }
                 
-                Button("HSL") {
-                    NSPasteboard.copy(
-                        String(
-                            format: "hsl(%1$.0f°, %2$.0f%%, %3$.0f%%)",
-                            color.hue * 360, color.hsl.saturation * 100, color.hsl.lightness * 100
-                        )
-                    )
-                }
+                Button("HSL") { NSPasteboard.copy(color.hslString) }
                 
-                Button("RGB") {
-                    NSPasteboard.copy(
-                        String(
-                            format: "rgb(%1$.0f, %2$.0f, %3$.0f)",
-                            color.rgb.red * 255, color.rgb.green * 255, color.rgb.blue * 255
-                        )
-                    )
-                }
+                Button("RGB") { NSPasteboard.copy(color.rgbString) }
                 
-                Button("CMYK") {
-                    NSPasteboard.copy(
-                        String(
-                            format: "cmyk(%1$.0f%%, %2$.0f%%, %3$.0f%%, %4$.0f%%)",
-                            color.cmyk.cyan * 100, color.cmyk.magenta * 100, color.cmyk.yellow * 100, color.cmyk.key * 100
-                        )
-                    )
-                }
+                Button("CMYK") { NSPasteboard.copy(color.cmykString) }
                 
             } label: {
                 Label("Copy As", systemImage: "doc.on.doc")

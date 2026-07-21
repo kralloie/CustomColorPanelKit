@@ -14,6 +14,13 @@ public struct HSBAColor: Equatable, Hashable {
     var brightness: CGFloat
     var alpha: CGFloat
     
+    var hsvString: String {
+        String(
+            format: "%1$.0f°, %2$.0f%%, %3$.0f%%",
+            hue * 360, saturation * 100, brightness * 100
+        )
+    }
+    
     var color: Color {
         Color(hue: hue, saturation: saturation, brightness: brightness, opacity: alpha)
     }
@@ -45,6 +52,13 @@ public struct HSBAColor: Equatable, Hashable {
         }
     }
     
+    var rgbString: String {
+        String(
+            format: "%1$.0f, %2$.0f, %3$.0f",
+            rgb.red * 255, rgb.green * 255, rgb.blue * 255
+        )
+    }
+    
     var hex: UInt32 {
         get {
             let r = UInt32((rgb.red * 255).rounded())
@@ -62,6 +76,10 @@ public struct HSBAColor: Equatable, Hashable {
             let color = Color(red: r, green: g, blue: b)
             self = HSBAColor(with: color)
         }
+    }
+    
+    var hexString: String {
+        String(format: "#%06X", hex)
     }
     
     var hsl: HSL {
@@ -86,6 +104,13 @@ public struct HSBAColor: Equatable, Hashable {
             self.brightness = brightness
         }
     }
+    
+    var hslString: String {
+        String(
+            format: "%1$.0f°, %2$.0f%%, %3$.0f%%",
+            hue * 360, hsl.saturation * 100, hsl.lightness * 100
+        )
+    }
 
     var cmyk: CMYK {
         get {
@@ -105,6 +130,13 @@ public struct HSBAColor: Equatable, Hashable {
             let color = Color(red: r, green: g, blue: b)
             self = HSBAColor(with: color)
         }
+    }
+    
+    var cmykString: String {
+        String(
+            format: "%1$.0f%%, %2$.0f%%, %3$.0f%%, %4$.0f%%",
+            cmyk.cyan * 100, cmyk.magenta * 100, cmyk.yellow * 100, cmyk.key * 100
+        )
     }
     
     public init(with color: Color) {

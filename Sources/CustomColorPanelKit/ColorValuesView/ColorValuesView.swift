@@ -10,8 +10,7 @@ import SwiftUI
 private enum Layout {
     static let panelWidth: CGFloat = 200
     static let panelInnerPadding: CGFloat = 20
-    static let panelOuterPadding: CGFloat = 6
-    static let panelCornerRadius: CGFloat = 12
+    static let panelOuterPadding: CGFloat = 8
 }
 
 struct ColorValuesView: View {
@@ -24,6 +23,7 @@ struct ColorValuesView: View {
     @State private var contentHeight: CGFloat = 0
     @State private var isOpen: Bool = true
     @State private var panelWidth = Layout.panelWidth
+    @State private var dragStartWidth: CGFloat? = nil
     
     init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, colorHistory: ColorHistory) {
         var alignment = alignment == .center ? .leading : alignment
@@ -41,19 +41,18 @@ struct ColorValuesView: View {
                 
                 hexValue
                 
-                hsvValues
-                
-                hslValues
-
-                rgbValues
-                
-                cmykValues
-                
                 opacityValue
                 
-                Divider()
+                ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: hsvValues)
+                
+                ColorDisclosureGroup(title: "HSL", value: color.hslString, content: hslValues)
+                
+                ColorDisclosureGroup(title: "RGB", value: color.rgbString, content: rgbValues)
+                
+                ColorDisclosureGroup(title: "CMYK", value: color.cmykString, content: cmykValues)
                 
                 ColorHistoryView(color: $color, colorHistory: colorHistory)
+                
             }
             .background {
                 Color.clear
@@ -63,48 +62,69 @@ struct ColorValuesView: View {
                         contentHeight = $0
                     }
             }
+            .frame(width: panelWidth)
         }
         .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
         .clipped()
         .padding(isOpen ? Layout.panelInnerPadding : 0)
         .background {
-            RoundedRectangle(cornerRadius: Layout.panelCornerRadius)
-                .fill(.ultraThickMaterial)
-                .stroke(.gray.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.regularMaterial)
+                .stroke(.separator, lineWidth: 1)
         }
         .overlay(alignment: oppositeAlignment) {
-            if isOpen {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(width: 8)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        if hovering {
-                            NSCursor.resizeLeftRight.push()
-                        } else {
-                            NSCursor.pop()
-                        }
-                    }
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                var direction = alignment == .trailing ? -value.translation.width : value.translation.width
-                                panelWidth += direction
-                                panelWidth = max(100, min(500, panelWidth))
-                            }
-                    )
-            }
+            dragHandle
         }
-        .overlay(alignment: oppositeAlignment, content: { togglePanelButton(alignment: alignment, isOpen: $isOpen) })
-        .padding(Layout.panelOuterPadding)
+        .overlay(alignment: oppositeAlignment) {
+            togglePanelButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
+        }
+        .padding(isOpen ? Layout.panelOuterPadding : 0)
     }
 }
 
 extension ColorValuesView {
+    private var dragHandle: some View {
+        Rectangle()
+            .fill(.clear)
+            .frame(width: 4)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                guard dragStartWidth == nil else { return }
+                if hovering {
+                    NSCursor.resizeLeftRight.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                    .onChanged { value in
+                        if dragStartWidth == nil { dragStartWidth = panelWidth }
+                        var delta = alignment == .trailing
+                        ? -(value.location.x - value.startLocation.x)
+                        : (value.location.x - value.startLocation.x)
+                        
+                        let newWidth = (dragStartWidth ?? panelWidth) + delta
+                        
+                        panelWidth = min(500, max(newWidth, 0))
+                        
+                        if isOpen && panelWidth < 40 {
+                            isOpen = false
+                        } else if !isOpen && panelWidth > 60 {
+                            isOpen = true
+                        }
+                    }
+                    .onEnded { _ in
+                        dragStartWidth = nil
+                        NSCursor.pop()
+                    }
+            )
+    }
+    
     private var colorPreview: some View {
         ColorExample(color: color)
-            .frame(width: 80, height: 80)
+            .frame(width: min(panelWidth * 0.8, 80), height: min(panelWidth * 0.8, 80))
             .background(CheckerboardView())
             .overlay {
                 RoundedRectangle(cornerRadius: 6)
@@ -119,9 +139,8 @@ extension ColorValuesView {
     }
     
     private var hexValue: some View {
-        section {
-            ColorValueLabelView(label: "HEX", value: $color.hex, inputType: .hex, storeColor: storeColor)
-        }
+        ColorValueLabelView(label: "HEX", value: $color.hex, inputType: .hex, storeColor: storeColor)
+            .padding(.horizontal, 4)
     }
     
     private var hsvValues: some View {
@@ -158,21 +177,21 @@ extension ColorValuesView {
     }
     
     private var opacityValue: some View {
-        section {
-            ColorValueLabelView(label: "Opacity", value: $color.alpha, inputType: .percentage)
-        }
+        ColorValueLabelView(label: "Opacity", value: $color.alpha, inputType: .percentage)
+            .padding(.horizontal, 4)
     }
     
     private func section<Content: View> (@ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 4) {
-            Divider()
+        VStack(spacing: 3) {
             content()
+                .padding(.horizontal, 4)
         }
     }
 
     private struct togglePanelButton: View {
         var alignment: Alignment
         @Binding var isOpen: Bool
+        @Binding var panelWidth: CGFloat
         @State private var isHoveringTogglePanel: Bool = false
         var chevron: String {
             if alignment == .trailing {
@@ -181,6 +200,7 @@ extension ColorValuesView {
                 isOpen ? "chevron.right" : "chevron.left"
             }
         }
+        var offset: CGFloat { isOpen ? 10 : 25}
         
         var body: some View {
             Image(systemName: chevron)
@@ -194,8 +214,11 @@ extension ColorValuesView {
                     Circle()
                         .fill(isHoveringTogglePanel ? .gray.opacity(0.2) : .clear)
                 }
-                .offset(x: alignment == .trailing ? -10 : 10)
+                .offset(x: alignment == .trailing ? -offset : offset)
                 .onTapGesture {
+                    if !isOpen {
+                        panelWidth = 200
+                    }
                     withAnimation(.easeInOut(duration: 0.1)) {
                         isOpen.toggle()
                     }
@@ -241,23 +264,23 @@ extension ColorValuesView {
         var body: some View {
             HStack {
                 Text(label)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .onTapGesture { isFocused.toggle() }
+                
                 Spacer()
+                
                 TextField("", text: $text)
-                    .foregroundColor(isFocused ? .primary : .secondary)
-                    .multilineTextAlignment(.trailing)
+                    .multilineTextAlignment(.leading)
                     .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
                     .onSubmit(submit)
                     .onExitCommand(perform: cancel)
-                    .textFieldStyle(.plain)
                     .focused($isFocused)
                     .onChange(of: value, perform: updateText)
                     .onChange(of: isFocused, perform: blur)
                     .onHover { isHovering = $0 }
                     .background(ScrollWheelMonitor(onScroll: handleScroll, storeColor: storeColor))
-                    .frame(width: 75)
+                    .frame(width: inputType == .hex ? 80 : 50)
             }
         }
         
@@ -315,6 +338,31 @@ extension ColorValuesView {
             if isFocused {
                 text = value
                 isFocused = false
+            }
+        }
+    }
+    
+    private struct ColorDisclosureGroup<Content: View>: View {
+        @State private var isOpen: Bool = false
+        let title: String
+        let value: String
+        var content: Content
+        
+        var body: some View {
+            HStack {
+                Image(systemName: isOpen ? "chevron.down" : "chevron.right")
+                    .frame(width: 15, height: 10)
+                    .bold()
+                Text(title)
+                    .fontWeight(.bold)
+                Spacer()
+                Text(!isOpen ? value : "")
+            }
+            .onTapGesture { isOpen.toggle() }
+            .padding(.top, 8)
+            
+            if isOpen {
+                content
             }
         }
     }
