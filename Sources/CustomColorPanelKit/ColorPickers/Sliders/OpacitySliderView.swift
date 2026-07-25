@@ -26,7 +26,7 @@ struct OpacitySliderView: View {
                     
                     positionIndicator(position: width - (color.alpha * width))
                 }
-                .background(ScrollWheelMonitor(onScroll: handleScroll, storeColor: {}))
+                .background(ScrollWheelMonitor(isHovering: isHovering, onScroll: handleScroll, storeColor: {}))
                 .background(CheckerboardView())
                 .onHover { isHovering = $0 }
         }
