@@ -8,16 +8,18 @@
 import SwiftUI
 
 struct ScrollWheelMonitor: NSViewRepresentable {
+    var isHovering: Bool
     var onScroll: (CGPoint, NSEvent) -> Void
     var storeColor: () -> Void
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(onScroll, storeColor)
+        Coordinator(isHovering: isHovering, onScroll, storeColor)
     }
     
     func makeNSView(context: Context) -> some NSView {
         let view = NSView(frame: .zero)
         context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+            guard context.coordinator.isHovering else { return event }
             let point = view.convert(event.locationInWindow, from: nil)
             context.coordinator.onScroll(point, event)
             context.coordinator.historyTask?.cancel()
@@ -27,7 +29,7 @@ struct ScrollWheelMonitor: NSViewRepresentable {
                     context.coordinator.storeColor()
                 } catch {}
             }
-            return event
+            return nil
         }
         return view
     }
@@ -35,6 +37,7 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     func updateNSView(_ nsView: NSViewType, context: Context) {
         context.coordinator.onScroll = onScroll
         context.coordinator.storeColor = storeColor
+        context.coordinator.isHovering = isHovering
     }
     
     static func dismantleNSView(_ nsView: NSViewType, coordinator: Coordinator) {
@@ -46,12 +49,14 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     }
     
     final class Coordinator {
+        var isHovering: Bool
         var onScroll: (CGPoint, NSEvent) -> Void
         var monitor: Any?
         var storeColor: () -> Void
         var historyTask: Task<Void, Never>?
         
-        init(_ onScroll: @escaping (CGPoint, NSEvent) -> Void, _ storeColor: @escaping () -> Void) {
+        init(isHovering: Bool, _ onScroll: @escaping (CGPoint, NSEvent) -> Void, _ storeColor: @escaping () -> Void) {
+            self.isHovering = isHovering
             self.onScroll = onScroll
             self.storeColor = storeColor
         }
