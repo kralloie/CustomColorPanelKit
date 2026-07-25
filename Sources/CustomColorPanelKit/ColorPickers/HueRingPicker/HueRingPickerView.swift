@@ -24,6 +24,7 @@ public struct HueRingPickerView: View {
     let antialiasing: Bool
     let hueRotation: Bool
     let colorHistory: ColorHistory
+    @State private var isHoveringRing: Bool = false
     
     init(color: Binding<HSBAColor>, antialiasing: Bool = true, hueRotation: Bool = true, colorHistory: ColorHistory) {
         self._color = color
@@ -47,9 +48,10 @@ public struct HueRingPickerView: View {
                         storeColor: storeColor
                     )
                     .positionIndicator(geometry: geometry)
-                    .hueRingScrollHandler(size: size, hue: $color.hue, storeColor: { storeColor(color) })
+                    .hueRingScrollHandler(isHovering: isHoveringRing, size: size, hue: $color.hue, storeColor: { storeColor(color) })
                     .frame(width: size, height: size)
                     .frame(maxWidth: .infinity)
+                    .onHover { isHoveringRing = $0 }
                     
                     HSBTriangle(
                         color: $color,
@@ -73,9 +75,9 @@ public struct HueRingPickerView: View {
 // MARK: - View Modifiers
 
 private extension View {
-    func hueRingScrollHandler(size: CGFloat, hue: Binding<CGFloat>, storeColor: @escaping () -> Void) -> some View {
+    func hueRingScrollHandler(isHovering: Bool, size: CGFloat, hue: Binding<CGFloat>, storeColor: @escaping () -> Void) -> some View {
         background {
-            ScrollWheelMonitor { point, event in
+            ScrollWheelMonitor(isHovering: isHovering) { point, event in
                 if point.x < 0 || point.y < 0 || point.x > size || point.y > size {
                     return
                 }
