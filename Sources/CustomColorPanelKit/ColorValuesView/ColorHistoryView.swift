@@ -30,6 +30,12 @@ struct ColorHistoryView: View {
             }
         }
         .frame(maxWidth: maxWidth)
+        .padding(8)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.background)
+                .stroke(.separator, lineWidth: 1)
+        }
         .padding(.top, 16)
     }
 }
@@ -48,6 +54,7 @@ extension ColorHistoryView {
                 let isHovering = hoveredIndex == index
                 RoundedRectangle(cornerRadius: 2)
                     .fill(c.color)
+                    .stroke(Color.accentColor, lineWidth: isHovering ? 1 : 0)
                     .frame(width: colorSize, height: colorSize)
                     .onHover { hovering in hoveredIndex = hovering ? index : nil }
                     .onTapGesture {
@@ -61,7 +68,7 @@ extension ColorHistoryView {
                     .contextMenu{ ColorEntryContextMenu(color: $color, entryColor: c, colorHistory: colorHistory) }
             } else {
                 RoundedRectangle(cornerRadius: 2)
-                    .stroke(.gray.opacity(0.2), lineWidth: 1)
+                    .stroke(.separator, lineWidth: 1)
                     .frame(width: colorSize, height: colorSize)
             }
         }
@@ -82,11 +89,11 @@ extension ColorHistoryView {
                 
                 Button("HSV") { NSPasteboard.copy(color.hsvString) }
                 
-                Button("HSL") { NSPasteboard.copy(color.hslString) }
+                Button("HSL") { NSPasteboard.copy(color.hsl.string) }
                 
-                Button("RGB") { NSPasteboard.copy(color.rgbString) }
+                Button("RGB") { NSPasteboard.copy(color.rgb.string) }
                 
-                Button("CMYK") { NSPasteboard.copy(color.cmykString) }
+                Button("CMYK") { NSPasteboard.copy(color.cmyk.string) }
                 
             } label: {
                 Label("Copy As", systemImage: "doc.on.doc")

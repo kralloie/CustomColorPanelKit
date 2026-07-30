@@ -8,9 +8,10 @@
 import SwiftUI
 
 private enum Layout {
-    static let panelWidth: CGFloat = 200
-    static let panelInnerPadding: CGFloat = 20
+    static let panelWidth: CGFloat = 230
+    static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
+    static let sidebarCornerRadius: CGFloat = 12
 }
 
 struct ColorValuesView: View {
@@ -20,13 +21,12 @@ struct ColorValuesView: View {
     var oppositeAlignment: Alignment {
         if alignment == .leading { .trailing } else { .leading }
     }
-    @State private var contentHeight: CGFloat = 0
     @State private var isOpen: Bool = true
     @State private var panelWidth = Layout.panelWidth
     @State private var dragStartWidth: CGFloat? = nil
     
     init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, colorHistory: ColorHistory) {
-        var alignment = alignment == .center ? .leading : alignment
+        let alignment = alignment == .center ? .leading : alignment
         self.alignment = Alignment(horizontal: alignment, vertical: .center)
         _color = color
         self.colorHistory = colorHistory
@@ -39,37 +39,27 @@ struct ColorValuesView: View {
             VStack(spacing: 4) {
                 colorPreview
                 
-                hexValue
-                
-                opacityValue
+                hexAndAlphaValues
                 
                 ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: hsvValues)
                 
-                ColorDisclosureGroup(title: "HSL", value: color.hslString, content: hslValues)
+                ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: hslValues)
                 
-                ColorDisclosureGroup(title: "RGB", value: color.rgbString, content: rgbValues)
+                ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: rgbValues)
                 
-                ColorDisclosureGroup(title: "CMYK", value: color.cmykString, content: cmykValues)
+                ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: cmykValues)
                 
                 ColorHistoryView(color: $color, colorHistory: colorHistory)
                 
             }
-            .background {
-                Color.clear
-                    .onGeometryChange(for: CGFloat.self) {
-                        $0.size.height
-                    } action: {
-                        contentHeight = $0
-                    }
-            }
+            .padding(Layout.panelInnerPadding)
             .frame(width: panelWidth)
         }
         .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
         .clipped()
-        .padding(isOpen ? Layout.panelInnerPadding : 0)
         .background {
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: Layout.sidebarCornerRadius)
                 .fill(.regularMaterial)
                 .stroke(.separator, lineWidth: 1)
         }
@@ -77,7 +67,7 @@ struct ColorValuesView: View {
             dragHandle
         }
         .overlay(alignment: oppositeAlignment) {
-            togglePanelButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
+            TogglePanelButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
         }
         .padding(isOpen ? Layout.panelOuterPadding : 0)
     }
@@ -101,7 +91,7 @@ extension ColorValuesView {
                 DragGesture(minimumDistance: 0, coordinateSpace: .global)
                     .onChanged { value in
                         if dragStartWidth == nil { dragStartWidth = panelWidth }
-                        var delta = alignment == .trailing
+                        let delta = alignment == .trailing
                         ? -(value.location.x - value.startLocation.x)
                         : (value.location.x - value.startLocation.x)
                         
@@ -128,7 +118,7 @@ extension ColorValuesView {
             .background(CheckerboardView())
             .overlay {
                 RoundedRectangle(cornerRadius: 6)
-                    .stroke(.tertiary, lineWidth: 2)
+                    .stroke(.separator, lineWidth: 2)
             }
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(alignment: .trailing) {
@@ -138,47 +128,84 @@ extension ColorValuesView {
             .padding(.bottom, 10)
     }
     
-    private var hexValue: some View {
-        ColorValueLabelView(label: "HEX", value: $color.hex, inputType: .hex, storeColor: storeColor)
-            .padding(.horizontal, 4)
+    private var hexAndAlphaValues: some View {
+        @ViewBuilder var fields: some View {
+            HStack {
+                Text("HEX:")
+                    .lineLimit(1)
+                    .bold()
+                ColorComponentField(value: $color.hex, inputType: .hex, storeColor: storeColor)
+            }
+            HStack {
+                Text("Alpha:")
+                    .lineLimit(1)
+                    .bold()
+                ColorComponentField(value: $color.alpha, inputType: .percentage)
+            }
+        }
+        return ViewThatFits(in: .horizontal) {
+            HStack { fields }
+            VStack { fields }
+        }
     }
     
     private var hsvValues: some View {
         section {
-            ColorValueLabelView(label: "H", value: $color.hue, inputType: .degrees, storeColor: storeColor)
-            ColorValueLabelView(label: "S", value: $color.saturation, inputType: .percentage, storeColor: storeColor)
-            ColorValueLabelView(label: "V", value: $color.brightness, inputType: .percentage, storeColor: storeColor)
+            ColorComponentFieldContainer(component: "H") {
+                ColorComponentField(value: $color.hue, inputType: .degrees, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "S") {
+                ColorComponentField(value: $color.saturation, inputType: .percentage, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "V") {
+                ColorComponentField(value: $color.brightness, inputType: .percentage, storeColor: storeColor)
+            }
         }
     }
     
     private var hslValues: some View {
         section {
-            ColorValueLabelView(label: "H", value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
-            ColorValueLabelView(label: "S", value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
-            ColorValueLabelView(label: "L", value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
+            ColorComponentFieldContainer(component: "H") {
+                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "S") {
+                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "L") {
+                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
+            }
         }
     }
     
     private var rgbValues: some View {
         section {
-            ColorValueLabelView(label: "R", value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
-            ColorValueLabelView(label: "G", value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
-            ColorValueLabelView(label: "B", value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
+            ColorComponentFieldContainer(component: "R") {
+                ColorComponentField(value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "G") {
+                ColorComponentField(value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "B") {
+                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
+            }
         }
     }
     
     private var cmykValues: some View {
         section {
-            ColorValueLabelView(label: "C", value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
-            ColorValueLabelView(label: "M", value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
-            ColorValueLabelView(label: "Y", value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
-            ColorValueLabelView(label: "K", value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
+            ColorComponentFieldContainer(component: "C") {
+                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "M") {
+                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "Y") {
+                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
+            }
+            ColorComponentFieldContainer(component: "K") {
+                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
+            }
         }
-    }
-    
-    private var opacityValue: some View {
-        ColorValueLabelView(label: "Opacity", value: $color.alpha, inputType: .percentage)
-            .padding(.horizontal, 4)
     }
     
     private func section<Content: View> (@ViewBuilder content: () -> Content) -> some View {
@@ -187,9 +214,22 @@ extension ColorValuesView {
                 .padding(.horizontal, 4)
         }
     }
+    
+    private struct ColorComponentFieldContainer<Content: View>: View {
+        let component: String
+        @ViewBuilder let componentField: () -> Content
+        var body: some View {
+            HStack {
+                Spacer()
+                Text("\(component):")
+                    .lineLimit(1)
+                componentField()
+            }
+        }
+    }
 
-    private struct togglePanelButton: View {
-        var alignment: Alignment
+    private struct TogglePanelButton: View {
+        let alignment: Alignment
         @Binding var isOpen: Bool
         @Binding var panelWidth: CGFloat
         @State private var isHoveringTogglePanel: Bool = false
@@ -228,59 +268,62 @@ extension ColorValuesView {
         }
     }
     
-    private struct ColorValueLabelView: View {
-        let label: String
-        let inputType: InputType
+    private struct ColorComponentField<T: ColorComponentNumeric>: View {
         @Binding var value: String
+        @Binding var valueBinding: T
+        
         @State private var text: String
-        let storeColor: () -> Void
-        @FocusState private var isFocused: Bool
         @State private var isHovering: Bool = false
+        @FocusState private var isFocused: Bool
         
-        init(label: String, value: Binding<CGFloat>, inputType: InputType, storeColor: @escaping () -> Void = {}) {
-            let valueStr = inputType.format(value.wrappedValue)
-            self.label = label
+        let inputType: InputType
+        let storeColor: () -> Void
+        
+        init(value: Binding<T>, inputType: InputType, storeColor: @escaping () -> Void = {}) {
             self.inputType = inputType
             self._value = Binding(
-                get: { inputType.format(value.wrappedValue) },
-                set: { value.wrappedValue = inputType.normalize($0) }
+                get: { inputType.format(value.wrappedValue.cgFloatValue) },
+                set: { value.wrappedValue = T(value: inputType.normalize($0)) }
             )
+            self._valueBinding = value
             self.storeColor = storeColor
-            self._text = .init(initialValue: valueStr)
-        }
-        
-        init(label: String, value: Binding<UInt32>, inputType: InputType, storeColor: @escaping () -> Void) {
-            let valueStr = inputType.format(value.wrappedValue)
-            self.label = label
-            self.inputType = inputType
-            self._value = Binding(
-                get: { String(format: inputType.format, value.wrappedValue) },
-                set: { value.wrappedValue = UInt32(inputType.normalize($0)) }
-            )
-            self.storeColor = storeColor
-            self._text = .init(initialValue: valueStr)
+            self._text = .init(initialValue: inputType.format(value.wrappedValue.cgFloatValue))
         }
         
         var body: some View {
-            HStack {
-                Text(label)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                    .onTapGesture { isFocused.toggle() }
-                
-                Spacer()
-                
+            HStack(spacing: 0) {
                 TextField("", text: $text)
                     .multilineTextAlignment(.leading)
                     .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
-                    .onSubmit(submit)
-                    .onExitCommand(perform: cancel)
+                    .onSubmit(submitText)
+                    .onExitCommand(perform: cancelField)
                     .focused($isFocused)
                     .onChange(of: value, perform: updateText)
-                    .onChange(of: isFocused, perform: blur)
+                    .onChange(of: isFocused, perform: blurField)
                     .onHover { isHovering = $0 }
-                    .background(ScrollWheelMonitor(onScroll: handleScroll, storeColor: storeColor))
-                    .frame(width: inputType == .hex ? 80 : 50)
+                    .background {
+                        if inputType != .hex {
+                            ScrollWheelMonitor(isHovering: isHovering, onScroll: handleScroll, storeColor: storeColor)
+                        }
+                    }
+                    .frame(width: inputType == .hex ? 70 : 50)
+                
+                if inputType != .hex { stepper }
+            }
+        }
+        
+        private var stepper: some View {
+            Stepper(
+                onIncrement: {
+                    stepValue(by: 1)
+                    if !isFocused { storeColor() }
+                },
+                onDecrement: {
+                    stepValue(by: -1)
+                    if !isFocused { storeColor() }
+                }
+            ) {
+                Text("")
             }
         }
         
@@ -293,16 +336,15 @@ extension ColorValuesView {
             guard !(inputType == .hex) else { return .handled }
             guard isFocused else { return .handled }
             
-            var step = press.key == .upArrow ? 1.0 : -1.0
+            let step = press.key == .upArrow ? 1.0 : -1.0
             if press.modifiers.contains([.command]) {
                 let normalizedValue = (step + 1) * 0.5
                 text = inputType.format(normalizedValue)
                 return .handled
             }
             
-            var current = inputType.normalize(text) * CGFloat(inputType.multiplier)
-            current = inputType.normalize(String(format: inputType.format, current + step))
-            text = inputType.format(current)
+            let newValue = increaseValue(inputType.normalize(text), by: step)
+            text = inputType.format(newValue)
             
             return .handled
         }
@@ -310,34 +352,51 @@ extension ColorValuesView {
         private func handleScroll(_: CGPoint, event: NSEvent) {
             guard inputType != .hex else { return }
             guard isHovering else { return }
-            let step = event.scrollingDeltaY > 0 ? 1.0 : -1.0
-            
-            var current = inputType.normalize(text) * CGFloat(inputType.multiplier)
-            current = inputType.normalize(String(format: inputType.format, current + step))
-            value = inputType.format(current)
+            let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
+            stepValue(by: delta)
         }
         
-        private func blur(isFocused: Bool) {
+        private func blurField(isFocused: Bool) {
             if !isFocused && inputType.parse(text) != inputType.parse(value) {
-                commit()
+                commitColor()
             }
         }
         
-        private func submit() {
-            commit()
+        private func submitText() {
+            commitColor()
             isFocused = false
         }
         
-        private func commit() {
+        private func commitColor() {
             value = text
             text = value
             storeColor()
         }
         
-        private func cancel() {
+        private func cancelField() {
             if isFocused {
                 text = value
                 isFocused = false
+            }
+        }
+        
+        private func increaseValue(_ value: CGFloat, by step: CGFloat) -> CGFloat {
+            let steppedValue = (value + step / CGFloat(inputType.multiplier))
+            if inputType == .degrees {
+                let value = steppedValue.truncatingRemainder(dividingBy: 1)
+                return value < 0 ? value + 1 : value
+            } else {
+                return steppedValue.clamped(to: 0...1)
+            }
+        }
+        
+        private func stepValue(by amount: CGFloat) {
+            if isFocused {
+                let newValue = increaseValue(inputType.normalize(text), by: amount)
+                text = inputType.format(newValue)
+            } else {
+                let newValue = increaseValue(valueBinding.cgFloatValue, by: amount)
+                valueBinding = T(value: newValue)
             }
         }
     }
@@ -349,20 +408,22 @@ extension ColorValuesView {
         var content: Content
         
         var body: some View {
-            HStack {
-                Image(systemName: isOpen ? "chevron.down" : "chevron.right")
-                    .frame(width: 15, height: 10)
-                    .bold()
-                Text(title)
-                    .fontWeight(.bold)
-                Spacer()
-                Text(!isOpen ? value : "")
-            }
-            .onTapGesture { isOpen.toggle() }
-            .padding(.top, 8)
-            
-            if isOpen {
-                content
+            VStack(spacing: 0) {
+                HStack {
+                    Image(systemName: isOpen ? "chevron.down" : "chevron.right")
+                        .frame(width: 15, height: 10)
+                        .bold()
+                    Text("\(title):")
+                        .lineLimit(1)
+                        .fontWeight(.bold)
+                    Spacer()
+                    Text(!isOpen ? value : "")
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { isOpen.toggle() }
+                .padding(.top, 8)
+                
+                if isOpen { content }
             }
         }
     }

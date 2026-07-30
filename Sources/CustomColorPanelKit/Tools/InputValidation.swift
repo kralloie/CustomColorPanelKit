@@ -30,32 +30,22 @@ enum InputType {
     }
     
     func format(_ value: CGFloat) -> String {
+        if self == .hex {
+            return String(format: format, UInt32(value))
+        }
         var v = value * CGFloat(multiplier)
         if self == .degrees { v = min(v, 359) }
         return String(format: format, v)
     }
     
-    func format(_ value: UInt32) -> String {
-        return String(format: format, value)
-    }
-    
     func parse(_ text: String) -> Int? {
         switch self {
-        case .degrees:
-            guard let match = text.firstMatch(of: /^(-?\d+)°?$/) else { return nil }
-            return Int(match.1)
-
-        case .percentage:
-            guard let match = text.firstMatch(of: /^(-?\d+)%?$/) else { return nil }
-            return Int(match.1)
-
-        case .numerical:
-            guard let match = text.firstMatch(of: /^(-?\d+)$/) else { return nil }
-            return Int(match.1)
-
         case .hex:
             guard let match = text.firstMatch(of: /^#?([0-9A-Fa-f]{6})$/) else { return nil }
             return Int(match.1, radix: 16)
+        default:
+            guard let match = text.firstMatch(of: /^(-?\d+)[%°]?$/) else { return nil }
+            return Int(match.1)
         }
     }
     
