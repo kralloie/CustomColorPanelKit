@@ -12,10 +12,10 @@ struct HSBTriangle: NSViewRepresentable {
     @Binding var color: HSBAColor
     var antialiasing: Bool
     var hueRotation: Bool
-    var storeColor: (HSBAColor) -> Void
+    var storeColor: () -> Void
     
     func makeCoordinator() -> HSBTriangleCoordinator {
-        HSBTriangleCoordinator(color: color, antialiasing: antialiasing, hueRotation: hueRotation, storeColor: { storeColor(color) }) { brightness, saturation in
+        HSBTriangleCoordinator(color: color, antialiasing: antialiasing, hueRotation: hueRotation, storeColor: storeColor) { brightness, saturation in
             color.brightness = brightness
             color.saturation = saturation
         }

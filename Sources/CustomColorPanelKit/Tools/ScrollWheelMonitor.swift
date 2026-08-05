@@ -9,8 +9,14 @@ import SwiftUI
 
 struct ScrollWheelMonitor: NSViewRepresentable {
     var isHovering: Bool
-    var onScroll: (CGPoint, NSEvent) -> Void
     var storeColor: () -> Void
+    var onScroll: (CGPoint, NSEvent) -> Void
+    
+    init(isHovering: Bool, storeColor: @escaping () -> Void = {}, onScroll: @escaping (CGPoint, NSEvent) -> Void) {
+        self.isHovering = isHovering
+        self.storeColor = storeColor
+        self.onScroll = onScroll
+    }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(isHovering: isHovering, onScroll, storeColor)
@@ -35,9 +41,9 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: NSViewType, context: Context) {
-        context.coordinator.onScroll = onScroll
-        context.coordinator.storeColor = storeColor
         context.coordinator.isHovering = isHovering
+        context.coordinator.storeColor = storeColor
+        context.coordinator.onScroll = onScroll
     }
     
     static func dismantleNSView(_ nsView: NSViewType, coordinator: Coordinator) {

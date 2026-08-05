@@ -7,12 +7,25 @@
 
 import SwiftUI
 
+enum PickerMode: Int, CaseIterable {
+    case hueRing, hsvSquare, hsvSphere
+    
+    var string: String {
+        switch self {
+            case .hueRing: return "Hue Ring"
+            case .hsvSquare: return "HSV Square"
+            case .hsvSphere: return "HSV Sphere"
+        }
+    }
+}
+
 public struct ColorPanelView: View {
     @Binding var colorBinding: Color
     @State var color: HSBAColor {
         didSet { colorBinding = color.color }
     }
     @State var colorHistory = ColorHistory()
+    @State var pickerMode: PickerMode = .hsvSquare
     var sidebarAligment: SidebarAlignment
     var antialiasing: Bool
     
@@ -26,22 +39,33 @@ public struct ColorPanelView: View {
     public var body: some View {
         HStack(spacing: 0) {
             if sidebarAligment == .leading {
-                ColorValuesView(alignment: .leading, color: $color, colorHistory: colorHistory)
+                ColorValuesView(alignment: .leading, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
                 
-                HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
-                    .padding(8)
+                switch pickerMode {
+                case .hueRing:
+                    HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
+                case .hsvSquare:
+                    HSVSquarePickerView(color: $color, colorHistory: colorHistory, sidebarAlignment: sidebarAligment)
+                case .hsvSphere:
+                    HSVSpherePickerView(color: $color, colorHistory: colorHistory, antialiasing: antialiasing)
+                }
+                
             } else {
-                HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
-                    .padding(8)
+                switch pickerMode {
+                case .hueRing:
+                    HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
+                case .hsvSquare:
+                    HSVSquarePickerView(color: $color, colorHistory: colorHistory, sidebarAlignment: sidebarAligment)
+                case .hsvSphere:
+                    HSVSpherePickerView(color: $color, colorHistory: colorHistory, antialiasing: antialiasing)
+                }
                 
-                ColorValuesView(alignment: .trailing, color: $color, colorHistory: colorHistory)
+                ColorValuesView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
             }
         }
     }
 }
 
-extension ColorPanelView {
-    public enum SidebarAlignment {
-        case leading, trailing
-    }
+public enum SidebarAlignment {
+    case leading, trailing
 }

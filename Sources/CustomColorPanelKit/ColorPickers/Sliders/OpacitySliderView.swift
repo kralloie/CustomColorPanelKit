@@ -14,23 +14,20 @@ struct OpacitySliderView: View {
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
+            let height = geo.size.height
             OpacitySlider(color: $color, width: width)
-                .frame(width: width, height: 20)
+                .frame(width: width, height: height) 
                 .overlay {
                     Rectangle()
                         .fill(.thickMaterial)
-                        .frame(width: 2, height: 20)
-                    
-                    Rectangle()
-                        .stroke(.thickMaterial, lineWidth: 1)
+                        .frame(width: 2, height: height)
                     
                     positionIndicator(position: width - (color.alpha * width))
                 }
-                .background(ScrollWheelMonitor(isHovering: isHovering, onScroll: handleScroll, storeColor: {}))
+                .background(ScrollWheelMonitor(isHovering: isHovering, onScroll: handleScroll))
                 .background(CheckerboardView())
                 .onHover { isHovering = $0 }
         }
-        .frame(height: 25)
     }
     
     private func handleScroll(_: CGPoint, event: NSEvent) {

@@ -16,6 +16,7 @@ private enum Layout {
 
 struct ColorValuesView: View {
     @Binding var color: HSBAColor
+    @Binding var pickerMode: PickerMode
     var colorHistory: ColorHistory
     var alignment: Alignment
     var oppositeAlignment: Alignment {
@@ -25,10 +26,11 @@ struct ColorValuesView: View {
     @State private var panelWidth = Layout.panelWidth
     @State private var dragStartWidth: CGFloat? = nil
     
-    init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, colorHistory: ColorHistory) {
+    init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, pickerMode: Binding<PickerMode>, colorHistory: ColorHistory) {
         let alignment = alignment == .center ? .leading : alignment
         self.alignment = Alignment(horizontal: alignment, vertical: .center)
         _color = color
+        _pickerMode = pickerMode
         self.colorHistory = colorHistory
     }
     
@@ -37,6 +39,30 @@ struct ColorValuesView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 4) {
+                HStack {
+                    Button {
+                        pickerMode = PickerMode(rawValue: max(0, pickerMode.rawValue - 1))!
+                    } label: {
+                        Image(systemName: "arrow.left")
+                    }
+                    .buttonStyle(.glass)
+                    
+                    Spacer()
+                    
+                    Text(pickerMode.string)
+                        .bold()
+                    
+                    Spacer()
+                    
+                    Button {
+                        pickerMode = PickerMode(rawValue: min(PickerMode.allCases.count - 1 , pickerMode.rawValue + 1))!
+                    } label: {
+                        Image(systemName: "arrow.right")
+                    }
+                    .buttonStyle(.glass)
+                }
+                
+                
                 colorPreview
                 
                 hexAndAlphaValues
@@ -53,7 +79,7 @@ struct ColorValuesView: View {
                 
             }
             .padding(Layout.panelInnerPadding)
-            .frame(width: panelWidth)
+            .frame(width: isOpen ? panelWidth : 0)
         }
         .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
@@ -63,9 +89,7 @@ struct ColorValuesView: View {
                 .fill(.regularMaterial)
                 .stroke(.separator, lineWidth: 1)
         }
-        .overlay(alignment: oppositeAlignment) {
-            dragHandle
-        }
+        .overlay(alignment: oppositeAlignment) { dragHandle }
         .overlay(alignment: oppositeAlignment) {
             TogglePanelButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
         }
@@ -240,7 +264,7 @@ extension ColorValuesView {
                 isOpen ? "chevron.right" : "chevron.left"
             }
         }
-        var offset: CGFloat { isOpen ? 10 : 25}
+        var offset: CGFloat { isOpen ? 10 : 25 }
         
         var body: some View {
             Image(systemName: chevron)
@@ -256,9 +280,7 @@ extension ColorValuesView {
                 }
                 .offset(x: alignment == .trailing ? -offset : offset)
                 .onTapGesture {
-                    if !isOpen {
-                        panelWidth = 200
-                    }
+                    if !isOpen { panelWidth = 200 }
                     withAnimation(.easeInOut(duration: 0.1)) {
                         isOpen.toggle()
                     }
@@ -303,7 +325,7 @@ extension ColorValuesView {
                     .onHover { isHovering = $0 }
                     .background {
                         if inputType != .hex {
-                            ScrollWheelMonitor(isHovering: isHovering, onScroll: handleScroll, storeColor: storeColor)
+                            ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor, onScroll: handleScroll)
                         }
                     }
                     .frame(width: inputType == .hex ? 70 : 50)
@@ -430,7 +452,7 @@ extension ColorValuesView {
 }
 
 #Preview {
-    ColorValuesView(alignment: .trailing, color: .constant(HSBAColor(with: .orange)), colorHistory: ColorHistory())
+    ColorValuesView(alignment: .trailing, color: .constant(HSBAColor(with: .orange)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
         .frame(width: 200)
         .padding()
 }

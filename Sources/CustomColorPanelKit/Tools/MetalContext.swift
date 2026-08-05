@@ -16,6 +16,10 @@ import MetalKit
     let hsbTrianglePipeline: MTLRenderPipelineState
     let opacitySliderPipeline: MTLRenderPipelineState
     let colorExamplePipeline: MTLRenderPipelineState
+    let hsvSquarePipeline: MTLRenderPipelineState
+    let hueSliderPipeline: MTLRenderPipelineState
+    let hsvSpherePipeline: MTLRenderPipelineState
+    let brightnessSliderPipeline: MTLRenderPipelineState
     
     private init() throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
@@ -48,5 +52,9 @@ import MetalKit
         hsbTrianglePipeline = try makePipeline(vertex: HSBTriangleCoordinator.vertexShader, fragment: HSBTriangleCoordinator.fragmentShader)
         opacitySliderPipeline = try makePipeline(vertex: OpacitySliderCoordinator.vertexShader, fragment: OpacitySliderCoordinator.fragmentShader)
         colorExamplePipeline = try makePipeline(vertex: ColorExampleCoordinator.vertexShader, fragment: ColorExampleCoordinator.fragmentShader)
+        hsvSquarePipeline = try makePipeline(vertex: HSVSquareCoordinator.vertexShader, fragment: HSVSquareCoordinator.fragmentShader)
+        hueSliderPipeline = try makePipeline(vertex: HueSliderCoordinator.vertexShader, fragment: HueSliderCoordinator.fragmentShader)
+        hsvSpherePipeline = try makePipeline(vertex: HSVSphereCoordinator.vertexShader, fragment: HSVSphereCoordinator.fragmentShader)
+        brightnessSliderPipeline = try makePipeline(vertex: BrightnessSliderCoordinator.vertexShader, fragment: BrightnessSliderCoordinator.fragmentShader)
     }
 }

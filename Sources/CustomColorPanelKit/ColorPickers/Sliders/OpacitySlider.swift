@@ -13,9 +13,7 @@ struct OpacitySlider: NSViewRepresentable {
     var width: CGFloat
     
     func makeCoordinator() -> OpacitySliderCoordinator {
-        OpacitySliderCoordinator(color: color, width: width) { pos in
-            color.alpha = 1.0 - pos / width
-        }
+        OpacitySliderCoordinator(color: $color, width: width)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -35,13 +33,9 @@ struct OpacitySlider: NSViewRepresentable {
     func updateNSView(_ nsView: MTKView, context: Context) {
         if context.coordinator.width != width {
             context.coordinator.width = width
-            context.coordinator.updateOpacity = { pos in
-                color.alpha = 1.0 - pos / width
-            }
         }
         
         if context.coordinator.color.saturation != color.saturation || context.coordinator.color.hue != color.hue {
-            context.coordinator.color = color
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
@@ -51,9 +45,9 @@ struct OpacitySlider: NSViewRepresentable {
     static let vertexShader: String = "OpacitySliderVertexShader"
     static let fragmentShader: String = "OpacitySliderFragmentShader"
     
-    var color: HSBAColor
+    @Binding var color: HSBAColor
     var width: CGFloat
-    var updateOpacity: (CGFloat) -> Void
+    
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
@@ -61,10 +55,9 @@ struct OpacitySlider: NSViewRepresentable {
     private var centerLock = false
     private let snapDistance: CGFloat = 6
     
-    init(color: HSBAColor, width: CGFloat, updateIndicatorPosition: @escaping (CGFloat) -> Void) {
-        self.color = color
+    init(color: Binding<HSBAColor>, width: CGFloat) {
+        _color = color
         self.width = width
-        self.updateOpacity = updateIndicatorPosition
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -86,8 +79,8 @@ struct OpacitySlider: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderEncoder.setRenderPipelineState(renderPipeline)
-        var hsb = SIMD3<Float>(Float(color.hue), Float(color.saturation), Float(color.brightness))
-        renderEncoder.setVertexBytes(&hsb, length: MemoryLayout<SIMD3<Float>>.stride, index: 0)
+        var rgb = SIMD3<Float>(Float(color.rgb.red), Float(color.rgb.green), Float(color.rgb.blue))
+        renderEncoder.setFragmentBytes(&rgb, length: MemoryLayout<SIMD3<Float>>.stride, index: 0)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         renderEncoder.endEncoding()
         
@@ -104,25 +97,25 @@ struct OpacitySlider: NSViewRepresentable {
         
         if !centerLock && abs(pos - center) < snapDistance {
             centerLock = true
-            updateOpacity(center)
+            color.alpha = 0.5
             return
         }
         
         if centerLock {
             if abs(pos - center) < snapDistance * 2 {
-                updateOpacity(center)
+                color.alpha = 0.5
                 return
             } else {
                 centerLock = false
             }
         }
 
-        updateOpacity(pos)
+        color.alpha = 1 - (pos / width)
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
         let pos = gesture.location(in: view).x
-        updateOpacity(pos)
+        color.alpha = 1 - (pos / width)
     }
 }

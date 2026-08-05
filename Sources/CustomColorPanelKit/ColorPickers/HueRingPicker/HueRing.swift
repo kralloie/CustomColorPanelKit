@@ -11,14 +11,10 @@ import MetalKit
 struct HueRing: NSViewRepresentable {
     @Binding var color: HSBAColor
     var antialiasing: Bool
-    var storeColor: (HSBAColor) -> Void
+    var storeColor: () -> Void
     
     func makeCoordinator() -> HueRingCoordinator {
-        HueRingCoordinator(antialiasing: antialiasing, storeColor: { storeColor(color) }) { point in
-            let angle = atan2(-point.y, point.x)
-            let normalized = angle < 0 ? angle + 2 * .pi : angle
-            color.hue = normalized / (2 * .pi)
-        }
+        HueRingCoordinator(color: $color, antialiasing: antialiasing, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -42,23 +38,25 @@ struct HueRing: NSViewRepresentable {
     static let vertexShader: String = "HueRingVertexShader"
     static let fragmentShader: String = "HueRingFragmentShader"
     
-    var size: CGFloat = 0
+    @Binding var color: HSBAColor
     private var antialiasing: Bool
-    private var draggingStart: CGPoint?
     private var storeColor: () -> Void
-    private var updateIndicatorPosition: (CGPoint) -> Void
+    
+    private var size: CGFloat = 0
+    private var draggingStart: CGPoint?
+    
     var metalDevice: MTLDevice!
-    var metalCommandQueue: MTLCommandQueue!
-    var renderPipeline: MTLRenderPipelineState
+    private var metalCommandQueue: MTLCommandQueue!
+    private var renderPipeline: MTLRenderPipelineState
     
     init(
+        color: Binding<HSBAColor>,
         antialiasing: Bool,
         storeColor: @escaping () -> Void,
-        updateIndicatorPosition: @escaping (CGPoint) -> Void
     ) {
+        _color = color
         self.antialiasing = antialiasing
         self.storeColor = storeColor
-        self.updateIndicatorPosition = updateIndicatorPosition
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -94,29 +92,26 @@ struct HueRing: NSViewRepresentable {
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let loc = gesture.location(in: view)
-        
         if gesture.state == .began { draggingStart = loc }
-        
         let radius = size * 0.5
+        var x = (loc.x - radius) / radius
+        var y = (loc.y - radius) / radius
+        let len = hypot(x, y)
         
         if let draggingStart = draggingStart {
             let draggingStartPoint = CGPoint(
                 x: (draggingStart.x - radius) / radius,
-                y: -(draggingStart.y - radius) / radius
+                y: (draggingStart.y - radius) / radius
             )
             let draggingStartPointLen = hypot(draggingStartPoint.x, draggingStartPoint.y)
-            if draggingStartPointLen > 1 || draggingStartPointLen < 0.75 { return }
+            if draggingStartPointLen > 1.0 || draggingStartPointLen < 0.75 { return }
         }
         
-        var point = CGPoint(
-            x: (loc.x - radius) / radius,
-            y: -(loc.y - radius) / radius
-        )
+        if len > 1.0 || len < 0.75 { x /= len; y /= len }
+        var hue = atan2(y, x) / (2 * .pi)
+        if hue < 0 { hue += 1 }
+        color.hue = hue
         
-        let len = hypot(point.x, point.y)
-        if len > 1 || len < 0.75 { point.x /= len; point.y /= len }
-        
-        updateIndicatorPosition(point)
         if gesture.state == .ended { storeColor() }
     }
     
@@ -124,15 +119,14 @@ struct HueRing: NSViewRepresentable {
         guard let view = gesture.view else { return }
         let radius = size * 0.5
         let loc = gesture.location(in: view)
-        let point = CGPoint(
-            x: (loc.x - radius) / radius,
-            y: -(loc.y - radius) / radius
-        )
-        let len = hypot(point.x, point.y)
-
-        if len <= 1 && len > 0.75 {
-            updateIndicatorPosition(point)
-            if gesture.state == .ended { storeColor() }
-        }
+        var x = (loc.x - radius) / radius
+        var y = (loc.y - radius) / radius
+        let len = hypot(x, y)
+        
+        if len > 1.0 || len < 0.75 { return }
+        var hue = atan2(y, x) / (2 * .pi)
+        if hue < 0 { hue += 1 }
+        color.hue = hue
+        storeColor()
     }
 }

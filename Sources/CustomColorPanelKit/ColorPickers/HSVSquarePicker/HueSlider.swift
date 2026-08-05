@@ -10,10 +10,10 @@ import MetalKit
 
 struct HueSlider: NSViewRepresentable {
     @Binding var color: HSBAColor
-    var storeColor: (HSBAColor) -> Void
+    var storeColor: () -> Void
     
     func makeCoordinator() -> HueSliderCoordinator {
-        HueSliderCoordinator(color: color, storeColor: { storeColor(color) }) { hue in
+        HueSliderCoordinator(color: color, storeColor: { storeColor() }) { hue in
             color.hue = hue
         }
     }
@@ -94,14 +94,14 @@ struct HueSlider: NSViewRepresentable {
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let y = min(max(gesture.location(in: view).y, 0), view.bounds.height)
-        
         updateHue(y / view.bounds.height)
+        if gesture.state == .ended { storeColor() }
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
         let y = gesture.location(in: view).y
-        
         updateHue(y / view.bounds.height)
+        storeColor()
     }
 }

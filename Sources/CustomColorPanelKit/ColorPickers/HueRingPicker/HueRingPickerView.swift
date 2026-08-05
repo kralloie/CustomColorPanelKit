@@ -10,11 +10,11 @@ import SwiftUI
 // MARK: - Layout
 
 private enum Layout {
-    static let hueRingMinWidth: CGFloat = 250
-    static let hueRingMinHeight: CGFloat = 250
-    static let hueRingOuterPadding: CGFloat = 8
+    static let hueRingMinSize: CGFloat = 250
     static let hueRingIndicatorSize: CGFloat = 20
     static let hsbTriangleIndicatorSize: CGFloat = 10
+    static let stackSpacing: CGFloat = 10
+    static let outerPadding: CGFloat = 20
 }
 
 // MARK: - HueRingPickerView
@@ -33,42 +33,56 @@ public struct HueRingPickerView: View {
         self.colorHistory = colorHistory
     }
     
-    private func storeColor(_ color: HSBAColor) { colorHistory.add(color) }
+    private func storeColor() { colorHistory.add(color) }
     
     public var body: some View {
         VStack {
             GeometryReader { proxy in
                 let size = proxy.size.width
-                let geometry = HueRingPickerGeometry(color: color, viewSize: proxy.size, hueRotation: hueRotation)
+                let opacitySliderHeight = size * 0.05
+                let ringSize = size - opacitySliderHeight
+                let geometry = HueRingPickerGeometry(
+                    color: color,
+                    viewSize: CGSize(width: ringSize, height: ringSize),
+                    hueRotation: hueRotation
+                )
                 
-                ZStack {
-                    HueRing(
-                        color: $color,
-                        antialiasing: antialiasing,
-                        storeColor: storeColor
-                    )
-                    .positionIndicator(geometry: geometry)
-                    .hueRingScrollHandler(isHovering: isHoveringRing, size: size, hue: $color.hue, storeColor: { storeColor(color) })
-                    .frame(width: size, height: size)
-                    .frame(maxWidth: .infinity)
-                    .onHover { isHoveringRing = $0 }
-                    
-                    HSBTriangle(
-                        color: $color,
-                        antialiasing: antialiasing,
-                        hueRotation: hueRotation,
-                        storeColor: storeColor
-                    )
-                    .positionIndicator(brightness: color.brightness, offset: geometry.hsbTriangleIndicatorOffset)
-                    .frame(width: geometry.triangleSize, height: geometry.triangleSize)
+                VStack(spacing: Layout.stackSpacing) {
+                    ZStack {
+                        HueRing(
+                            color: $color,
+                            antialiasing: antialiasing,
+                            storeColor: storeColor
+                        )
+                        .positionIndicator(geometry: geometry)
+                        .hueRingScrollHandler(isHovering: isHoveringRing, size: ringSize, hue: $color.hue, storeColor: storeColor)
+                        .frame(width: ringSize, height: ringSize)
+                        .frame(maxWidth: .infinity)
+                        .onHover { isHoveringRing = $0 }
+                        
+                        HSBTriangle(
+                            color: $color,
+                            antialiasing: antialiasing,
+                            hueRotation: hueRotation,
+                            storeColor: storeColor
+                        )
+                        .positionIndicator(
+                            brightness: color.brightness,
+                            offset: geometry.hsbTriangleIndicatorOffset,
+                            color: Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness)
+                        )
+                        .frame(width: geometry.triangleSize, height: geometry.triangleSize)
+                    }
+                    OpacitySliderView(color: $color)
+                        .frame(width: size + Layout.stackSpacing, height: opacitySliderHeight)
                 }
+
             }
             .aspectRatio(1, contentMode: .fit)
-            .padding(Layout.hueRingOuterPadding)
-            
-            OpacitySliderView(color: $color)
+            .padding(Layout.outerPadding)
         }
-        .frame(minWidth: Layout.hueRingMinWidth, minHeight: Layout.hueRingMinHeight)
+        .frame(maxWidth: .infinity)
+        .frame(minWidth: Layout.hueRingMinSize, minHeight: Layout.hueRingMinSize)
     }
 }
 
@@ -77,7 +91,7 @@ public struct HueRingPickerView: View {
 private extension View {
     func hueRingScrollHandler(isHovering: Bool, size: CGFloat, hue: Binding<CGFloat>, storeColor: @escaping () -> Void) -> some View {
         background {
-            ScrollWheelMonitor(isHovering: isHovering) { point, event in
+            ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor) { point, event in
                 if point.x < 0 || point.y < 0 || point.x > size || point.y > size {
                     return
                 }
@@ -91,8 +105,6 @@ private extension View {
                 var newHue = (hue.wrappedValue + delta).truncatingRemainder(dividingBy: 1)
                 if newHue < 0 { newHue += 1 }
                 hue.wrappedValue = newHue
-            } storeColor: {
-                storeColor()
             }
         }
     }
@@ -126,9 +138,10 @@ private extension HueRing {
 // MARK: - HSBTriangle
  
 private extension HSBTriangle {
-    func positionIndicator(brightness: CGFloat, offset: CGSize) -> some View {
+    func positionIndicator(brightness: CGFloat, offset: CGSize, color: Color) -> some View {
         overlay {
             Circle()
+                .fill(color)
                 .stroke(brightness > 0.5 ? .black : .white, lineWidth: 1)
                 .frame(width: Layout.hsbTriangleIndicatorSize)
                 .offset(offset)

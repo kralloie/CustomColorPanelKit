@@ -10,19 +10,34 @@
 using namespace metal;
 
 struct OpacitySliderVertexOut {
-    float3 rgb [[flat]];
     float4 position [[position]];
     float opacity;
 };
 
-vertex OpacitySliderVertexOut OpacitySliderVertexShader(unsigned int vid [[vertex_id]], constant float3 &hsb [[buffer(0)]]) {
+vertex OpacitySliderVertexOut OpacitySliderVertexShader(unsigned int vid [[vertex_id]]) {
     OpacitySliderVertexOut out;
-    out.rgb = hsbToRGB(hsb.x, hsb.y, hsb.z);
     out.position = float4(positions[vid], 0, 1);
     out.opacity = (vid + 1) % 2;
     return out;
 }
 
-fragment float4 OpacitySliderFragmentShader(OpacitySliderVertexOut in [[stage_in]]) {
-    return float4(in.rgb, in.opacity);
+fragment float4 OpacitySliderFragmentShader(OpacitySliderVertexOut in [[stage_in]], constant float3 &rgb [[buffer(0)]]) {
+    return float4(rgb, in.opacity);
+}
+
+
+struct BrightnessSliderVertexOut {
+    float4 position [[position]];
+    float brightness;
+};
+
+vertex BrightnessSliderVertexOut BrightnessSliderVertexShader(unsigned int vid [[vertex_id]]) {
+    BrightnessSliderVertexOut out;
+    out.position = float4(positions[vid], 0, 1);
+    out.brightness = (vid + 1) % 2;
+    return out;
+}
+
+fragment float4 BrightnessSliderFragmentShader(BrightnessSliderVertexOut in [[stage_in]], constant float2 &hueSaturation [[buffer(0)]]) {
+    return float4(hsbToRGB(hueSaturation.x, hueSaturation.y, 1) * in.brightness, 1);
 }
