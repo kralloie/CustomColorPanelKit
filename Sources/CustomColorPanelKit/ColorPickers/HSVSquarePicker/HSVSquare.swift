@@ -13,20 +13,11 @@ struct HSVSquare: NSViewRepresentable {
     var storeColor: () -> Void
     
     func makeCoordinator() -> HSVSquareCoordinator {
-        HSVSquareCoordinator(color: color, storeColor: { storeColor() }) { brightness, saturation in
-            color.brightness = brightness
-            color.saturation = saturation
-        }
+        HSVSquareCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
-        let mtkView = MTKView()
-        mtkView.delegate = context.coordinator
-        mtkView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
-        mtkView.layer?.isOpaque = false
-        mtkView.enableSetNeedsDisplay = true
-        mtkView.device = context.coordinator.metalDevice
-        mtkView.autoResizeDrawable = true
+        let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
         
@@ -35,7 +26,6 @@ struct HSVSquare: NSViewRepresentable {
     
     func updateNSView(_ nsView: MTKView, context: Context) {
         if context.coordinator.color.hue != color.hue {
-            context.coordinator.color = color
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
@@ -45,23 +35,20 @@ struct HSVSquare: NSViewRepresentable {
     static let vertexShader: String = "HSVSquareVertexShader"
     static let fragmentShader: String = "HSVSquareFragmentShader"
     
-    var color: HSBAColor
+    @Binding var color: HSBAColor
     var size: CGFloat = 0
     var draggingStart: CGPoint?
     private var storeColor: () -> Void
-    var updateIndicatorPosition: (CGFloat, CGFloat) -> Void
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
     init(
-        color: HSBAColor,
+        color: Binding<HSBAColor>,
         storeColor: @escaping () -> Void,
-        updateIndicatorPosition: @escaping (CGFloat, CGFloat) -> Void
     ) {
-        self.color = color
+        _color = color
         self.storeColor = storeColor
-        self.updateIndicatorPosition = updateIndicatorPosition
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -100,7 +87,8 @@ struct HSVSquare: NSViewRepresentable {
         
         let x = min(max(loc.x, 0), view.bounds.width)
         let y = min(max(loc.y, 0), view.bounds.height)
-        updateIndicatorPosition(y / view.bounds.height, x / view.bounds.width)
+        color.brightness = y / view.bounds.height
+        color.saturation = x / view.bounds.width
         if gesture.state == .ended { storeColor() }
     }
     
@@ -110,7 +98,8 @@ struct HSVSquare: NSViewRepresentable {
         
         let x = min(max(loc.x, 0), view.bounds.width)
         let y = min(max(loc.y, 0), view.bounds.height)
-        updateIndicatorPosition(y / view.bounds.height, x / view.bounds.width)
+        color.brightness = y / view.bounds.height
+        color.saturation = x / view.bounds.width
         storeColor()
     }
 }

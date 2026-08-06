@@ -10,6 +10,17 @@ import MetalKit
 @MainActor final class MetalContext {
     @MainActor static let shared = try! MetalContext()
     
+    func makeDefaultMTKView(delegate: MTKViewDelegate) -> MTKView {
+        let view = MTKView()
+        view.delegate = delegate
+        view.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
+        view.layer?.isOpaque = false
+        view.enableSetNeedsDisplay = true
+        view.device = device
+        view.autoResizeDrawable = true
+        return view
+    }
+    
     let device: MTLDevice
     let commandQueue: MTLCommandQueue
     let hueRingPipeline: MTLRenderPipelineState

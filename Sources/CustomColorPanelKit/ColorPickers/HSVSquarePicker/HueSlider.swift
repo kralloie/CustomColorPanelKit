@@ -13,54 +13,39 @@ struct HueSlider: NSViewRepresentable {
     var storeColor: () -> Void
     
     func makeCoordinator() -> HueSliderCoordinator {
-        HueSliderCoordinator(color: color, storeColor: { storeColor() }) { hue in
-            color.hue = hue
-        }
+        HueSliderCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
-        let mtkView = MTKView()
-        mtkView.delegate = context.coordinator
-        mtkView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
-        mtkView.layer?.isOpaque = false
-        mtkView.enableSetNeedsDisplay = true
-        mtkView.device = context.coordinator.metalDevice
-        mtkView.autoResizeDrawable = true
+        let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
         
         return mtkView
     }
     
-    func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.color.hue != color.hue {
-            context.coordinator.color = color
-            nsView.setNeedsDisplay(nsView.bounds)
-        }
-    }
+    func updateNSView(_ nsView: MTKView, context: Context) {}
 }
 
 @MainActor final class HueSliderCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HueSliderVertexShader"
     static let fragmentShader: String = "HueSliderFragmentShader"
     
-    var color: HSBAColor
+    @Binding var color: HSBAColor
+    private var storeColor: () -> Void
     var size: CGFloat = 0
     var draggingStart: CGPoint?
-    private var storeColor: () -> Void
-    var updateHue: (CGFloat) -> Void
+    
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
     init(
-        color: HSBAColor,
+        color: Binding<HSBAColor>,
         storeColor: @escaping () -> Void,
-        updateHue: @escaping (CGFloat) -> Void
     ) {
-        self.color = color
+        _color = color
         self.storeColor = storeColor
-        self.updateHue = updateHue
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -94,14 +79,14 @@ struct HueSlider: NSViewRepresentable {
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let y = min(max(gesture.location(in: view).y, 0), view.bounds.height)
-        updateHue(y / view.bounds.height)
+        color.hue = y / view.bounds.height
         if gesture.state == .ended { storeColor() }
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
         let y = gesture.location(in: view).y
-        updateHue(y / view.bounds.height)
+        color.hue = y / view.bounds.height
         storeColor()
     }
 }

@@ -15,20 +15,11 @@ struct HSBTriangle: NSViewRepresentable {
     var storeColor: () -> Void
     
     func makeCoordinator() -> HSBTriangleCoordinator {
-        HSBTriangleCoordinator(color: color, antialiasing: antialiasing, hueRotation: hueRotation, storeColor: storeColor) { brightness, saturation in
-            color.brightness = brightness
-            color.saturation = saturation
-        }
+        HSBTriangleCoordinator(color: $color, antialiasing: antialiasing, hueRotation: hueRotation, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
-        let mtkView = MTKView()
-        mtkView.delegate = context.coordinator
-        mtkView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
-        mtkView.layer?.isOpaque = false
-        mtkView.enableSetNeedsDisplay = true
-        mtkView.device = context.coordinator.metalDevice
-        mtkView.autoResizeDrawable = true
+        let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
         
@@ -37,7 +28,6 @@ struct HSBTriangle: NSViewRepresentable {
     
     func updateNSView(_ nsView: MTKView, context: Context) {
         if context.coordinator.color.hue != color.hue {
-            context.coordinator.color = color
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
@@ -47,29 +37,27 @@ struct HSBTriangle: NSViewRepresentable {
     static let vertexShader: String = "HSBTriangleVertexShader"
     static let fragmentShader: String = "HSBTriangleFragmentShader"
     
-    var color: HSBAColor
-    var size: CGFloat = 0
+    @Binding var color: HSBAColor
     var antialiasing: Bool
     var hueRotation: Bool
-    var draggingStart: CGPoint?
     private var storeColor: () -> Void
-    var updateIndicatorPosition: (CGFloat, CGFloat) -> Void
+    
+    var size: CGFloat = 0
+    var draggingStart: CGPoint?
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
     init(
-        color: HSBAColor,
+        color: Binding<HSBAColor>,
         antialiasing: Bool,
         hueRotation: Bool,
         storeColor: @escaping () -> Void,
-        updateIndicatorPosition: @escaping (CGFloat, CGFloat) -> Void
     ) {
-        self.color = color
+        _color = color
         self.antialiasing = antialiasing
         self.hueRotation = hueRotation
         self.storeColor = storeColor
-        self.updateIndicatorPosition = updateIndicatorPosition
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -151,7 +139,8 @@ struct HSBTriangle: NSViewRepresentable {
         var (w0, w1, w2) = getBarycentricCoordinates(for: loc)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
             let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-            updateIndicatorPosition(brightness, saturation)
+            color.brightness = brightness
+            color.saturation = saturation
             if gesture.state == .ended { storeColor() }
             return
         }
@@ -172,7 +161,8 @@ struct HSBTriangle: NSViewRepresentable {
         )
         
         let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-        updateIndicatorPosition(brightness, saturation)
+        color.brightness = brightness
+        color.saturation = saturation
         if gesture.state == .ended { storeColor() }
     }
     
@@ -182,7 +172,8 @@ struct HSBTriangle: NSViewRepresentable {
         let (w0, w1, w2) = getBarycentricCoordinates(for: loc)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
             let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-            updateIndicatorPosition(brightness, saturation)
+            color.brightness = brightness
+            color.saturation = saturation
             storeColor()
         }
     }

@@ -18,13 +18,7 @@ struct HueRing: NSViewRepresentable {
     }
     
     func makeNSView(context: Context) -> MTKView {
-        let mtkView = MTKView()
-        mtkView.delegate = context.coordinator
-        mtkView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
-        mtkView.layer?.isOpaque = false
-        mtkView.enableSetNeedsDisplay = true
-        mtkView.device = context.coordinator.metalDevice
-        mtkView.autoResizeDrawable = true
+        let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
         
