@@ -60,7 +60,7 @@ public struct HueRingPickerView: View {
                         .frame(maxWidth: .infinity)
                         .onHover { isHoveringRing = $0 }
                         
-                        HSBTriangle(
+                        HSVTriangle(
                             color: $color,
                             antialiasing: antialiasing,
                             hueRotation: hueRotation,
@@ -137,7 +137,7 @@ private extension HueRing {
 
 // MARK: - HSBTriangle
  
-private extension HSBTriangle {
+private extension HSVTriangle {
     func positionIndicator(brightness: CGFloat, offset: CGSize, color: Color) -> some View {
         overlay {
             Circle()

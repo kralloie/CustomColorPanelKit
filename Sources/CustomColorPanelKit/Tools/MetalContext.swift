@@ -24,7 +24,7 @@ import MetalKit
     let device: MTLDevice
     let commandQueue: MTLCommandQueue
     let hueRingPipeline: MTLRenderPipelineState
-    let hsbTrianglePipeline: MTLRenderPipelineState
+    let hsvTrianglePipeline: MTLRenderPipelineState
     let opacitySliderPipeline: MTLRenderPipelineState
     let colorExamplePipeline: MTLRenderPipelineState
     let hsvSquarePipeline: MTLRenderPipelineState
@@ -60,7 +60,7 @@ import MetalKit
         }
         
         hueRingPipeline = try makePipeline(vertex: HueRingCoordinator.vertexShader, fragment: HueRingCoordinator.fragmentShader)
-        hsbTrianglePipeline = try makePipeline(vertex: HSBTriangleCoordinator.vertexShader, fragment: HSBTriangleCoordinator.fragmentShader)
+        hsvTrianglePipeline = try makePipeline(vertex: HSBTriangleCoordinator.vertexShader, fragment: HSBTriangleCoordinator.fragmentShader)
         opacitySliderPipeline = try makePipeline(vertex: OpacitySliderCoordinator.vertexShader, fragment: OpacitySliderCoordinator.fragmentShader)
         colorExamplePipeline = try makePipeline(vertex: ColorExampleCoordinator.vertexShader, fragment: ColorExampleCoordinator.fragmentShader)
         hsvSquarePipeline = try makePipeline(vertex: HSVSquareCoordinator.vertexShader, fragment: HSVSquareCoordinator.fragmentShader)

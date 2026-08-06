@@ -8,7 +8,7 @@
 import SwiftUI
 import MetalKit
 
-struct HSBTriangle: NSViewRepresentable {
+struct HSVTriangle: NSViewRepresentable {
     @Binding var color: HSBAColor
     var antialiasing: Bool
     var hueRotation: Bool
@@ -62,7 +62,7 @@ struct HSBTriangle: NSViewRepresentable {
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
-        self.renderPipeline = ctx.hsbTrianglePipeline
+        self.renderPipeline = ctx.hsvTrianglePipeline
         
         super.init()
     }
