@@ -10,11 +10,10 @@ import SwiftUI
 
 struct HSVSphere: NSViewRepresentable {
     @Binding var color: HSBAColor
-    let antialiasing: Bool
     var storeColor: () -> Void
     
     func makeCoordinator() -> HSVSphereCoordinator {
-        HSVSphereCoordinator(color: $color, antialiasing: antialiasing, storeColor: storeColor)
+        HSVSphereCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> some NSView {
@@ -33,7 +32,6 @@ struct HSVSphere: NSViewRepresentable {
     static let fragmentShader: String = "HSVSphereFragmentShader"
     
     @Binding var color: HSBAColor
-    private var antialiasing: Bool
     private var storeColor: () -> Void
     
     private var size: CGFloat = 0
@@ -43,10 +41,9 @@ struct HSVSphere: NSViewRepresentable {
     private var metalCommandQueue: MTLCommandQueue!
     private var renderPipeline: MTLRenderPipelineState
     
-    init(color: Binding<HSBAColor>, antialiasing: Bool, storeColor: @escaping () -> Void) {
+    init(color: Binding<HSBAColor>, storeColor: @escaping () -> Void) {
         _color = color
         self.storeColor = storeColor
-        self.antialiasing = antialiasing
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -69,8 +66,6 @@ struct HSVSphere: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        var antialiasing = self.antialiasing ? Float(1) : Float(0)
-        renderEncoder.setFragmentBytes(&antialiasing, length: MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState(renderPipeline)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         renderEncoder.endEncoding()

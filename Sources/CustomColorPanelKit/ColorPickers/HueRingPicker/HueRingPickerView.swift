@@ -51,7 +51,6 @@ public struct HueRingPickerView: View {
                     ZStack {
                         HueRing(
                             color: $color,
-                            antialiasing: antialiasing,
                             storeColor: storeColor
                         )
                         .positionIndicator(geometry: geometry)
@@ -62,7 +61,6 @@ public struct HueRingPickerView: View {
                         
                         HSVTriangle(
                             color: $color,
-                            antialiasing: antialiasing,
                             hueRotation: hueRotation,
                             storeColor: storeColor
                         )

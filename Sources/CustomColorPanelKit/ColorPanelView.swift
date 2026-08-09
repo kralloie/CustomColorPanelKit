@@ -27,13 +27,11 @@ public struct ColorPanelView: View {
     @State var colorHistory = ColorHistory()
     @State var pickerMode: PickerMode = .hsvSquare
     var sidebarAligment: SidebarAlignment
-    var antialiasing: Bool
     
     public init(_ c: Binding<Color>, sidebarAlignment: SidebarAlignment = .leading, antialiasing: Bool = true) {
         self._colorBinding = c
         self.color = HSBAColor(with: c.wrappedValue)
         self.sidebarAligment = sidebarAlignment
-        self.antialiasing = antialiasing
     }
     
     public var body: some View {
@@ -43,21 +41,21 @@ public struct ColorPanelView: View {
                 
                 switch pickerMode {
                 case .hueRing:
-                    HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
+                    HueRingPickerView(color: $color, colorHistory: colorHistory)
                 case .hsvSquare:
                     HSVSquarePickerView(color: $color, colorHistory: colorHistory, sidebarAlignment: sidebarAligment)
                 case .hsvSphere:
-                    HSVSpherePickerView(color: $color, colorHistory: colorHistory, antialiasing: antialiasing)
+                    HSVSpherePickerView(color: $color, colorHistory: colorHistory)
                 }
                 
             } else {
                 switch pickerMode {
                 case .hueRing:
-                    HueRingPickerView(color: $color, antialiasing: antialiasing, colorHistory: colorHistory)
+                    HueRingPickerView(color: $color, colorHistory: colorHistory)
                 case .hsvSquare:
                     HSVSquarePickerView(color: $color, colorHistory: colorHistory, sidebarAlignment: sidebarAligment)
                 case .hsvSphere:
-                    HSVSpherePickerView(color: $color, colorHistory: colorHistory, antialiasing: antialiasing)
+                    HSVSpherePickerView(color: $color, colorHistory: colorHistory)
                 }
                 
                 ColorValuesView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)

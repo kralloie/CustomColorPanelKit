@@ -23,18 +23,17 @@ vertex HueRingVertexOut HueRingVertexShader(unsigned int vid [[vertex_id]]) {
     return out;
 }
 
-fragment float4 HueRingFragmentShader(HueRingVertexOut in [[stage_in]], constant float &antialiasing [[buffer(0)]]) {
+fragment float4 HueRingFragmentShader(HueRingVertexOut in [[stage_in]]) {
     float2 uv = in.uv;
     float dist = length(uv);
-    
-    if (dist > 1 || dist < 0.75) discard_fragment();
     
     float hue = fract(atan2(uv.y, uv.x) / (2.0 * M_PI_F));
     
     float3 color = hsbToRGB(hue, 1.0, 1.0);
-    float outerAlpha = 1.0 - smoothstep(0.99, 1.0, dist);
-    float innerAlpha = smoothstep(0.75, 0.76, dist);
-    return float4(color, max(outerAlpha * innerAlpha, antialiasing));
+    float aa = fwidth(dist);
+    float outerAlpha = 1.0 - smoothstep(1.0 - aa, 1.0, dist);
+    float innerAlpha = smoothstep(0.76 - aa, 0.76, dist);
+    return float4(color, outerAlpha * innerAlpha);
 }
 
 #pragma mark - HSB Triangle Pipeline
@@ -59,9 +58,10 @@ vertex HSBTriangleVertexOut HSBTriangleVertexShader(unsigned int vid[[vertex_id]
     return out;
 }
 
-fragment float4 HSBTriangleFragmentShader(HSBTriangleVertexOut in [[stage_in]], constant float &antialiasing [[buffer(0)]]) {
-    float minBc = min(in.barycentric.x, in.barycentric.y);
-    float alpha = max(smoothstep(0, 0.01, min(minBc, in.barycentric.z)), antialiasing);
+fragment float4 HSBTriangleFragmentShader(HSBTriangleVertexOut in [[stage_in]]) {
+    float minBarycentric = min(in.barycentric.x, min(in.barycentric.y, in.barycentric.z));
+    float aa = fwidth(minBarycentric);
+    float alpha = smoothstep(0.00 - aa, 0.01, minBarycentric);
     float3 rgb = in.barycentric.x * in.colorRGB
                + in.barycentric.y * float3(0, 0, 0)
                + in.barycentric.z * float3(1, 1, 1);

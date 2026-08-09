@@ -16,7 +16,6 @@ private enum Layout {
 struct HSVSpherePickerView: View {
     @Binding var color: HSBAColor
     var colorHistory: ColorHistory
-    let antialiasing: Bool
     
     private func storeColor() { colorHistory.add(color) }
     
@@ -28,7 +27,7 @@ struct HSVSpherePickerView: View {
                 let sphereSize = size - (sliderHeight * 2)
                 let sphereRadius = sphereSize * 0.5
                 VStack() {
-                    HSVSphere(color: $color, antialiasing: antialiasing, storeColor: storeColor)
+                    HSVSphere(color: $color, storeColor: storeColor)
                         .positionIndicator(color: color, sphereRadius: sphereRadius)
                         .frame(width: sphereSize, height: sphereSize)
                     

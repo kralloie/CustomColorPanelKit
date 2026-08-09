@@ -10,12 +10,11 @@ import MetalKit
 
 struct HSVTriangle: NSViewRepresentable {
     @Binding var color: HSBAColor
-    var antialiasing: Bool
     var hueRotation: Bool
     var storeColor: () -> Void
     
     func makeCoordinator() -> HSBTriangleCoordinator {
-        HSBTriangleCoordinator(color: $color, antialiasing: antialiasing, hueRotation: hueRotation, storeColor: storeColor)
+        HSBTriangleCoordinator(color: $color, hueRotation: hueRotation, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -38,7 +37,6 @@ struct HSVTriangle: NSViewRepresentable {
     static let fragmentShader: String = "HSBTriangleFragmentShader"
     
     @Binding var color: HSBAColor
-    var antialiasing: Bool
     var hueRotation: Bool
     private var storeColor: () -> Void
     
@@ -50,12 +48,10 @@ struct HSVTriangle: NSViewRepresentable {
     
     init(
         color: Binding<HSBAColor>,
-        antialiasing: Bool,
         hueRotation: Bool,
         storeColor: @escaping () -> Void,
     ) {
         _color = color
-        self.antialiasing = antialiasing
         self.hueRotation = hueRotation
         self.storeColor = storeColor
         
@@ -81,10 +77,8 @@ struct HSVTriangle: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         var hue = Float(color.hue)
-        var antialiasing = self.antialiasing ? Float(0) : Float(1)
         renderEncoder.setVertexBytes(&hue, length: MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setVertexBytes(&hueRotation, length: MemoryLayout<Bool>.stride, index: 1)
-        renderEncoder.setFragmentBytes(&antialiasing, length: MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState(renderPipeline)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         renderEncoder.endEncoding()

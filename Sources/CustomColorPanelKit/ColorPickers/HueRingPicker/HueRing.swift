@@ -10,11 +10,10 @@ import MetalKit
 
 struct HueRing: NSViewRepresentable {
     @Binding var color: HSBAColor
-    var antialiasing: Bool
     var storeColor: () -> Void
     
     func makeCoordinator() -> HueRingCoordinator {
-        HueRingCoordinator(color: $color, antialiasing: antialiasing, storeColor: storeColor)
+        HueRingCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -33,7 +32,6 @@ struct HueRing: NSViewRepresentable {
     static let fragmentShader: String = "HueRingFragmentShader"
     
     @Binding var color: HSBAColor
-    private var antialiasing: Bool
     private var storeColor: () -> Void
     
     private var size: CGFloat = 0
@@ -45,11 +43,9 @@ struct HueRing: NSViewRepresentable {
     
     init(
         color: Binding<HSBAColor>,
-        antialiasing: Bool,
         storeColor: @escaping () -> Void,
     ) {
         _color = color
-        self.antialiasing = antialiasing
         self.storeColor = storeColor
         
         let ctx = MetalContext.shared
@@ -73,8 +69,6 @@ struct HueRing: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        var antialiasing = self.antialiasing ? Float(0) : Float(1)
-        renderEncoder.setFragmentBytes(&antialiasing, length: MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState(renderPipeline)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         renderEncoder.endEncoding()

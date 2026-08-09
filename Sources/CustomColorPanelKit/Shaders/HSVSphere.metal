@@ -23,14 +23,13 @@ vertex HSVSphereVertexOut HSVSphereVertexShader(unsigned int vid [[vertex_id]]) 
     return out;
 }
 
-fragment float4 HSVSphereFragmentShader(HSVSphereVertexOut in [[stage_in]], constant float &antialiasing [[buffer(0)]]) {
+fragment float4 HSVSphereFragmentShader(HSVSphereVertexOut in [[stage_in]]) {
     float magnitude = length(in.uv);
-    
-    if (magnitude > 1) discard_fragment();
     
     float hue = fract(atan2(in.uv.y, in.uv.x) / (2.0 * M_PI_F));
     float saturation = magnitude;
-    float alpha = 1 - smoothstep(0.99, 1.0, magnitude) * antialiasing;
+    float aa = fwidth(magnitude);
+    float alpha = 1 - smoothstep(1 - aa, 1.0, magnitude);
 
     return float4(hsbToRGB(hue, saturation, 1), alpha);
 }
