@@ -7,8 +7,6 @@
 
 #pragma once
 
-using namespace metal;
-
 static constant float2 positions[4] {
     { -1, -1 },
     {  1, -1 },
@@ -17,10 +15,10 @@ static constant float2 positions[4] {
 };
 
 static inline float3 hsbToRGB(float h, float s, float b) {
-    h = fract(h);
-    float3 rgb = clamp(
-        abs(fmod(h * 6.0 + float3(0, 4, 2), 6.0) - 3.0) - 1.0,
+    h = metal::fract(h);
+    float3 rgb = metal::clamp(
+        metal::abs(metal::fmod(h * 6.0 + metal::float3(0, 4, 2), 6.0) - 3.0) - 1.0,
         0.0, 1.0
     );
-    return b * mix(float3(1.0), rgb, s);
+    return b * metal::mix(float3(1.0), rgb, s);
 }

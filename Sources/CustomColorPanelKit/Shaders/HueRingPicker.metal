@@ -61,7 +61,7 @@ vertex HSBTriangleVertexOut HSBTriangleVertexShader(unsigned int vid[[vertex_id]
 fragment float4 HSBTriangleFragmentShader(HSBTriangleVertexOut in [[stage_in]]) {
     float minBarycentric = min(in.barycentric.x, min(in.barycentric.y, in.barycentric.z));
     float aa = fwidth(minBarycentric);
-    float alpha = smoothstep(0.00 - aa, 0.01, minBarycentric);
+    float alpha = smoothstep(0.00, aa, minBarycentric);
     float3 rgb = in.barycentric.x * in.colorRGB
                + in.barycentric.y * float3(0, 0, 0)
                + in.barycentric.z * float3(1, 1, 1);
