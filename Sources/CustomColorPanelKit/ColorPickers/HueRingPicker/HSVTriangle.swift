@@ -13,8 +13,8 @@ struct HSVTriangle: NSViewRepresentable {
     var hueRotation: Bool
     var storeColor: () -> Void
     
-    func makeCoordinator() -> HSBTriangleCoordinator {
-        HSBTriangleCoordinator(color: $color, hueRotation: hueRotation, storeColor: storeColor)
+    func makeCoordinator() -> HSVTriangleCoordinator {
+        HSVTriangleCoordinator(color: $color, hueRotation: hueRotation, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -32,9 +32,9 @@ struct HSVTriangle: NSViewRepresentable {
     }
 }
 
-@MainActor final class HSBTriangleCoordinator: NSObject, MTKViewDelegate {
-    static let vertexShader: String = "HSBTriangleVertexShader"
-    static let fragmentShader: String = "HSBTriangleFragmentShader"
+@MainActor final class HSVTriangleCoordinator: NSObject, MTKViewDelegate {
+    static let vertexShader: String = "HSVTriangleVertexShader"
+    static let fragmentShader: String = "HSVTriangleFragmentShader"
     
     @Binding var color: HSBAColor
     var hueRotation: Bool
