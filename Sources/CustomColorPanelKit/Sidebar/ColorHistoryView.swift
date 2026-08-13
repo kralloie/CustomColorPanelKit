@@ -33,10 +33,8 @@ struct ColorHistoryView: View {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: 8)
-                .fill(.background)
-                .stroke(.separator, lineWidth: 1)
+                .glassEffect(.regular, in: .rect(cornerRadius: 8))
         }
-        .padding(.top, 16)
     }
 }
 

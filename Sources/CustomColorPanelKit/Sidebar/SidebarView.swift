@@ -14,14 +14,16 @@ private enum Layout {
     static let sidebarCornerRadius: CGFloat = 12
 }
 
-struct ColorValuesView: View {
+struct SidebarView: View {
     @Binding var color: HSBAColor
     @Binding var pickerMode: PickerMode
+    
     var colorHistory: ColorHistory
     var alignment: Alignment
     var oppositeAlignment: Alignment {
         if alignment == .leading { .trailing } else { .leading }
     }
+    
     @State private var isOpen: Bool = true
     @State private var panelWidth = Layout.panelWidth
     @State private var dragStartWidth: CGFloat? = nil
@@ -39,44 +41,27 @@ struct ColorValuesView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 4) {
-                HStack {
-                    Button {
-                        pickerMode = PickerMode(rawValue: max(0, pickerMode.rawValue - 1))!
-                    } label: {
-                        Image(systemName: "arrow.left")
-                    }
-                    .buttonStyle(.glass)
-                    
-                    Spacer()
-                    
-                    Text(pickerMode.string)
-                        .bold()
-                    
-                    Spacer()
-                    
-                    Button {
-                        pickerMode = PickerMode(rawValue: min(PickerMode.allCases.count - 1 , pickerMode.rawValue + 1))!
-                    } label: {
-                        Image(systemName: "arrow.right")
-                    }
-                    .buttonStyle(.glass)
-                }
-                
+                PickerModeSelectorView(selectedMode: $pickerMode)
                 
                 colorPreview
                 
-                hexAndAlphaValues
-                
-                ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: hsvValues)
-                
-                ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: hslValues)
-                
-                ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: rgbValues)
-                
-                ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: cmykValues)
-                
-                ColorHistoryView(color: $color, colorHistory: colorHistory)
-                
+                VStack(spacing: 15) {
+                    hexValue
+                    
+                    alphaValue
+                    
+                    ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: hsvValues)
+                    
+                    ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: hslValues)
+                    
+                    ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: rgbValues)
+                    
+                    ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: cmykValues)
+                    
+                    ColorHistoryView(color: $color, colorHistory: colorHistory)
+                }
+                .padding(10)
+
             }
             .padding(Layout.panelInnerPadding)
             .frame(width: isOpen ? panelWidth : 0)
@@ -86,7 +71,7 @@ struct ColorValuesView: View {
         .clipped()
         .background {
             RoundedRectangle(cornerRadius: Layout.sidebarCornerRadius)
-                .fill(.regularMaterial)
+                .fill(.background)
                 .stroke(.separator, lineWidth: 1)
         }
         .overlay(alignment: oppositeAlignment) { dragHandle }
@@ -97,7 +82,7 @@ struct ColorValuesView: View {
     }
 }
 
-extension ColorValuesView {
+extension SidebarView {
     private var dragHandle: some View {
         Rectangle()
             .fill(.clear)
@@ -152,24 +137,27 @@ extension ColorValuesView {
             .padding(.bottom, 10)
     }
     
-    private var hexAndAlphaValues: some View {
-        @ViewBuilder var fields: some View {
-            HStack {
-                Text("HEX:")
-                    .lineLimit(1)
-                    .bold()
-                ColorComponentField(value: $color.hex, inputType: .hex, storeColor: storeColor)
-            }
-            HStack {
-                Text("Alpha:")
-                    .lineLimit(1)
-                    .bold()
-                ColorComponentField(value: $color.alpha, inputType: .percentage)
-            }
+    private var hexValue: some View {
+        HStack {
+            Text("HEX:")
+                .lineLimit(1)
+                .bold()
+            
+            Spacer()
+            
+            ColorComponentField(value: $color.hex, inputType: .hex, storeColor: storeColor)
         }
-        return ViewThatFits(in: .horizontal) {
-            HStack { fields }
-            VStack { fields }
+    }
+    
+    private var alphaValue: some View {
+        HStack {
+            Text("Alpha:")
+                .lineLimit(1)
+                .bold()
+            
+            Spacer()
+            
+            ColorComponentField(value: $color.alpha, inputType: .percentage)
         }
     }
     
@@ -233,7 +221,7 @@ extension ColorValuesView {
     }
     
     private func section<Content: View> (@ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 3) {
+        VStack(spacing: 10) {
             content()
                 .padding(.horizontal, 4)
         }
@@ -432,27 +420,41 @@ extension ColorValuesView {
         var body: some View {
             VStack(spacing: 0) {
                 HStack {
-                    Image(systemName: isOpen ? "chevron.down" : "chevron.right")
+                    Image(systemName: "chevron.right")
+                        .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
                         .frame(width: 15, height: 10)
                         .bold()
-                    Text("\(title):")
+                    Text("\(title)")
                         .lineLimit(1)
                         .fontWeight(.bold)
                     Spacer()
                     Text(!isOpen ? value : "")
+                        .animation(nil, value: isOpen)
                 }
                 .contentShape(Rectangle())
-                .onTapGesture { isOpen.toggle() }
-                .padding(.top, 8)
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() }
+                }
                 
-                if isOpen { content }
+                content
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxHeight: isOpen ? .infinity : 0, alignment: .top)
+                    .opacity(isOpen ? 1 : 0)
+                    .clipped()
+                    .allowsHitTesting(isOpen)
+            }
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(.background.secondary)
+                    .stroke(.separator, lineWidth: 1)
             }
         }
     }
 }
 
 #Preview {
-    ColorValuesView(alignment: .trailing, color: .constant(HSBAColor(with: .orange)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
+    SidebarView(alignment: .trailing, color: .constant(HSBAColor(with: .orange)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
         .frame(width: 200)
         .padding()
 }

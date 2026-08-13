@@ -25,7 +25,7 @@ public struct ColorPanelView: View {
         didSet { colorBinding = color.color }
     }
     @State var colorHistory = ColorHistory()
-    @State var pickerMode: PickerMode = .hsvSquare
+    @State var pickerMode: PickerMode = .hueRing
     var sidebarAligment: SidebarAlignment
     
     public init(_ c: Binding<Color>, sidebarAlignment: SidebarAlignment = .leading, antialiasing: Bool = true) {
@@ -37,7 +37,7 @@ public struct ColorPanelView: View {
     public var body: some View {
         HStack(spacing: 0) {
             if sidebarAligment == .leading {
-                ColorValuesView(alignment: .leading, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
+                SidebarView(alignment: .leading, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
                 
                 switch pickerMode {
                 case .hueRing:
@@ -58,7 +58,7 @@ public struct ColorPanelView: View {
                     HSVSpherePickerView(color: $color, colorHistory: colorHistory)
                 }
                 
-                ColorValuesView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
+                SidebarView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
             }
         }
     }
