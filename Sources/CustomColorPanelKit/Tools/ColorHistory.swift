@@ -11,6 +11,7 @@ import SwiftUI
 final class ColorHistory {
     var colors: [HSBAColor] = []
     private let capacity = 144
+    var pendingChange: HSBAColor?
     
     init() { colors.reserveCapacity(capacity) }
     

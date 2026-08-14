@@ -25,7 +25,8 @@ struct HSVSquare: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.color.hue != color.hue {
+        if context.coordinator.hue != color.hue {
+            context.coordinator.hue = color.hue
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
@@ -36,9 +37,12 @@ struct HSVSquare: NSViewRepresentable {
     static let fragmentShader: String = "HSVSquareFragmentShader"
     
     @Binding var color: HSBAColor
+    private var storeColor: () -> Void
+    
     var size: CGFloat = 0
     var draggingStart: CGPoint?
-    private var storeColor: () -> Void
+    var hue: CGFloat = .nan
+    
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
@@ -49,6 +53,7 @@ struct HSVSquare: NSViewRepresentable {
     ) {
         _color = color
         self.storeColor = storeColor
+        self.hue = color.wrappedValue.hue
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device

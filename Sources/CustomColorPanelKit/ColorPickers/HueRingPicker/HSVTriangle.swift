@@ -26,7 +26,8 @@ struct HSVTriangle: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.color.hue != color.hue {
+        if context.coordinator.hue != color.hue {
+            context.coordinator.hue = color.hue
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
@@ -42,6 +43,7 @@ struct HSVTriangle: NSViewRepresentable {
     
     var size: CGFloat = 0
     var draggingStart: CGPoint?
+    var hue: CGFloat = .nan
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
@@ -54,6 +56,7 @@ struct HSVTriangle: NSViewRepresentable {
         _color = color
         self.hueRotation = hueRotation
         self.storeColor = storeColor
+        self.hue = color.wrappedValue.hue
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device

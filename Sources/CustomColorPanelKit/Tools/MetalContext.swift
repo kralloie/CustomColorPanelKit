@@ -16,6 +16,7 @@ import MetalKit
         view.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
         view.layer?.isOpaque = false
         view.enableSetNeedsDisplay = true
+        view.isPaused = true
         view.device = device
         view.autoResizeDrawable = true
         return view

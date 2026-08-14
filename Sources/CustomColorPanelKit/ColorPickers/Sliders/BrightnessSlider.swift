@@ -10,11 +10,10 @@ import MetalKit
 
 struct BrightnessSlider: NSViewRepresentable {
     @Binding var color: HSBAColor
-    var width: CGFloat
     var storeColor: () -> Void
     
     func makeCoordinator() -> BrightnessSliderCoordinator {
-        BrightnessSliderCoordinator(color: $color, width: width, storeColor: storeColor)
+        BrightnessSliderCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -26,10 +25,6 @@ struct BrightnessSlider: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.width != width {
-            context.coordinator.width = width
-        }
-        
         if context.coordinator.color.saturation != color.saturation || context.coordinator.color.hue != color.hue {
             nsView.setNeedsDisplay(nsView.bounds)
         }
@@ -41,7 +36,6 @@ struct BrightnessSlider: NSViewRepresentable {
     static let fragmentShader: String = "BrightnessSliderFragmentShader"
     
     @Binding var color: HSBAColor
-    var width: CGFloat
     var storeColor: () -> Void
     
     var metalDevice: MTLDevice!
@@ -51,9 +45,8 @@ struct BrightnessSlider: NSViewRepresentable {
     private var centerLock = false
     private let snapDistance: CGFloat = 6
     
-    init(color: Binding<HSBAColor>, width: CGFloat, storeColor: @escaping () -> Void) {
+    init(color: Binding<HSBAColor>, storeColor: @escaping () -> Void) {
         _color = color
-        self.width = width
         self.storeColor = storeColor
         
         let ctx = MetalContext.shared
@@ -86,7 +79,9 @@ struct BrightnessSlider: NSViewRepresentable {
     }
     
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view else { return }
+        guard let view = gesture.view, view.bounds.width > 0 else { return }
+        let width = view.bounds.width
+        
         var pos = gesture.location(in: view).x
         pos = min(max(pos, 0), width)
         
@@ -113,7 +108,9 @@ struct BrightnessSlider: NSViewRepresentable {
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
-        guard let view = gesture.view else { return }
+        guard let view = gesture.view, view.bounds.width > 0 else { return }
+        let width = view.bounds.width
+        
         let pos = gesture.location(in: view).x
         color.brightness = 1 - (pos / width)
         storeColor()

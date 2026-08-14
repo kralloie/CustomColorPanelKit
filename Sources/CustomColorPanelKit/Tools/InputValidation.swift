@@ -10,16 +10,6 @@ import CoreFoundation
 enum InputType {
     case hex, degrees, percentage, numerical
     
-    var format: String {
-        switch self {
-        case .degrees: "%.0f°"
-        case .percentage: "%.0f%%"
-        case .numerical: "%.0f"
-        case .hex: "#%06X"
-        }
-    }
-
-    
     var multiplier: Int {
         switch self {
         case .degrees: 360
@@ -30,12 +20,16 @@ enum InputType {
     }
     
     func format(_ value: CGFloat) -> String {
-        if self == .hex {
-            return String(format: format, UInt32(value))
+        switch self {
+        case .hex:
+            return String(format: "#%06X", UInt32(value))
+        case .degrees:
+            return "\(min(Int((value * 360).rounded()), 359))°"
+        case .percentage:
+            return "\(Int((value * 100).rounded()))%"
+        case .numerical:
+            return "\(Int((value * 255).rounded()))"
         }
-        var v = value * CGFloat(multiplier)
-        if self == .degrees { v = min(v, 359) }
-        return String(format: format, v)
     }
     
     func parse(_ text: String) -> Int? {

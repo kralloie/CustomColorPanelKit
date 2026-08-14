@@ -80,6 +80,7 @@ struct HSBAColor: Equatable, Hashable {
     
     var hex: UInt32 {
         get {
+            let rgb = self.rgb
             let r = UInt32((rgb.red.clamped(to: 0...1) * 255).rounded())
             let g = UInt32((rgb.green.clamped(to: 0...1) * 255).rounded())
             let b = UInt32((rgb.blue.clamped(to: 0...1) * 255).rounded())
@@ -127,6 +128,7 @@ struct HSBAColor: Equatable, Hashable {
 
     var cmyk: CMYK {
         get {
+            let rgb = self.rgb
             let k = 1 - max(rgb.red, rgb.green, rgb.blue)
 
             guard k < 1 else { return CMYK(cyan: 0, magenta: 0, yellow: 0, key: 1) }
@@ -154,9 +156,9 @@ struct HSBAColor: Equatable, Hashable {
     }
     
     var hsvString: String {
-        var h = InputType.degrees.format(hue)
-        var s = InputType.percentage.format(saturation)
-        var v = InputType.percentage.format(brightness)
+        let h = InputType.degrees.format(hue)
+        let s = InputType.percentage.format(saturation)
+        let v = InputType.percentage.format(brightness)
         return String("\(h), \(s), \(v)")
     }
     
@@ -169,9 +171,9 @@ struct HSL {
     var lightness: CGFloat
     
     var string: String {
-        var h = InputType.degrees.format(hue)
-        var s = InputType.percentage.format(saturation)
-        var l = InputType.percentage.format(lightness)
+        let h = InputType.degrees.format(hue)
+        let s = InputType.percentage.format(saturation)
+        let l = InputType.percentage.format(lightness)
         return String("\(h), \(s), \(l)")
     }
 }
@@ -182,9 +184,9 @@ struct RGB {
     var blue: CGFloat
     
     var string: String {
-        var r = InputType.numerical.format(red)
-        var g = InputType.numerical.format(green)
-        var b = InputType.numerical.format(blue)
+        let r = InputType.numerical.format(red)
+        let g = InputType.numerical.format(green)
+        let b = InputType.numerical.format(blue)
         return String("\(r), \(g), \(b)")
     }
 }
@@ -196,10 +198,10 @@ struct CMYK {
     var key: CGFloat
     
     var string: String {
-        var c = InputType.percentage.format(cyan)
-        var m = InputType.percentage.format(magenta)
-        var y = InputType.percentage.format(yellow)
-        var k = InputType.percentage.format(key)
+        let c = InputType.percentage.format(cyan)
+        let m = InputType.percentage.format(magenta)
+        let y = InputType.percentage.format(yellow)
+        let k = InputType.percentage.format(key)
         return String("\(c), \(m), \(y), \(k)")
     }
 }

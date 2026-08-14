@@ -16,7 +16,7 @@ struct BrightnessSliderView: View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
-            BrightnessSlider(color: $color, width: width, storeColor: storeColor)
+            BrightnessSlider(color: $color, storeColor: storeColor)
                 .frame(width: width, height: height)
                 .overlay {
                     Rectangle()

@@ -8,9 +8,6 @@
 import SwiftUI
 
 struct ColorHistoryView: View {
-    @Binding var color: HSBAColor
-    @State var hoveredIndex: Int? = nil
-    
     var colorHistory: ColorHistory
     
     private let colorSize: CGFloat = 10
@@ -18,15 +15,22 @@ struct ColorHistoryView: View {
     private let maxColumns: CGFloat = 12
     private var maxWidth: CGFloat { maxColumns * colorSize + (maxColumns - 1) * spacing }
     
+    private func setColor(_ c: HSBAColor) { colorHistory.pendingChange = c }
+    
     var body: some View {
-        LazyVGrid(
+        return LazyVGrid(
             columns: [
                 GridItem(.adaptive(minimum: colorSize, maximum: colorSize), spacing: spacing)
             ],
             spacing: spacing
         ) {
             ForEach(0..<144, id: \.self) { i in
-                ColorHistoryEntry(color: $color, hoveredIndex: $hoveredIndex, index: i, colorSize: colorSize, colorHistory: colorHistory)
+                ColorHistoryEntry(
+                    index: i,
+                    colorSize: colorSize,
+                    colorHistory: colorHistory,
+                    setColor: setColor
+                )
             }
         }
         .frame(maxWidth: maxWidth)
@@ -40,30 +44,23 @@ struct ColorHistoryView: View {
 
 extension ColorHistoryView {
     private struct ColorHistoryEntry: View {
-        @Binding var color: HSBAColor
-        @Binding var hoveredIndex: Int?
         let index: Int
         let colorSize: CGFloat
         var colorHistory: ColorHistory
+        let setColor: (HSBAColor) -> Void
+        @State var isHovering: Bool = false
         
         var body: some View {
             if colorHistory.colors.indices.contains(index) {
                 let c = colorHistory.colors[index]
-                let isHovering = hoveredIndex == index
                 RoundedRectangle(cornerRadius: 2)
                     .fill(c.color)
-                    .stroke(Color.accentColor, lineWidth: isHovering ? 1 : 0)
                     .frame(width: colorSize, height: colorSize)
-                    .onHover { hovering in hoveredIndex = hovering ? index : nil }
-                    .onTapGesture {
-                        var newColor = c
-                        newColor.alpha = color.alpha
-                        color = newColor
-                        hoveredIndex = nil
-                    }
+                    .onHover { isHovering = $0 }
+                    .onTapGesture { setColor(c) }
                     .scaleEffect(isHovering ? 1.25 : 1)
                     .animation(.easeInOut(duration: 0.1), value: isHovering)
-                    .contextMenu{ ColorEntryContextMenu(color: $color, entryColor: c, colorHistory: colorHistory) }
+                    .contextMenu{ ColorEntryContextMenu(color: c, entryColor: c, colorHistory: colorHistory, setColor: setColor) }
             } else {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(.separator, lineWidth: 1)
@@ -75,12 +72,13 @@ extension ColorHistoryView {
 
 extension ColorHistoryView {
     struct ColorEntryContextMenu: View {
-        @Binding var color: HSBAColor
+        var color: HSBAColor
         var entryColor: HSBAColor
         var colorHistory: ColorHistory
+        let setColor: (HSBAColor) -> Void
         
         var body: some View {
-            Button("Select") { color = entryColor }
+            Button("Select") { setColor(entryColor) }
             
             Menu {
                 Button("HEX") { NSPasteboard.copy(color.hexString) }

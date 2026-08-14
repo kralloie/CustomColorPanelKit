@@ -61,6 +61,12 @@ public struct ColorPanelView: View {
                 SidebarView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
             }
         }
+        .onChange(of: colorHistory.pendingChange) {
+            guard var newColor = colorHistory.pendingChange else { return }
+            newColor.alpha = color.alpha
+            color = newColor
+            colorHistory.pendingChange = nil
+        }
     }
 }
 

@@ -15,7 +15,7 @@ struct OpacitySliderView: View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
-            OpacitySlider(color: $color, width: width)
+            OpacitySlider(color: $color)
                 .frame(width: width, height: height) 
                 .overlay {
                     Rectangle()
