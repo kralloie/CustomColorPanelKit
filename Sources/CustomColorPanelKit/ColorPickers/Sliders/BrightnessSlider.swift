@@ -25,7 +25,9 @@ struct BrightnessSlider: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.color.saturation != color.saturation || context.coordinator.color.hue != color.hue {
+        if context.coordinator.saturation != color.saturation || context.coordinator.hue != color.hue {
+            context.coordinator.hue = color.hue
+            context.coordinator.saturation = color.saturation
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
@@ -38,6 +40,9 @@ struct BrightnessSlider: NSViewRepresentable {
     @Binding var color: HSBAColor
     var storeColor: () -> Void
     
+    var hue: CGFloat = .nan
+    var saturation: CGFloat = .nan
+    
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
@@ -48,6 +53,9 @@ struct BrightnessSlider: NSViewRepresentable {
     init(color: Binding<HSBAColor>, storeColor: @escaping () -> Void) {
         _color = color
         self.storeColor = storeColor
+        
+        self.hue = color.wrappedValue.hue
+        self.saturation = color.wrappedValue.saturation
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -69,7 +77,7 @@ struct BrightnessSlider: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderEncoder.setRenderPipelineState(renderPipeline)
-        var hueSaturation = SIMD2<Float>(Float(color.hue), Float(color.saturation))
+        var hueSaturation = SIMD2<Float>(Float(self.hue), Float(self.saturation))
         renderEncoder.setFragmentBytes(&hueSaturation, length: MemoryLayout<SIMD2<Float>>.stride, index: 0)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         renderEncoder.endEncoding()
@@ -82,27 +90,21 @@ struct BrightnessSlider: NSViewRepresentable {
         guard let view = gesture.view, view.bounds.width > 0 else { return }
         let width = view.bounds.width
         
-        var pos = gesture.location(in: view).x
-        pos = min(max(pos, 0), width)
+        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
         
         let center = width * 0.5
+        
+        if gesture.state == .began { centerLock = false }
         
         if !centerLock && abs(pos - center) < snapDistance {
             centerLock = true
             color.brightness = 0.5
-            return
+        } else if centerLock && abs(pos - center) < snapDistance * 2 {
+            color.brightness = 0.5
+        } else {
+            centerLock = false
+            color.brightness = 1 - (pos / width)
         }
-        
-        if centerLock {
-            if abs(pos - center) < snapDistance * 2 {
-                color.brightness = 0.5
-                return
-            } else {
-                centerLock = false
-            }
-        }
-
-        color.brightness = 1 - (pos / width)
         
         if gesture.state == .ended { storeColor() }
     }
@@ -111,7 +113,8 @@ struct BrightnessSlider: NSViewRepresentable {
         guard let view = gesture.view, view.bounds.width > 0 else { return }
         let width = view.bounds.width
         
-        let pos = gesture.location(in: view).x
+        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
+    
         color.brightness = 1 - (pos / width)
         storeColor()
     }

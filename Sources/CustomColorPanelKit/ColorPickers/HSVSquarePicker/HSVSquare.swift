@@ -38,9 +38,7 @@ struct HSVSquare: NSViewRepresentable {
     
     @Binding var color: HSBAColor
     private var storeColor: () -> Void
-    
-    var size: CGFloat = 0
-    var draggingStart: CGPoint?
+
     var hue: CGFloat = .nan
     
     var metalDevice: MTLDevice!
@@ -63,9 +61,7 @@ struct HSVSquare: NSViewRepresentable {
         super.init()
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {
-        size = min(view.bounds.width, view.bounds.height)
-    }
+    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {}
     
     func draw(in view: MTKView) {
         guard let drawable = view.currentDrawable,
@@ -76,7 +72,7 @@ struct HSVSquare: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        var hue = Float(color.hue)
+        var hue = Float(self.hue)
         renderEncoder.setFragmentBytes(&hue, length: MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState(renderPipeline)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
@@ -92,8 +88,10 @@ struct HSVSquare: NSViewRepresentable {
         
         let x = min(max(loc.x, 0), view.bounds.width)
         let y = min(max(loc.y, 0), view.bounds.height)
+        
         color.brightness = y / view.bounds.height
         color.saturation = x / view.bounds.width
+        
         if gesture.state == .ended { storeColor() }
     }
     

@@ -74,7 +74,7 @@ struct OpacitySlider: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderEncoder.setRenderPipelineState(renderPipeline)
-        let rgb = color.rgb
+        let rgb = HSBAColor(hue: hue, saturation: saturation, brightness: brightness).rgb
         var rgbComponents = SIMD3<Float>(Float(rgb.red), Float(rgb.green), Float(rgb.blue))
         renderEncoder.setFragmentBytes(&rgbComponents, length: MemoryLayout<SIMD3<Float>>.stride, index: 0)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
@@ -88,34 +88,27 @@ struct OpacitySlider: NSViewRepresentable {
         guard let view = gesture.view, view.bounds.width > 0 else { return }
         let width = view.bounds.width
         
-        var pos = gesture.location(in: view).x
-        pos = min(max(pos, 0), width)
+        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
         
         let center = width * 0.5
+        
+        if gesture.state == .began { centerLock = false }
         
         if !centerLock && abs(pos - center) < snapDistance {
             centerLock = true
             color.alpha = 0.5
-            return
+        } else if centerLock && abs(pos - center) < snapDistance * 2 {
+            color.alpha = 0.5
+        } else {
+            centerLock = false
+            color.alpha = 1 - (pos / width)
         }
-        
-        if centerLock {
-            if abs(pos - center) < snapDistance * 2 {
-                color.alpha = 0.5
-                return
-            } else {
-                centerLock = false
-            }
-        }
-
-        color.alpha = 1 - (pos / width)
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view, view.bounds.width > 0 else { return }
         let width = view.bounds.width
-        
-        let pos = gesture.location(in: view).x
+        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
         color.alpha = 1 - (pos / width)
     }
 }

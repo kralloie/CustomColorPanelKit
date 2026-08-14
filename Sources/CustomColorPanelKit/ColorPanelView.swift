@@ -43,7 +43,7 @@ public struct ColorPanelView: View {
                 case .hueRing:
                     HueRingPickerView(color: $color, colorHistory: colorHistory)
                 case .hsvSquare:
-                    HSVSquarePickerView(color: $color, colorHistory: colorHistory, sidebarAlignment: sidebarAligment)
+                    HSVSquarePickerView(color: $color, colorHistory: colorHistory)
                 case .hsvSphere:
                     HSVSpherePickerView(color: $color, colorHistory: colorHistory)
                 }
@@ -53,7 +53,7 @@ public struct ColorPanelView: View {
                 case .hueRing:
                     HueRingPickerView(color: $color, colorHistory: colorHistory)
                 case .hsvSquare:
-                    HSVSquarePickerView(color: $color, colorHistory: colorHistory, sidebarAlignment: sidebarAligment)
+                    HSVSquarePickerView(color: $color, colorHistory: colorHistory)
                 case .hsvSphere:
                     HSVSpherePickerView(color: $color, colorHistory: colorHistory)
                 }

@@ -33,8 +33,6 @@ struct HueSlider: NSViewRepresentable {
     
     @Binding var color: HSBAColor
     private var storeColor: () -> Void
-    var size: CGFloat = 0
-    var draggingStart: CGPoint?
     
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
@@ -55,9 +53,7 @@ struct HueSlider: NSViewRepresentable {
         super.init()
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {
-        size = min(view.bounds.width, view.bounds.height)
-    }
+    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {}
     
     func draw(in view: MTKView) {
         guard let drawable = view.currentDrawable,
@@ -85,7 +81,7 @@ struct HueSlider: NSViewRepresentable {
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
-        let y = gesture.location(in: view).y
+        let y = min(max(gesture.location(in: view).y, 0), view.bounds.height)
         color.hue = y / view.bounds.height
         storeColor()
     }

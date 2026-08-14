@@ -41,7 +41,6 @@ struct HSVTriangle: NSViewRepresentable {
     var hueRotation: Bool
     private var storeColor: () -> Void
     
-    var size: CGFloat = 0
     var draggingStart: CGPoint?
     var hue: CGFloat = .nan
     var metalDevice: MTLDevice!
@@ -66,9 +65,7 @@ struct HSVTriangle: NSViewRepresentable {
         super.init()
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {
-        size = min(view.bounds.width, view.bounds.height)
-    }
+    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {}
     
     func draw(in view: MTKView) {
         guard let drawable = view.currentDrawable,
@@ -79,7 +76,7 @@ struct HSVTriangle: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        var hue = Float(color.hue)
+        var hue = Float(self.hue)
         renderEncoder.setVertexBytes(&hue, length: MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setVertexBytes(&hueRotation, length: MemoryLayout<Bool>.stride, index: 1)
         renderEncoder.setRenderPipelineState(renderPipeline)
@@ -94,9 +91,9 @@ struct HSVTriangle: NSViewRepresentable {
         return ((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) * 0.5
     }
     
-    private func getBarycentricCoordinates(for p: CGPoint) -> (CGFloat, CGFloat, CGFloat) {
-        let angle = hueRotation ? color.hue * 2 * .pi : .pi * 0.5
-        let vertices = getVerticesForTriangle(size: self.size, angle: angle)
+    private func getBarycentricCoordinates(for p: CGPoint, size: CGFloat) -> (CGFloat, CGFloat, CGFloat) {
+        let angle = hueRotation ? self.hue * 2 * .pi : .pi * 0.5
+        let vertices = getVerticesForTriangle(size: size, angle: angle)
         let abc = abs(triangleArea(vertices[0], vertices[1], vertices[2]))
         
         let w0 = triangleArea(p, vertices[1], vertices[2]) / abc
@@ -124,16 +121,17 @@ struct HSVTriangle: NSViewRepresentable {
     
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
-        let loc = gesture.location(in: view)
+        let size = min(view.bounds.width, view.bounds.height)
         
+        let loc = gesture.location(in: view)
         if gesture.state == .began { draggingStart = loc }
         
         if let draggingStart = draggingStart {
-            let (w0, w1, w2) = getBarycentricCoordinates(for: draggingStart)
+            let (w0, w1, w2) = getBarycentricCoordinates(for: draggingStart, size: size)
             if w0 < 0 || w1 < 0 || w2 < 0 { return }
         }
         
-        var (w0, w1, w2) = getBarycentricCoordinates(for: loc)
+        var (w0, w1, w2) = getBarycentricCoordinates(for: loc, size: size)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
             let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
             color.brightness = brightness
@@ -142,8 +140,8 @@ struct HSVTriangle: NSViewRepresentable {
             return
         }
         
-        let angle = hueRotation ? color.hue * 2 * .pi : .pi * 0.5
-        let triangle = getVerticesForTriangle(size: self.size, angle: angle)
+        let angle = hueRotation ? self.hue * 2 * .pi : .pi * 0.5
+        let triangle = getVerticesForTriangle(size: size, angle: angle)
         
         let c0 = max(0, w0)
         let c1 = max(0, w1)
@@ -154,19 +152,22 @@ struct HSVTriangle: NSViewRepresentable {
             CGPoint(
                 x: (c0 * triangle[0].x + c1 * triangle[1].x + c2 * triangle[2].x) / sum,
                 y: (c0 * triangle[0].y + c1 * triangle[1].y + c2 * triangle[2].y) / sum
-            )
+            ),
+            size: size
         )
         
         let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
         color.brightness = brightness
         color.saturation = saturation
+        
         if gesture.state == .ended { storeColor() }
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
+        let size = min(view.bounds.width, view.bounds.height)
         let loc = gesture.location(in: view)
-        let (w0, w1, w2) = getBarycentricCoordinates(for: loc)
+        let (w0, w1, w2) = getBarycentricCoordinates(for: loc, size: size)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
             let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
             color.brightness = brightness

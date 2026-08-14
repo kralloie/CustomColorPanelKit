@@ -34,7 +34,6 @@ struct HSVSphere: NSViewRepresentable {
     @Binding var color: HSBAColor
     private var storeColor: () -> Void
     
-    private var size: CGFloat = 0
     private var draggingStart: CGPoint?
     
     var metalDevice: MTLDevice!
@@ -53,9 +52,7 @@ struct HSVSphere: NSViewRepresentable {
         super.init()
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {
-        size = min(view.bounds.width, view.bounds.height)
-    }
+    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {}
     
     func draw(in view: MTKView) {
         guard let drawable = view.currentDrawable,
@@ -76,12 +73,13 @@ struct HSVSphere: NSViewRepresentable {
     
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
+        let radius = min(view.bounds.width, view.bounds.height) * 0.5
+        
         let loc = gesture.location(in: view)
         if gesture.state == .began { draggingStart = loc }
-        let radius = size * 0.5
+        
         var x = (loc.x - radius) / radius
         var y = (loc.y - radius) / radius
-        var len = hypot(x, y)
         
         if let draggingStart = draggingStart {
             let draggingStartPoint = CGPoint(
@@ -92,27 +90,32 @@ struct HSVSphere: NSViewRepresentable {
             if draggingStartPointLen > 1.0 { return }
         }
         
+        var len = hypot(x, y)
         if len > 1.0 { x /= len; y /= len; len = 1.0 }
         color.saturation = len
+        
         var hue = atan2(y, x) / (2 * .pi)
         if hue < 0 { hue += 1 }
         color.hue = hue
+        
         if gesture.state == .ended { storeColor() }
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
-        let radius = size * 0.5
+        let radius = min(view.bounds.width, view.bounds.height) * 0.5
         let loc = gesture.location(in: view)
         var x = (loc.x - radius) / radius
         var y = (loc.y - radius) / radius
-        let len = hypot(x, y)
         
+        let len = hypot(x, y)
         if len > 1.0 { return }
+        color.saturation = len
+        
         var hue = atan2(y, x) / (2 * .pi)
         if hue < 0 { hue += 1 }
-        color.saturation = len
         color.hue = hue
+        
         storeColor()
     }
 }

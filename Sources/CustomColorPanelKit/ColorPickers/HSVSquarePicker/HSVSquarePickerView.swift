@@ -17,7 +17,6 @@ private enum Layout {
 struct HSVSquarePickerView: View {
     @Binding var color: HSBAColor
     let colorHistory: ColorHistory
-    let sidebarAlignment: SidebarAlignment
     @State private var hoveringSlider: Bool = false
     private func storeColor() -> Void { colorHistory.add(color) }
     
@@ -59,7 +58,7 @@ private extension View {
     func hueSliderScrollHandler(isHovering: Bool, color: Binding<HSBAColor>, storeColor: @escaping () -> Void) -> some View {
         background {
             ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor) { point, event in
-                let delta = event.deltaY > 0 ? 1.0 : -1.0
+                let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
                 color.wrappedValue.hue = max(min(color.wrappedValue.hue + (delta / 100), 1), 0)
             }
         }

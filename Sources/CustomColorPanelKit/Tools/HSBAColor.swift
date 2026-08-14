@@ -36,6 +36,13 @@ struct HSBAColor: Equatable, Hashable {
         }
     }
     
+    public init(hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat = 1) {
+        self.hue = hue
+        self.saturation = saturation
+        self.brightness = brightness
+        self.alpha = alpha
+    }
+    
     var color: Color { Color(hue: hue, saturation: saturation, brightness: brightness, opacity: alpha) }
     
     var rgb: RGB {
