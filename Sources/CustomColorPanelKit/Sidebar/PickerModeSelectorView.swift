@@ -42,7 +42,7 @@ struct PickerModeSelectorView: View {
         .padding(4)
         .background {
             RoundedRectangle(cornerRadius: 50)
-                .glassEffect(.regular, in: .rect(cornerRadius: 50))
+                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 50))
         }
         .padding(.bottom, 8)
     }

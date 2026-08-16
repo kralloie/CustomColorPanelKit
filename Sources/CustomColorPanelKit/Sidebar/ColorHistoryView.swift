@@ -37,7 +37,7 @@ struct ColorHistoryView: View {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: 8)
-                .glassEffect(.regular, in: .rect(cornerRadius: 8))
+                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 8))
         }
     }
 }

@@ -30,24 +30,40 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     }
     
     var body: some View {
-        HStack(spacing: 0) {
-            ZStack {
+        HStack(spacing: 4) {
+            ZStack(alignment: .leading) {
                 TextField("", text: $text)
-                    .multilineTextAlignment(.leading)
+                    .multilineTextAlignment(.center)
+                    .frame(width: inputType == .hex ? 70 : 50, height: 24)
+                    .textFieldStyle(.plain)
                     .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
                     .onSubmit(submitText)
                     .onExitCommand(perform: cancelField)
                     .focused($isFocused)
                     .onChange(of: isFocused, updateText)
-                    .frame(width: inputType == .hex ? 70 : 50)
+                    .background {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(.background.secondary)
+                            .stroke(Color.accentColor, lineWidth: 2)
+                    }
                     .opacity(isFocused ? 1 : 0)
+                
                 Text(value)
+                    .frame(width: inputType == .hex ? 70 : 50, height: 24)
                     .contentShape(Rectangle())
                     .onTapGesture { isFocused = true }
+                    .background {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(.background.secondary)
+                            .stroke(.separator, lineWidth: 1)
+                    }
                     .opacity(isFocused ? 0 : 1)
             }
             .contentShape(Rectangle())
-            .onHover { isHovering = $0 }
+            .onHover { hovering in
+                isHovering = hovering
+                if hovering { NSCursor.iBeam.set() } else { NSCursor.arrow.set() }
+            }
             .background {
                 if inputType != .hex {
                     ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor, onScroll: handleScroll)

@@ -90,11 +90,7 @@ extension SidebarView {
             .contentShape(Rectangle())
             .onHover { hovering in
                 guard dragStartWidth == nil else { return }
-                if hovering {
-                    NSCursor.resizeLeftRight.push()
-                } else {
-                    NSCursor.pop()
-                }
+                if hovering { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
             }
             .gesture(
                 DragGesture(minimumDistance: 0, coordinateSpace: .global)
@@ -147,6 +143,11 @@ extension SidebarView {
             
             ColorComponentField(value: $color.hex, inputType: .hex, storeColor: storeColor)
         }
+        .padding(8)
+        .background {
+            RoundedRectangle(cornerRadius: 24)
+                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 24))
+        }
     }
     
     private var alphaValue: some View {
@@ -158,6 +159,11 @@ extension SidebarView {
             Spacer()
             
             ColorComponentField(value: $color.alpha, inputType: .percentage)
+        }
+        .padding(8)
+        .background {
+            RoundedRectangle(cornerRadius: 24)
+                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 24))
         }
     }
     
@@ -293,15 +299,15 @@ extension SidebarView {
                 content
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxHeight: isOpen ? .infinity : 0, alignment: .top)
+                    .padding(.vertical, isOpen ? 4 : 0)
                     .opacity(isOpen ? 1 : 0)
                     .clipped()
                     .allowsHitTesting(isOpen)
             }
             .padding(8)
             .background {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(.background.secondary)
-                    .stroke(.separator, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16)
+                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: 16))
             }
         }
     }
