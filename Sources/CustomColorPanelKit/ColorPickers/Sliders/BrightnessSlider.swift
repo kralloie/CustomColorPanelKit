@@ -47,9 +47,6 @@ struct BrightnessSlider: NSViewRepresentable {
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
-    private var centerLock = false
-    private let snapDistance: CGFloat = 6
-    
     init(color: Binding<HSBAColor>, storeColor: @escaping () -> Void) {
         _color = color
         self.storeColor = storeColor
@@ -87,35 +84,23 @@ struct BrightnessSlider: NSViewRepresentable {
     }
     
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view, view.bounds.width > 0 else { return }
-        let width = view.bounds.width
+        guard let view = gesture.view, view.bounds.height > 0 else { return }
+        let height = view.bounds.height
         
-        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
+        var pos = min(max(gesture.location(in: view).y, 0), view.bounds.height)
         
-        let center = width * 0.5
-        
-        if gesture.state == .began { centerLock = false }
-        
-        if !centerLock && abs(pos - center) < snapDistance {
-            centerLock = true
-            color.brightness = 0.5
-        } else if centerLock && abs(pos - center) < snapDistance * 2 {
-            color.brightness = 0.5
-        } else {
-            centerLock = false
-            color.brightness = 1 - (pos / width)
-        }
+        color.brightness = (pos / height)
         
         if gesture.state == .ended { storeColor() }
     }
     
     @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
-        guard let view = gesture.view, view.bounds.width > 0 else { return }
-        let width = view.bounds.width
+        guard let view = gesture.view, view.bounds.height > 0 else { return }
+        let height = view.bounds.height
         
-        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
+        var pos = min(max(gesture.location(in: view).y, 0), view.bounds.height)
     
-        color.brightness = 1 - (pos / width)
+        color.brightness = (pos / height)
         storeColor()
     }
 }

@@ -70,24 +70,36 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 }
             }
             
-            if inputType != .hex { stepper }
+            if inputType != .hex { stepper(isFocused: isFocused, storeColor: storeColor, stepValue: stepValue(by:)) }
         }
     }
     
-    private var stepper: some View {
-        VStack(spacing: 2) {
-            Image(systemName: "chevron.up")
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    stepValue(by: 1)
-                    if !isFocused { storeColor() }
-                }
-            Image(systemName: "chevron.down")
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    stepValue(by: -1)
-                    if !isFocused { storeColor() }
-                }
+    private struct stepper: View {
+        @State var isFocused: Bool
+        var storeColor: () -> Void
+        var stepValue: (CGFloat) -> Void
+        @State private var hoveringChevron: Int? = nil
+        
+        var body: some View {
+            VStack(spacing: 2) {
+                Image(systemName: "chevron.up")
+                    .background { RoundedRectangle(cornerRadius: 4).fill(hoveringChevron == 1 ? .gray.opacity(0.2) : .clear) }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        stepValue(1)
+                        if !isFocused { storeColor() }
+                    }
+                    .onHover { hoveringChevron = $0 ? 1 : nil }
+                
+                Image(systemName: "chevron.down")
+                    .background { RoundedRectangle(cornerRadius: 4).fill(hoveringChevron == -1 ? .gray.opacity(0.2) : .clear) }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        stepValue(-1)
+                        if !isFocused { storeColor() }
+                    }
+                    .onHover { hoveringChevron = $0 ? -1 : nil }
+            }
         }
     }
     

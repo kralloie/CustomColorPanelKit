@@ -8,7 +8,7 @@
 import SwiftUI
 
 private enum Layout {
-    static let panelWidth: CGFloat = 230
+    static let panelWidth: CGFloat = 270
     static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
     static let sidebarCornerRadius: CGFloat = 12
@@ -48,8 +48,6 @@ struct SidebarView: View {
                 VStack(spacing: 15) {
                     hexValue
                     
-                    alphaValue
-                    
                     ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: hsvValues)
                     
                     ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: hslValues)
@@ -57,6 +55,8 @@ struct SidebarView: View {
                     ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: rgbValues)
                     
                     ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: cmykValues)
+                    
+                    alphaValue
                     
                     ColorHistoryView(colorHistory: colorHistory)
                 }
@@ -135,7 +135,7 @@ extension SidebarView {
     
     private var hexValue: some View {
         HStack {
-            Text("HEX:")
+            Text("HEX")
                 .lineLimit(1)
                 .bold()
             
@@ -152,7 +152,7 @@ extension SidebarView {
     
     private var alphaValue: some View {
         HStack {
-            Text("Alpha:")
+            Text("Alpha")
                 .lineLimit(1)
                 .bold()
             
@@ -273,6 +273,7 @@ extension SidebarView {
     
     private struct ColorDisclosureGroup<Content: View>: View {
         @State private var isOpen: Bool = false
+        @State private var hoveringButton: Bool = false
         let title: String
         let value: String
         var content: Content
@@ -284,17 +285,27 @@ extension SidebarView {
                         .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
                         .frame(width: 15, height: 10)
                         .bold()
+                        .padding(5)
+                        .contentShape(Circle())
+                        .background {
+                            Circle()
+                                .glassEffect(.clear.tint(hoveringButton ? .gray : .clear), in: Circle())
+                                .animation(.easeInOut(duration: 0.1), value: hoveringButton)
+                        }
+                        .onHover { hoveringButton = $0 }
+                        .onTapGesture { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
+                    
                     Text("\(title)")
                         .lineLimit(1)
                         .fontWeight(.bold)
+                    
                     Spacer()
+                    
                     Text(!isOpen ? value : "")
                         .animation(nil, value: isOpen)
                 }
+                .frame(height: 24)
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() }
-                }
                 
                 content
                     .fixedSize(horizontal: false, vertical: true)
@@ -306,8 +317,8 @@ extension SidebarView {
             }
             .padding(8)
             .background {
-                RoundedRectangle(cornerRadius: 16)
-                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: 16))
+                RoundedRectangle(cornerRadius: 24)
+                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: 24))
             }
         }
     }

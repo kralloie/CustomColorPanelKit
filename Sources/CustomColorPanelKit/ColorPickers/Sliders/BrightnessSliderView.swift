@@ -17,16 +17,9 @@ struct BrightnessSliderView: View {
             let width = geo.size.width
             let height = geo.size.height
             BrightnessSlider(color: $color, storeColor: storeColor)
+                .positionIndicator(sliderWidth: width, height: height)
                 .frame(width: width, height: height)
-                .overlay {
-                    Rectangle()
-                        .fill(.thickMaterial)
-                        .frame(width: 2, height: height)
-                    
-                    positionIndicator(position: width - (color.brightness * width))
-                }
                 .background(ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor, onScroll: handleScroll))
-                .background(CheckerboardView())
                 .onHover { isHovering = $0 }
         }
     }
@@ -37,18 +30,21 @@ struct BrightnessSliderView: View {
         let delta = event.scrollingDeltaY > 0 ? step : -step
         color.brightness = min(max(color.brightness + delta, 0), 1)
     }
-    
-    private struct positionIndicator: View {
-        let position: CGFloat
-        
-        var body: some View {
-            LeftPointingTriangle()
-                .fill(.primary)
-                .frame(width: 10, height: 10)
-                .rotationEffect(Angle(degrees: 270))
-                .shadow(radius: 2)
-                .position(x: position)
+}
+
+private extension BrightnessSlider {
+    func positionIndicator(sliderWidth: CGFloat, height: CGFloat) -> some View {
+        overlay(alignment: .trailing) {
+            Rectangle()
+                .fill(.clear)
+                .frame(width: sliderWidth, height: 10)
+                .overlay(alignment:.trailing) {
+                    LeftPointingTriangle()
+                        .fill(.primary)
+                        .frame(width: 10, height: 10)
+                }
                 .allowsHitTesting(false)
+                .position(x: sliderWidth * 0.5 + 5, y: height - color.brightness * height)
         }
     }
 }

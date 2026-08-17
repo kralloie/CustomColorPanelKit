@@ -34,7 +34,7 @@ struct BrightnessSliderVertexOut {
 vertex BrightnessSliderVertexOut BrightnessSliderVertexShader(unsigned int vid [[vertex_id]]) {
     BrightnessSliderVertexOut out;
     out.position = float4(positions[vid], 0, 1);
-    out.brightness = (1.0 - positions[vid].x) * 0.5;
+    out.brightness = ( positions[vid].y + 1) * 0.5;
     return out;
 }
 

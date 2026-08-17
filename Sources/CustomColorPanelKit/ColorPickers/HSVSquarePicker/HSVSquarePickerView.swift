@@ -90,12 +90,6 @@ private extension HueSlider {
                     LeftPointingTriangle()
                         .fill(.primary)
                         .frame(width: 10, height: 10)
-                        .shadow(radius: 2)
-                        .overlay {
-                            LeftPointingTriangle()
-                                .fill(Color(hue: color.hue, saturation: 1, brightness: 1))
-                                .frame(width: 10, height: 10)
-                        }
                 }
                 .allowsHitTesting(false)
                 .position(x: sliderWidth * 0.5 + 5, y: height - (color.hue * height))
