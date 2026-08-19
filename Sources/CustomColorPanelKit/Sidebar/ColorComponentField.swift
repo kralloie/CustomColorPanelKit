@@ -134,7 +134,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     .fill(Color.primary)
                 Capsule()
                     .fill(Color.accentColor)
-                    .frame(width: normalized * width)
+                    .frame(width: max(normalized * width, 0))
             }
             .frame(width: width, height: 5)
                 .overlay(alignment: .leading) {
