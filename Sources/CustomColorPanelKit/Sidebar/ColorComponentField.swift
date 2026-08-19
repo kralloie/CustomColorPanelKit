@@ -10,6 +10,7 @@ import SwiftUI
 struct ColorComponentField<T: ColorComponentNumeric>: View {
     @Binding var value: String
     @Binding var valueBinding: T
+    var sliderWidth: CGFloat
     
     @State private var text: String
     @State private var isHovering: Bool = false
@@ -18,19 +19,38 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     let inputType: InputType
     let storeColor: () -> Void
     
-    init(value: Binding<T>, inputType: InputType, storeColor: @escaping () -> Void = {}) {
+    init(value: Binding<T>, inputType: InputType, storeColor: @escaping () -> Void = {}, sliderWidth: CGFloat = 0) {
         self.inputType = inputType
         self._value = Binding(
             get: { inputType.format(value.wrappedValue.cgFloatValue) },
             set: { value.wrappedValue = T(value: inputType.normalize($0)) }
         )
         self._valueBinding = value
+        self.sliderWidth = sliderWidth
         self.storeColor = storeColor
         self._text = .init(initialValue: inputType.format(value.wrappedValue.cgFloatValue))
     }
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
+            if inputType != .hex {
+                slider(
+                    normalized: Binding(
+                        get: {
+                            isFocused ? inputType.normalize(text) : valueBinding.cgFloatValue
+                        },
+                        set: {
+                            if isFocused {
+                                text = inputType.format($0)
+                            } else {
+                                valueBinding = T(value: $0)
+                            }
+                        }
+                    ),
+                    width: sliderWidth
+                )
+            }
+            
             ZStack(alignment: .leading) {
                 TextField("", text: $text)
                     .multilineTextAlignment(.center)
@@ -100,6 +120,53 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     }
                     .onHover { hoveringChevron = $0 ? -1 : nil }
             }
+        }
+    }
+    
+    private struct slider: View {
+        @Binding var normalized: CGFloat
+        var width: CGFloat
+        @State private var isDragging: Bool = false
+        
+        var body: some View {
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color.primary)
+                Capsule()
+                    .fill(Color.accentColor)
+                    .frame(width: normalized * width)
+            }
+            .frame(width: width, height: 5)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(.clear)
+                        .frame(width: 17, height: 13)
+                        .background {
+                            ZStack {
+                                if isDragging {
+                                    Capsule().glassEffect(.clear, in: Capsule())
+                                } else {
+                                    Capsule().fill(.white).shadow(radius: 2)
+                                }
+                            }
+                        }
+                        .scaleEffect(isDragging ? 1.25 : 1)
+                        .animation(.easeInOut(duration: 0.1), value: isDragging)
+                        .offset(x: width * normalized - 7.5)
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged {
+                                    if !isDragging { isDragging = true }
+                                    normalized = ($0.location.x / width).clamped(to: 0...1)
+                                }
+                                .onEnded { _ in isDragging = false }
+                        )
+                }
+                .position(x: width * 0.5, y: 12)
+                .gesture(
+                    SpatialTapGesture()
+                        .onEnded { normalized = ($0.location.x / width).clamped(to: 0...1) }
+                )
         }
     }
     
@@ -173,9 +240,10 @@ struct ColorComponentFieldContainer<Content: View>: View {
     @ViewBuilder let componentField: () -> Content
     var body: some View {
         HStack {
-            Spacer()
-            Text("\(component):")
+            Text("\(component)")
                 .lineLimit(1)
+                .bold()
+                .frame(width: SidebarLayout.componentLabelWidth)
             componentField()
         }
     }

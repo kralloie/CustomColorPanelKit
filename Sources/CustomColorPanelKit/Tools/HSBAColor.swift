@@ -9,10 +9,12 @@ import Foundation
 import SwiftUI
 
 struct HSBAColor: Equatable, Hashable {
-    var hue: CGFloat
-    var saturation: CGFloat
-    var brightness: CGFloat
+    var hue:        CGFloat { didSet { storedKey = nil } }
+    var saturation: CGFloat { didSet { storedKey = nil } }
+    var brightness: CGFloat { didSet { storedKey = nil } }
+    
     var alpha: CGFloat
+    private var storedKey: CGFloat? = nil
     
     public init(with color: Color) {
         let nsColor = NSColor(color)
@@ -136,12 +138,15 @@ struct HSBAColor: Equatable, Hashable {
     var cmyk: CMYK {
         get {
             let rgb = self.rgb
-            let k = 1 - max(rgb.red, rgb.green, rgb.blue)
+            let maxV = max(rgb.red, rgb.green, rgb.blue)
+            let maxK = 1 - maxV
+            let k = (storedKey ?? maxK).clamped(to: 0...maxK)
 
             guard k < 1 else { return CMYK(cyan: 0, magenta: 0, yellow: 0, key: 1) }
-            let c = (1 - rgb.red - k) / (1 - k)
-            let m = (1 - rgb.green - k) / (1 - k)
-            let y = (1 - rgb.blue - k) / (1 - k)
+            let inv = 1 - k
+            let c = ((1 - rgb.red   - k) / inv).clamped(to: 0...1)
+            let m = ((1 - rgb.green - k) / inv).clamped(to: 0...1)
+            let y = ((1 - rgb.blue  - k) / inv).clamped(to: 0...1)
             return CMYK(cyan: c, magenta: m, yellow: y, key: k)
         }
         
@@ -159,6 +164,7 @@ struct HSBAColor: Equatable, Hashable {
             self.hue = hsv.hue
             self.saturation = hsv.saturation
             self.brightness = hsv.brightness
+            self.storedKey = k // must be asigned last always
         }
     }
     

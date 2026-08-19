@@ -29,7 +29,7 @@ final class ColorHistory {
     }
     
     func delete(_ color: HSBAColor) {
-        if let index = colors.firstIndex(of: color) {
+        if let index = colors.firstIndex(where : { $0.hex == color.hex }) {
             colors.remove(at: index)
         }
     }

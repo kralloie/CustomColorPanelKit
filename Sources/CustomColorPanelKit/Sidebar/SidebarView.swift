@@ -7,11 +7,12 @@
 
 import SwiftUI
 
-private enum Layout {
+enum SidebarLayout {
     static let panelWidth: CGFloat = 270
     static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
     static let sidebarCornerRadius: CGFloat = 12
+    static let componentLabelWidth: CGFloat = 40
 }
 
 struct SidebarView: View {
@@ -25,8 +26,9 @@ struct SidebarView: View {
     }
     
     @State private var isOpen: Bool = true
-    @State private var panelWidth = Layout.panelWidth
+    @State private var panelWidth = SidebarLayout.panelWidth
     @State private var dragStartWidth: CGFloat? = nil
+    private var sliderWidth: CGFloat { max(panelWidth - 190, 10) }
     
     init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, pickerMode: Binding<PickerMode>, colorHistory: ColorHistory) {
         let alignment = alignment == .center ? .leading : alignment
@@ -63,14 +65,14 @@ struct SidebarView: View {
                 .padding(10)
 
             }
-            .padding(Layout.panelInnerPadding)
+            .padding(SidebarLayout.panelInnerPadding)
             .frame(width: isOpen ? panelWidth : 0)
         }
         .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
         .clipped()
         .background {
-            RoundedRectangle(cornerRadius: Layout.sidebarCornerRadius)
+            RoundedRectangle(cornerRadius: SidebarLayout.sidebarCornerRadius)
                 .fill(.background)
                 .stroke(.separator, lineWidth: 1)
         }
@@ -78,7 +80,7 @@ struct SidebarView: View {
         .overlay(alignment: oppositeAlignment) {
             TogglePanelButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
         }
-        .padding(isOpen ? Layout.panelOuterPadding : 0)
+        .padding(isOpen ? SidebarLayout.panelOuterPadding : 0)
     }
 }
 
@@ -138,6 +140,7 @@ extension SidebarView {
             Text("HEX")
                 .lineLimit(1)
                 .bold()
+                .frame(width: SidebarLayout.componentLabelWidth)
             
             Spacer()
             
@@ -155,10 +158,9 @@ extension SidebarView {
             Text("Alpha")
                 .lineLimit(1)
                 .bold()
+                .frame(width: SidebarLayout.componentLabelWidth)
             
-            Spacer()
-            
-            ColorComponentField(value: $color.alpha, inputType: .percentage)
+            ColorComponentField(value: $color.alpha, inputType: .percentage, sliderWidth: sliderWidth)
         }
         .padding(8)
         .background {
@@ -168,68 +170,61 @@ extension SidebarView {
     }
     
     private var hsvValues: some View {
-        section {
+        VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hue, inputType: .degrees, storeColor: storeColor)
+                ColorComponentField(value: $color.hue, inputType: .degrees, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.saturation, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.saturation, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "V") {
-                ColorComponentField(value: $color.brightness, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.brightness, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
         }
     }
     
     private var hslValues: some View {
-        section {
+        VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "L") {
-                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
         }
     }
     
     private var rgbValues: some View {
-        section {
+        VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "R") {
-                ColorComponentField(value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.red, inputType: .numerical, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "G") {
-                ColorComponentField(value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.green, inputType: .numerical, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "B") {
-                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor, sliderWidth: sliderWidth)
             }
         }
     }
     
     private var cmykValues: some View {
-        section {
+        VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "C") {
-                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "M") {
-                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "Y") {
-                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
             ColorComponentFieldContainer(component: "K") {
-                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
             }
-        }
-    }
-    
-    private func section<Content: View> (@ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 10) {
-            content()
-                .padding(.horizontal, 4)
         }
     }
 
@@ -252,12 +247,8 @@ extension SidebarView {
                 .frame(width: 20, height: 20)
                 .background {
                     Circle()
-                        .fill(.thickMaterial)
-                        .stroke(.gray.opacity(0.2), lineWidth: 1)
-                }
-                .overlay {
-                    Circle()
-                        .fill(isHoveringTogglePanel ? .gray.opacity(0.2) : .clear)
+                        .glassEffect(.clear.tint(isHoveringTogglePanel ? .gray : .clear), in: Circle())
+                        .animation(.easeInOut(duration: 0.1), value: isHoveringTogglePanel)
                 }
                 .offset(x: alignment == .trailing ? -offset : offset)
                 .onTapGesture {
