@@ -47,7 +47,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                             }
                         }
                     ),
-                    width: sliderWidth
+                    width: sliderWidth,
+                    storeColor: storeColor
                 )
             }
             
@@ -126,7 +127,20 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     private struct slider: View {
         @Binding var normalized: CGFloat
         var width: CGFloat
+        var storeColor: () -> Void
         @State private var isDragging: Bool = false
+        
+        var dragGesture: some Gesture {
+            DragGesture(minimumDistance: 0, coordinateSpace: .named("sliderTrack"))
+                .onChanged {
+                    if !isDragging { isDragging = true }
+                    normalized = ($0.location.x / width).clamped(to: 0...1)
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    storeColor()
+                }
+        }
         
         var body: some View {
             ZStack(alignment: .leading) {
@@ -153,20 +167,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                         .scaleEffect(isDragging ? 1.25 : 1)
                         .animation(.easeInOut(duration: 0.1), value: isDragging)
                         .offset(x: width * normalized - 7.5)
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged {
-                                    if !isDragging { isDragging = true }
-                                    normalized = ($0.location.x / width).clamped(to: 0...1)
-                                }
-                                .onEnded { _ in isDragging = false }
-                        )
+                        .gesture(dragGesture)
                 }
                 .position(x: width * 0.5, y: 12)
-                .gesture(
-                    SpatialTapGesture()
-                        .onEnded { normalized = ($0.location.x / width).clamped(to: 0...1) }
-                )
+                .gesture(dragGesture)
+                .coordinateSpace(name: "sliderTrack")
         }
     }
     
