@@ -131,7 +131,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         @State private var isDragging: Bool = false
         
         var dragGesture: some Gesture {
-            DragGesture(minimumDistance: 0, coordinateSpace: .named("sliderTrack"))
+            DragGesture(minimumDistance: 0, coordinateSpace: .local)
                 .onChanged {
                     if !isDragging { isDragging = true }
                     normalized = ($0.location.x / width).clamped(to: 0...1)
@@ -160,7 +160,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                                 if isDragging {
                                     Capsule().glassEffect(.clear, in: Capsule())
                                 } else {
-                                    Capsule().fill(.white).shadow(radius: 2)
+                                    Capsule().fill(.white)
                                 }
                             }
                         }
@@ -171,7 +171,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 }
                 .position(x: width * 0.5, y: 12)
                 .gesture(dragGesture)
-                .coordinateSpace(name: "sliderTrack")
         }
     }
     

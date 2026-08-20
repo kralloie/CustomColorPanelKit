@@ -26,7 +26,8 @@ struct HSVTriangle: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.hue != color.hue {
+        if context.coordinator.hue != color.hue || context.coordinator.hueRotation != hueRotation {
+            context.coordinator.hueRotation = hueRotation
             context.coordinator.hue = color.hue
             nsView.setNeedsDisplay(nsView.bounds)
         }
