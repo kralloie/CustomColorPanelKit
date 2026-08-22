@@ -8,7 +8,10 @@
 import MetalKit
 
 @MainActor final class MetalContext {
-    @MainActor static let shared = try! MetalContext()
+    @MainActor static let shared = {
+        do { return try MetalContext() }
+        catch { fatalError("CustomColorPanelKit: failed to initialize Metal - \(error)") }
+    }()
     
     func makeDefaultMTKView(delegate: MTKViewDelegate) -> MTKView {
         let view = MTKView()
