@@ -244,6 +244,7 @@ extension SidebarView {
         
         var body: some View {
             Image(systemName: chevron)
+                .bold()
                 .frame(width: 20, height: 20)
                 .background {
                     Circle()
@@ -252,7 +253,7 @@ extension SidebarView {
                 }
                 .offset(x: alignment == .trailing ? -offset : offset)
                 .onTapGesture {
-                    if !isOpen { panelWidth = 200 }
+                    if !isOpen { panelWidth = 270 }
                     withAnimation(.easeInOut(duration: 0.1)) {
                         isOpen.toggle()
                     }

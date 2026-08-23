@@ -34,7 +34,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     var body: some View {
         HStack(spacing: 6) {
             if inputType != .hex {
-                slider(
+                ColorComponentSlider(
                     normalized: Binding(
                         get: {
                             isFocused ? inputType.normalize(text) : valueBinding.cgFloatValue
@@ -91,40 +91,69 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 }
             }
             
-            if inputType != .hex { stepper(isFocused: isFocused, storeColor: storeColor, stepValue: stepValue(by:)) }
+            if inputType != .hex { ColorComponentStepper(isFocused: isFocused, storeColor: storeColor, stepValue: stepValue(by:)) }
         }
     }
     
-    private struct stepper: View {
+    private struct ColorComponentStepper: View {
         @State var isFocused: Bool
         var storeColor: () -> Void
         var stepValue: (CGFloat) -> Void
-        @State private var hoveringChevron: Int? = nil
+        @State private var hoveringChevron: CGFloat? = nil
+        @State private var timer: Timer? = nil
+        @State private var isPressing: Bool = false
+        @State private var activeStep: CGFloat? = nil
         
         var body: some View {
             VStack(spacing: 2) {
                 Image(systemName: "chevron.up")
-                    .background { RoundedRectangle(cornerRadius: 4).fill(hoveringChevron == 1 ? .gray.opacity(0.2) : .clear) }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        stepValue(1)
-                        if !isFocused { storeColor() }
-                    }
-                    .onHover { hoveringChevron = $0 ? 1 : nil }
-                
+                    .background(RoundedRectangle(cornerRadius: 6).fill(activeStep == 1 ? .gray.opacity(0.2) : .clear))
                 Image(systemName: "chevron.down")
-                    .background { RoundedRectangle(cornerRadius: 4).fill(hoveringChevron == -1 ? .gray.opacity(0.2) : .clear) }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        stepValue(-1)
-                        if !isFocused { storeColor() }
-                    }
-                    .onHover { hoveringChevron = $0 ? -1 : nil }
+                    .background(RoundedRectangle(cornerRadius: 6).fill(activeStep == -1 ? .gray.opacity(0.2) : .clear))
             }
+            .frame(width: 14, height: 22)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let bounds = CGRect(x: 0, y: 0, width: 14, height: 22)
+                        guard bounds.contains(value.location) else {
+                            activeStep = nil
+                            stopStepping()
+                            return
+                        }
+                        let step: CGFloat = value.location.y < 11 ? 1 : -1
+                        if activeStep != step {
+                            activeStep = step
+                            startStepping(step)
+                        }
+                    }
+                    .onEnded { _ in
+                        activeStep = nil
+                        stopStepping()
+                    }
+            )
+        }
+        
+        private func startStepping(_ step: CGFloat) {
+            stepValue(step)
+            if !isFocused { storeColor() }
+            let t = Timer(timeInterval: 0.15, repeats: true) { _ in
+                stepValue(step)
+                if !isFocused { storeColor() }
+            }
+            RunLoop.main.add(t, forMode: .common)
+            timer = t
+        }
+        
+        private func stopStepping() {
+            isPressing = false
+            timer?.invalidate()
+            timer = nil
         }
     }
     
-    private struct slider: View {
+    private struct ColorComponentSlider: View {
         @Binding var normalized: CGFloat
         var width: CGFloat
         var storeColor: () -> Void

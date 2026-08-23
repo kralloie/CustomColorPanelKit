@@ -18,19 +18,24 @@ func pickColorFromScreen(completion: @escaping (Color?) -> Void) {
 struct EyeDropperView: View {
     @Binding var pickedColor: HSBAColor
     var storeColor: (HSBAColor) -> Void
+    @State private var isHovering: Bool = false
     
     var body: some View {
-        Button {
-            pickColorFromScreen { color in
-                if let color {
-                    let c = HSBAColor(with: color)
-                    pickedColor = c
-                    storeColor(c)
+        Image(systemName: "eyedropper")
+            .frame(width: 18, height: 18)
+            .padding(4)
+            .contentShape(Circle())
+            .onHover { isHovering = $0 }
+            .glassEffect(.clear.tint(isHovering ? .gray : .clear), in: Circle())
+            .animation(.easeInOut(duration: 0.1), value: isHovering)
+            .onTapGesture {
+                pickColorFromScreen { color in
+                    if let color {
+                        let c = HSBAColor(with: color)
+                        pickedColor = c
+                        storeColor(c)
+                    }
                 }
             }
-        } label: {
-            Image(systemName: "eyedropper")
-        }
-        .buttonStyle(.plain)
     }
 }
