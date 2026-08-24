@@ -7,6 +7,21 @@
 
 import SwiftUI
 
+private enum Layout {
+    static let textFieldHeight: CGFloat = 24
+    static let textFieldCornerRadius: CGFloat = 6
+    static let textFieldWidth: CGFloat = 50
+    static let hexTextFieldWidth: CGFloat = 70
+    
+    static let stepperSpacing: CGFloat = 2
+    static let stepperHeight: CGFloat = 20 + Layout.stepperSpacing
+    static let stepperWidth: CGFloat = 14
+    
+    static let minSliderWidth: CGFloat = 50
+    static let sliderThumbWidth: CGFloat = 16
+    static let sliderThumbHeight: CGFloat = 12
+}
+
 struct ColorComponentField<T: ColorComponentNumeric>: View {
     @Binding var value: String
     @Binding var valueBinding: T
@@ -33,7 +48,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     
     var body: some View {
         HStack(spacing: 6) {
-            if inputType != .hex {
+            if inputType != .hex && sliderWidth > Layout.minSliderWidth {
                 ColorComponentSlider(
                     normalized: Binding(
                         get: {
@@ -55,7 +70,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             ZStack(alignment: .leading) {
                 TextField("", text: $text)
                     .multilineTextAlignment(.center)
-                    .frame(width: inputType == .hex ? 70 : 50, height: 24)
+                    .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
                     .textFieldStyle(.plain)
                     .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
                     .onSubmit(submitText)
@@ -63,18 +78,18 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     .focused($isFocused)
                     .onChange(of: isFocused, updateText)
                     .background {
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
                             .fill(.background.secondary)
                             .stroke(Color.accentColor, lineWidth: 2)
                     }
                     .opacity(isFocused ? 1 : 0)
                 
                 Text(value)
-                    .frame(width: inputType == .hex ? 70 : 50, height: 24)
+                    .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
                     .contentShape(Rectangle())
                     .onTapGesture { isFocused = true }
                     .background {
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
                             .fill(.background.secondary)
                             .stroke(.separator, lineWidth: 1)
                     }
@@ -101,28 +116,27 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         var stepValue: (CGFloat) -> Void
         @State private var hoveringChevron: CGFloat? = nil
         @State private var timer: Timer? = nil
-        @State private var isPressing: Bool = false
         @State private var activeStep: CGFloat? = nil
         
         var body: some View {
-            VStack(spacing: 2) {
+            VStack(spacing: Layout.stepperSpacing) {
                 Image(systemName: "chevron.up")
                     .background(RoundedRectangle(cornerRadius: 6).fill(activeStep == 1 ? .gray.opacity(0.2) : .clear))
                 Image(systemName: "chevron.down")
                     .background(RoundedRectangle(cornerRadius: 6).fill(activeStep == -1 ? .gray.opacity(0.2) : .clear))
             }
-            .frame(width: 14, height: 22)
+            .frame(width: Layout.stepperWidth, height: Layout.stepperHeight)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
-                        let bounds = CGRect(x: 0, y: 0, width: 14, height: 22)
+                        let bounds = CGRect(x: 0, y: 0, width: Layout.stepperWidth, height: Layout.stepperHeight)
                         guard bounds.contains(value.location) else {
                             activeStep = nil
                             stopStepping()
                             return
                         }
-                        let step: CGFloat = value.location.y < 11 ? 1 : -1
+                        let step: CGFloat = value.location.y < Layout.stepperHeight * 0.5 ? 1 : -1
                         if activeStep != step {
                             activeStep = step
                             startStepping(step)
@@ -136,6 +150,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
         
         private func startStepping(_ step: CGFloat) {
+            stopStepping()
             stepValue(step)
             if !isFocused { storeColor() }
             let t = Timer(timeInterval: 0.15, repeats: true) { _ in
@@ -147,7 +162,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
         
         private func stopStepping() {
-            isPressing = false
             timer?.invalidate()
             timer = nil
         }
@@ -183,7 +197,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .overlay(alignment: .leading) {
                     Capsule()
                         .fill(.clear)
-                        .frame(width: 17, height: 13)
+                        .frame(width: Layout.sliderThumbWidth, height: Layout.sliderThumbHeight)
                         .background {
                             ZStack {
                                 if isDragging {
@@ -195,10 +209,10 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                         }
                         .scaleEffect(isDragging ? 1.25 : 1)
                         .animation(.easeInOut(duration: 0.1), value: isDragging)
-                        .offset(x: width * normalized - 7.5)
+                        .offset(x: width * normalized - (Layout.sliderThumbWidth * 0.5))
                         .gesture(dragGesture)
                 }
-                .position(x: width * 0.5, y: 12)
+                .position(x: width * 0.5, y: Layout.textFieldHeight * 0.5)
                 .gesture(dragGesture)
         }
     }

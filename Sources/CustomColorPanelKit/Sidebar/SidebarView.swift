@@ -12,7 +12,8 @@ enum SidebarLayout {
     static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
     static let sidebarCornerRadius: CGFloat = 12
-    static let componentLabelWidth: CGFloat = 40
+    static let componentLabelWidth: CGFloat = 45
+    static let colorComponentRowCornerRadius: CGFloat = 24
 }
 
 struct SidebarView: View {
@@ -148,8 +149,8 @@ extension SidebarView {
         }
         .padding(8)
         .background {
-            RoundedRectangle(cornerRadius: 24)
-                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 24))
+            RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
+                .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
         }
     }
     
@@ -160,12 +161,14 @@ extension SidebarView {
                 .bold()
                 .frame(width: SidebarLayout.componentLabelWidth)
             
+            Spacer()
+            
             ColorComponentField(value: $color.alpha, inputType: .percentage, sliderWidth: sliderWidth)
         }
         .padding(8)
         .background {
-            RoundedRectangle(cornerRadius: 24)
-                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 24))
+            RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
+                .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
         }
     }
     
@@ -309,8 +312,8 @@ extension SidebarView {
             }
             .padding(8)
             .background {
-                RoundedRectangle(cornerRadius: 24)
-                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: 24))
+                RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
+                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
             }
         }
     }
