@@ -18,29 +18,24 @@ private enum Layout {
     static let stepperWidth: CGFloat = 14
     
     static let minSliderWidth: CGFloat = 50
-    static let sliderThumbWidth: CGFloat = 16
-    static let sliderThumbHeight: CGFloat = 12
+    static let sliderThumbWidth: CGFloat = 5
+    static let sliderThumbHeight: CGFloat = 15
 }
 
 struct ColorComponentField<T: ColorComponentNumeric>: View {
-    @Binding var value: String
-    @Binding var valueBinding: T
-    var sliderWidth: CGFloat
-    
+    @Binding var value: T
     @State private var text: String
     @State private var isHovering: Bool = false
     @FocusState private var isFocused: Bool
+    var sliderWidth: CGFloat
+    private var valueString: String { inputType.format(value.cgFloatValue) }
     
     let inputType: InputType
     let storeColor: () -> Void
     
     init(value: Binding<T>, inputType: InputType, storeColor: @escaping () -> Void = {}, sliderWidth: CGFloat = 0) {
         self.inputType = inputType
-        self._value = Binding(
-            get: { inputType.format(value.wrappedValue.cgFloatValue) },
-            set: { value.wrappedValue = T(value: inputType.normalize($0)) }
-        )
-        self._valueBinding = value
+        self._value = value
         self.sliderWidth = sliderWidth
         self.storeColor = storeColor
         self._text = .init(initialValue: inputType.format(value.wrappedValue.cgFloatValue))
@@ -51,14 +46,12 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             if inputType != .hex && sliderWidth > Layout.minSliderWidth {
                 ColorComponentSlider(
                     normalized: Binding(
-                        get: {
-                            isFocused ? inputType.normalize(text) : valueBinding.cgFloatValue
-                        },
+                        get: { isFocused ? inputType.normalize(text) : value.cgFloatValue },
                         set: {
                             if isFocused {
                                 text = inputType.format($0)
                             } else {
-                                valueBinding = T(value: $0)
+                                value = T(value: $0)
                             }
                         }
                     ),
@@ -68,23 +61,18 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             }
             
             ZStack(alignment: .leading) {
-                TextField("", text: $text)
-                    .multilineTextAlignment(.center)
-                    .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
-                    .textFieldStyle(.plain)
-                    .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
-                    .onSubmit(submitText)
-                    .onExitCommand(perform: cancelField)
-                    .focused($isFocused)
-                    .onChange(of: isFocused, updateText)
-                    .background {
-                        RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
-                            .fill(.background.secondary)
-                            .stroke(Color.accentColor, lineWidth: 2)
-                    }
-                    .opacity(isFocused ? 1 : 0)
+                ColorComponentTextField(
+                    text: $text,
+                    isFocused: _isFocused,
+                    inputType: inputType,
+                    handleArrows: handleArrows,
+                    submitText: submitText,
+                    cancelField: cancelField,
+                    updateText: updateText
+                )
+                .equatable()
                 
-                Text(value)
+                Text(valueString)
                     .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
                     .contentShape(Rectangle())
                     .onTapGesture { isFocused = true }
@@ -107,6 +95,34 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             }
             
             if inputType != .hex { ColorComponentStepper(isFocused: isFocused, storeColor: storeColor, stepValue: stepValue(by:)) }
+        }
+    }
+    
+    struct ColorComponentTextField: View {
+        @Binding var text: String
+        @FocusState var isFocused: Bool
+        let inputType: InputType
+        let handleArrows: (KeyPress) -> KeyPress.Result
+        let submitText: () -> Void
+        let cancelField: () -> Void
+        let updateText: () -> Void
+        
+        var body: some View {
+            TextField("", text: $text)
+                .multilineTextAlignment(.center)
+                .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
+                .textFieldStyle(.plain)
+                .onKeyPress(keys: [.upArrow, .downArrow], action: handleArrows)
+                .onSubmit(submitText)
+                .onExitCommand(perform: cancelField)
+                .focused($isFocused)
+                .onChange(of: isFocused, updateText)
+                .background {
+                    RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
+                        .fill(.background.secondary)
+                        .stroke(Color.accentColor, lineWidth: 2)
+                }
+                .opacity(isFocused ? 1 : 0)
         }
     }
     
@@ -241,7 +257,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         stepValue(by: delta)
     }
     
-    private func updateText() { text = value }
+    private func updateText() { text = valueString }
     
     private func submitText() {
         commitColor()
@@ -249,14 +265,14 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     }
     
     private func commitColor() {
-        value = text
-        text = value
+        value = T(value: inputType.normalize(text))
+        text = valueString
         storeColor()
     }
     
     private func cancelField() {
         if isFocused {
-            text = value
+            text = valueString
             isFocused = false
         }
     }
@@ -276,8 +292,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             let newValue = increaseValue(inputType.normalize(text), by: amount)
             text = inputType.format(newValue)
         } else {
-            let newValue = increaseValue(valueBinding.cgFloatValue, by: amount)
-            valueBinding = T(value: newValue)
+            let newValue = increaseValue(value.cgFloatValue, by: amount)
+            value = T(value: newValue)
         }
     }
 }
@@ -293,5 +309,11 @@ struct ColorComponentFieldContainer<Content: View>: View {
                 .frame(width: SidebarLayout.componentLabelWidth)
             componentField()
         }
+    }
+}
+
+extension ColorComponentField.ColorComponentTextField: @MainActor Equatable {
+    static func == (a: Self, b: Self) -> Bool {
+        a.text == b.text && a.inputType == b.inputType && a.isFocused == b.isFocused
     }
 }

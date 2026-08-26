@@ -29,7 +29,6 @@ struct SidebarView: View {
     @State private var isOpen: Bool = true
     @State private var panelWidth = SidebarLayout.panelWidth
     @State private var dragStartWidth: CGFloat? = nil
-    private var sliderWidth: CGFloat { max(panelWidth - 190, 10) }
     
     init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, pickerMode: Binding<PickerMode>, colorHistory: ColorHistory) {
         let alignment = alignment == .center ? .leading : alignment
@@ -39,34 +38,9 @@ struct SidebarView: View {
         self.colorHistory = colorHistory
     }
     
-    private func storeColor() { colorHistory.add(color) }
-    
     var body: some View {
         ScrollView {
-            VStack(spacing: 4) {
-                PickerModeSelectorView(selectedMode: $pickerMode)
-                
-                colorPreview
-                
-                VStack(spacing: 15) {
-                    hexValue
-                    
-                    ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: hsvValues)
-                    
-                    ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: hslValues)
-                    
-                    ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: rgbValues)
-                    
-                    ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: cmykValues)
-                    
-                    alphaValue
-                    
-                    ColorHistoryView(colorHistory: colorHistory)
-                }
-                .padding(10)
-
-            }
-            .padding(SidebarLayout.panelInnerPadding)
+            SidebarContent(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory, panelWidth: panelWidth)
             .frame(width: isOpen ? panelWidth : 0)
         }
         .frame(width: isOpen ? panelWidth : 0)
@@ -85,41 +59,44 @@ struct SidebarView: View {
     }
 }
 
-extension SidebarView {
-    private var dragHandle: some View {
-        Rectangle()
-            .fill(.clear)
-            .frame(width: 4)
-            .contentShape(Rectangle())
-            .onHover { hovering in
-                guard dragStartWidth == nil else { return }
-                if hovering { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
-            }
-            .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                    .onChanged { value in
-                        if dragStartWidth == nil { dragStartWidth = panelWidth }
-                        let delta = alignment == .trailing
-                        ? -(value.location.x - value.startLocation.x)
-                        : (value.location.x - value.startLocation.x)
-                        
-                        let newWidth = (dragStartWidth ?? panelWidth) + delta
-                        
-                        panelWidth = min(500, max(newWidth, 0))
-                        
-                        if isOpen && panelWidth < 40 {
-                            isOpen = false
-                        } else if !isOpen && panelWidth > 60 {
-                            isOpen = true
-                        }
-                    }
-                    .onEnded { _ in
-                        dragStartWidth = nil
-                        NSCursor.pop()
-                    }
-            )
-    }
+struct SidebarContent: View {
+    @Binding var color: HSBAColor
+    @Binding var pickerMode: PickerMode
+    var colorHistory: ColorHistory
+    var panelWidth: CGFloat
     
+    private var sliderWidth: CGFloat { max(panelWidth - 190, 10) }
+    private func storeColor() { colorHistory.add(color) }
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            PickerModeSelectorView(selectedMode: $pickerMode)
+            
+            colorPreview
+            
+            VStack(spacing: 15) {
+                hexValue
+                
+                ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
+                
+                ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: { hslValues })
+                
+                ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: { rgbValues })
+                
+                ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: { cmykValues })
+                
+                alphaValue
+                
+                ColorHistoryView(colorHistory: colorHistory)
+            }
+            .padding(10)
+
+        }
+        .padding(SidebarLayout.panelInnerPadding)
+    }
+}
+
+extension SidebarContent {
     private var colorPreview: some View {
         ColorExample(color: color)
             .frame(width: min(panelWidth * 0.8, 80), height: min(panelWidth * 0.8, 80))
@@ -231,6 +208,102 @@ extension SidebarView {
         }
     }
 
+    private struct ColorDisclosureGroup<Content: View>: View {
+        @State private var isOpen: Bool = false
+        let title: String
+        let value: String
+        @ViewBuilder let content: () -> Content
+        
+        var body: some View {
+            VStack(spacing: 0) {
+                HStack {
+                    ColorDisclosureGroupToggle(isOpen: $isOpen)
+                    
+                    Text("\(title)")
+                        .lineLimit(1)
+                        .fontWeight(.bold)
+                    
+                    Spacer()
+                    
+                    Text(!isOpen ? value : "")
+                        .animation(nil, value: isOpen)
+                }
+                .frame(height: 24)
+                .contentShape(Rectangle())
+                
+                if isOpen {
+                    content()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, 4)
+                        .clipped()
+                }
+            }
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
+                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
+            }
+        }
+    }
+    
+    private struct ColorDisclosureGroupToggle: View {
+        @Binding var isOpen: Bool
+        @State private var hoveringButton: Bool = false
+        
+        var body: some View {
+            Image(systemName: "chevron.right")
+                .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
+                .frame(width: 15, height: 10)
+                .bold()
+                .padding(5)
+                .contentShape(Circle())
+                .background {
+                    Circle()
+                        .glassEffect(.clear.tint(hoveringButton ? .gray : .clear), in: Circle())
+                        .animation(.easeInOut(duration: 0.1), value: hoveringButton)
+                }
+                .onHover { hoveringButton = $0 }
+                .onTapGesture { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
+        }
+    }
+}
+
+extension SidebarView {
+    
+    private var dragHandle: some View {
+        Rectangle()
+            .fill(.clear)
+            .frame(width: 4)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                guard dragStartWidth == nil else { return }
+                if hovering { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                    .onChanged { value in
+                        if dragStartWidth == nil { dragStartWidth = panelWidth }
+                        let delta = alignment == .trailing
+                        ? -(value.location.x - value.startLocation.x)
+                        : (value.location.x - value.startLocation.x)
+                        
+                        let newWidth = (dragStartWidth ?? panelWidth) + delta
+                        
+                        panelWidth = min(500, max(newWidth, 0))
+                        
+                        if isOpen && panelWidth < 40 {
+                            isOpen = false
+                        } else if !isOpen && panelWidth > 60 {
+                            isOpen = true
+                        }
+                    }
+                    .onEnded { _ in
+                        dragStartWidth = nil
+                        NSCursor.pop()
+                    }
+            )
+    }
+
     private struct TogglePanelButton: View {
         let alignment: Alignment
         @Binding var isOpen: Bool
@@ -266,57 +339,6 @@ extension SidebarView {
         }
     }
     
-    private struct ColorDisclosureGroup<Content: View>: View {
-        @State private var isOpen: Bool = false
-        @State private var hoveringButton: Bool = false
-        let title: String
-        let value: String
-        var content: Content
-        
-        var body: some View {
-            VStack(spacing: 0) {
-                HStack {
-                    Image(systemName: "chevron.right")
-                        .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
-                        .frame(width: 15, height: 10)
-                        .bold()
-                        .padding(5)
-                        .contentShape(Circle())
-                        .background {
-                            Circle()
-                                .glassEffect(.clear.tint(hoveringButton ? .gray : .clear), in: Circle())
-                                .animation(.easeInOut(duration: 0.1), value: hoveringButton)
-                        }
-                        .onHover { hoveringButton = $0 }
-                        .onTapGesture { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
-                    
-                    Text("\(title)")
-                        .lineLimit(1)
-                        .fontWeight(.bold)
-                    
-                    Spacer()
-                    
-                    Text(!isOpen ? value : "")
-                        .animation(nil, value: isOpen)
-                }
-                .frame(height: 24)
-                .contentShape(Rectangle())
-                
-                content
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxHeight: isOpen ? .infinity : 0, alignment: .top)
-                    .padding(.vertical, isOpen ? 4 : 0)
-                    .opacity(isOpen ? 1 : 0)
-                    .clipped()
-                    .allowsHitTesting(isOpen)
-            }
-            .padding(8)
-            .background {
-                RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
-            }
-        }
-    }
 }
 
 #Preview {

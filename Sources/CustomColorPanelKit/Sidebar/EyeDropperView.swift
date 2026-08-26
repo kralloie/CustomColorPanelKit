@@ -26,7 +26,6 @@ struct EyeDropperView: View {
             .padding(4)
             .contentShape(Circle())
             .onHover { isHovering = $0 }
-            .glassEffect(.clear.tint(isHovering ? .gray : .clear), in: Circle())
             .animation(.easeInOut(duration: 0.1), value: isHovering)
             .onTapGesture {
                 pickColorFromScreen { color in
