@@ -39,8 +39,8 @@ public struct HueRingPickerView: View {
         VStack {
             GeometryReader { proxy in
                 let size = proxy.size.width
-                let opacitySliderHeight = size * 0.05
-                let ringSize = size - opacitySliderHeight
+                let sliderThickness = size * 0.03
+                let ringSize = size - sliderThickness
                 let geometry = HueRingPickerGeometry(
                     color: color,
                     viewSize: CGSize(width: ringSize, height: ringSize),
@@ -72,7 +72,7 @@ public struct HueRingPickerView: View {
                         .frame(width: geometry.triangleSize, height: geometry.triangleSize)
                     }
                     OpacitySliderView(color: $color)
-                        .frame(width: size + Layout.stackSpacing, height: opacitySliderHeight)
+                        .frame(width: ringSize, height: sliderThickness)
                 }
 
             }

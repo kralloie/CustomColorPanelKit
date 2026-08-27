@@ -26,11 +26,11 @@ struct HSVSpherePickerView: View {
                 let width = proxy.size.width
                 let height = proxy.size.height
                 let size = min(width, height)
-                let sliderHeight = size * 0.05
-                let sphereSize = min(width - sliderHeight, height - sliderHeight)
+                let sliderThickness = size * 0.03
+                let sphereSize = min(width - sliderThickness, height - sliderThickness)
                 let sphereRadius = sphereSize * 0.5
                 
-                VStack(spacing: Layout.stackSpacing) {
+                VStack(alignment: .leading, spacing: Layout.stackSpacing) {
                     HStack(spacing: Layout.stackSpacing) {
                         
                         HSVSphere(color: $color, storeColor: storeColor)
@@ -38,11 +38,11 @@ struct HSVSpherePickerView: View {
                             .frame(width: sphereSize, height: sphereSize)
                         
                         BrightnessSliderView(color: $color, storeColor: storeColor)
-                            .frame(width: sliderHeight, height: height - sliderHeight)
+                            .frame(width: sliderThickness, height: sphereSize)
                     }
                     
                     OpacitySliderView(color: $color)
-                        .frame(width: size + Layout.stackSpacing, height: sliderHeight)
+                        .frame(width: sphereSize, height: sliderThickness)
                 }
             }
             .aspectRatio(1, contentMode: .fit)

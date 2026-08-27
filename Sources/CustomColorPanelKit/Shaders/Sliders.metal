@@ -17,7 +17,7 @@ struct OpacitySliderVertexOut {
 vertex OpacitySliderVertexOut OpacitySliderVertexShader(unsigned int vid [[vertex_id]]) {
     OpacitySliderVertexOut out;
     out.position = float4(positions[vid], 0, 1);
-    out.opacity = (1.0 - positions[vid].x) * 0.5;
+    out.opacity = (1.0 + positions[vid].x) * 0.5;
     return out;
 }
 

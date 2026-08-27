@@ -100,7 +100,7 @@ extension SidebarContent {
     private var colorPreview: some View {
         ColorExample(color: color)
             .frame(width: min(panelWidth * 0.8, 80), height: min(panelWidth * 0.8, 80))
-            .background(CheckerboardView())
+            .background(CheckerboardView(rows: 5))
             .overlay {
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(.separator, lineWidth: 2)

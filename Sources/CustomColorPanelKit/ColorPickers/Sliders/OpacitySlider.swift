@@ -101,7 +101,7 @@ struct OpacitySlider: NSViewRepresentable {
             color.alpha = 0.5
         } else {
             centerLock = false
-            color.alpha = 1 - (pos / width)
+            color.alpha = (pos / width)
         }
     }
     
@@ -109,6 +109,6 @@ struct OpacitySlider: NSViewRepresentable {
         guard let view = gesture.view, view.bounds.width > 0 else { return }
         let width = view.bounds.width
         var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
-        color.alpha = 1 - (pos / width)
+        color.alpha = (pos / width)
     }
 }

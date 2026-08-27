@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct CheckerboardView: View {
-    private var color1: Color = .white
-    private var color2: Color = Color(white: 0.50)
+    let rows: UInt8
+    private let color1: Color = .white
+    private let color2: Color = Color(white: 0.50)
     
     var body: some View {
         Canvas { ctx, size in
-            let tileSize = min(size.height, size.width) / 4
+            let tileSize = min(size.height, size.width) / CGFloat(rows)
             let cols = Int(ceil(size.width / tileSize))
             let rows = Int(ceil(size.height / tileSize))
             
