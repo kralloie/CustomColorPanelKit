@@ -90,13 +90,16 @@ struct HSVSphere: NSViewRepresentable {
             if draggingStartPointLen > 1.0 { return }
         }
         
+        var c = color
         var len = hypot(x, y)
         if len > 1.0 { x /= len; y /= len; len = 1.0 }
-        color.saturation = len
+        c.saturation = len
         
         var hue = atan2(y, x) / (2 * .pi)
         if hue < 0 { hue += 1 }
-        color.hue = hue
+        c.hue = hue
+        
+        color = c
         
         if gesture.state == .ended { storeColor() }
     }
@@ -108,13 +111,16 @@ struct HSVSphere: NSViewRepresentable {
         var x = (loc.x - radius) / radius
         var y = (loc.y - radius) / radius
         
+        var c = color
         let len = hypot(x, y)
         if len > 1.0 { return }
-        color.saturation = len
+        c.saturation = len
         
         var hue = atan2(y, x) / (2 * .pi)
         if hue < 0 { hue += 1 }
-        color.hue = hue
+        c.hue = hue
+        
+        color = c
         
         storeColor()
     }

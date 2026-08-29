@@ -89,8 +89,10 @@ struct HSVSquare: NSViewRepresentable {
         let x = min(max(loc.x, 0), view.bounds.width)
         let y = min(max(loc.y, 0), view.bounds.height)
         
-        color.brightness = y / view.bounds.height
-        color.saturation = x / view.bounds.width
+        var c = color
+        c.brightness = y / view.bounds.height
+        c.saturation = x / view.bounds.width
+        color = c
         
         if gesture.state == .ended { storeColor() }
     }
@@ -101,8 +103,12 @@ struct HSVSquare: NSViewRepresentable {
         
         let x = min(max(loc.x, 0), view.bounds.width)
         let y = min(max(loc.y, 0), view.bounds.height)
-        color.brightness = y / view.bounds.height
-        color.saturation = x / view.bounds.width
+        
+        var c = color
+        c.brightness = y / view.bounds.height
+        c.saturation = x / view.bounds.width
+        color = c
+        
         storeColor()
     }
 }

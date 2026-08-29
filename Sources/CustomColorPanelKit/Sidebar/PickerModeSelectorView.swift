@@ -10,28 +10,29 @@ import SwiftUI
 struct PickerModeSelectorView: View {
     @Binding var selectedMode: PickerMode
     @State private var hoveringMode: PickerMode?
+    private static let accentColor: Binding<HSBAColor> = .constant(HSBAColor(with: .accentColor))
     var body: some View {
         HStack() {
             Spacer()
             
-            HSVSquare(color: .constant(HSBAColor(with: .accentColor)), storeColor: {})
+            HSVSquare(color: Self.accentColor, storeColor: {})
                 .frame(width: 20, height: 20)
                 .allowsHitTesting(false)
                 .selectorButton(for: .hsvSquare, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
             
             Spacer()
             
-            HSVSphere(color: .constant(HSBAColor(with: .accentColor)), storeColor: {})
+            HSVSphere(color: Self.accentColor, storeColor: {})
                 .frame(width: 20, height: 20)
                 .allowsHitTesting(false)
                 .selectorButton(for: .hsvSphere, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
              
             Spacer()
             
-            HueRing(color: .constant(HSBAColor.init(with: .accentColor)), storeColor: {})
+            HueRing(color: Self.accentColor, storeColor: {})
                 .frame(width: 20, height: 20)
                 .overlay {
-                    HSVTriangle(color: .constant(HSBAColor(with: .accentColor)), hueRotation: false, storeColor: {})
+                    HSVTriangle(color:  Self.accentColor, hueRotation: false, storeColor: {})
                         .frame(width: 14, height: 14)
                 }
                 .allowsHitTesting(false)

@@ -43,7 +43,7 @@ enum InputType {
         }
     }
     
-    func normalize(_ text: String) -> CGFloat {
+    func normalize(_ text: String) -> CGFloat? {
         switch self {
         case .degrees:
             if let match = parse(text) {
@@ -65,6 +65,6 @@ enum InputType {
                 }
             }
         }
-        return 0
+        return nil
     }
 }

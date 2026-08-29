@@ -46,7 +46,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             if inputType != .hex && sliderWidth > Layout.minSliderWidth {
                 ColorComponentSlider(
                     normalized: Binding(
-                        get: { isFocused ? inputType.normalize(text) : value.cgFloatValue },
+                        get: { isFocused ? inputType.normalize(text) ?? value.cgFloatValue : value.cgFloatValue },
                         set: {
                             if isFocused {
                                 text = inputType.format($0)
@@ -244,7 +244,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             return .handled
         }
         
-        let newValue = increaseValue(inputType.normalize(text), by: step)
+        let newValue = increaseValue(inputType.normalize(text) ?? value.cgFloatValue, by: step)
         text = inputType.format(newValue)
         
         return .handled
@@ -265,7 +265,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     }
     
     private func commitColor() {
-        value = T(value: inputType.normalize(text))
+        guard let normalized = inputType.normalize(text) else {
+            text = valueString
+            return
+        }
+        value = T(value: normalized)
         text = valueString
         storeColor()
     }
@@ -289,7 +293,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     
     private func stepValue(by amount: CGFloat) {
         if isFocused {
-            let newValue = increaseValue(inputType.normalize(text), by: amount)
+            let newValue = increaseValue(inputType.normalize(text) ?? value.cgFloatValue, by: amount)
             text = inputType.format(newValue)
         } else {
             let newValue = increaseValue(value.cgFloatValue, by: amount)

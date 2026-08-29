@@ -9,9 +9,9 @@ import Foundation
 import SwiftUI
 
 struct HSBAColor: Equatable, Hashable {
-    var hue:        CGFloat { didSet { storedKey = nil } }
-    var saturation: CGFloat { didSet { storedKey = nil } }
-    var brightness: CGFloat { didSet { storedKey = nil } }
+    var hue:        CGFloat { didSet { if hue        != oldValue { storedKey = nil } } }
+    var saturation: CGFloat { didSet { if saturation != oldValue { storedKey = nil } } }
+    var brightness: CGFloat { didSet { if brightness != oldValue { storedKey = nil } } }
     
     var alpha: CGFloat
     private var storedKey: CGFloat? = nil
@@ -176,6 +176,17 @@ struct HSBAColor: Equatable, Hashable {
     }
     
     var hexString: String { String(format: "#%06X", hex) }
+    
+    static func == (a: Self, b: Self) -> Bool {
+        a.hue == b.hue && a.saturation == b.saturation && a.brightness == b.brightness && a.alpha == b.alpha
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(hue)
+        hasher.combine(saturation)
+        hasher.combine(brightness)
+        hasher.combine(alpha)
+    }
 }
 
 struct HSL {

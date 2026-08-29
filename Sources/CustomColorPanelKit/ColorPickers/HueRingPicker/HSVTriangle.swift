@@ -135,8 +135,11 @@ struct HSVTriangle: NSViewRepresentable {
         var (w0, w1, w2) = getBarycentricCoordinates(for: loc, size: size)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
             let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-            color.brightness = brightness
-            color.saturation = saturation
+            var c = color
+            c.brightness = brightness
+            c.saturation = saturation
+            color = c
+            
             if gesture.state == .ended { storeColor() }
             return
         }
@@ -158,8 +161,10 @@ struct HSVTriangle: NSViewRepresentable {
         )
         
         let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-        color.brightness = brightness
-        color.saturation = saturation
+        var c = color
+        c.brightness = brightness
+        c.saturation = saturation
+        color = c
         
         if gesture.state == .ended { storeColor() }
     }
@@ -171,8 +176,11 @@ struct HSVTriangle: NSViewRepresentable {
         let (w0, w1, w2) = getBarycentricCoordinates(for: loc, size: size)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
             let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-            color.brightness = brightness
-            color.saturation = saturation
+            var c = color
+            c.brightness = brightness
+            c.saturation = saturation
+            color = c
+            
             storeColor()
         }
     }

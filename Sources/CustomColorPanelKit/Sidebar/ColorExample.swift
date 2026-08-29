@@ -16,15 +16,7 @@ struct ColorExample: NSViewRepresentable {
     }
     
     func makeNSView(context: Context) -> MTKView {
-        let mtkView = MTKView()
-        mtkView.delegate = context.coordinator
-        mtkView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
-        mtkView.layer?.isOpaque = false
-        mtkView.enableSetNeedsDisplay = true
-        mtkView.device = context.coordinator.metalDevice
-        mtkView.autoResizeDrawable = true
-        
-        return mtkView
+        return MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {

@@ -28,6 +28,7 @@ struct OpacitySlider: NSViewRepresentable {
             context.coordinator.hue = color.hue
             context.coordinator.saturation = color.saturation
             context.coordinator.brightness = color.brightness
+            context.coordinator.rgbComponents = SIMD3<Float>(Float(color.rgb.red), Float(color.rgb.green), Float(color.rgb.blue))
             
             nsView.setNeedsDisplay(nsView.bounds)
         }
@@ -43,6 +44,7 @@ struct OpacitySlider: NSViewRepresentable {
     var hue: CGFloat = .nan
     var saturation: CGFloat = .nan
     var brightness: CGFloat = .nan
+    var rgbComponents: SIMD3<Float> = .init(repeating: 0)
     
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
@@ -74,8 +76,6 @@ struct OpacitySlider: NSViewRepresentable {
         renderPassDescriptor.colorAttachments[0].storeAction = .store
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderEncoder.setRenderPipelineState(renderPipeline)
-        let rgb = HSBAColor(hue: hue, saturation: saturation, brightness: brightness).rgb
-        var rgbComponents = SIMD3<Float>(Float(rgb.red), Float(rgb.green), Float(rgb.blue))
         renderEncoder.setFragmentBytes(&rgbComponents, length: MemoryLayout<SIMD3<Float>>.stride, index: 0)
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         renderEncoder.endEncoding()
