@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct OpacitySliderView: View {
+    @Environment(\.scrollWheelRouter) private var scrollWheelRouter
     @Binding var color: HSBAColor
-    @State private var isHovering: Bool = false
     
     var body: some View {
         GeometryReader { geo in
@@ -25,8 +25,13 @@ struct OpacitySliderView: View {
                         .frame(width: 2, height: height)
                     SliderThumb(color: color, width: width, height: height)
                 }
-                .background(ScrollWheelMonitor(isHovering: isHovering, onScroll: handleScroll))
-                .onHover { isHovering = $0 }
+                .onHover { isHovering in
+                    if isHovering {
+                        scrollWheelRouter.scrollHandler = handleScroll
+                    } else {
+                        scrollWheelRouter.scrollHandler = nil
+                    }
+                }
         }
     }
     
@@ -45,8 +50,7 @@ struct OpacitySliderView: View {
         }
     }
     
-    private func handleScroll(_: CGPoint, event: NSEvent) {
-        guard isHovering else { return }
+    private func handleScroll(event: NSEvent) {
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         color.alpha = min(max(color.alpha + delta, 0), 1)

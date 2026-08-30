@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct BrightnessSliderView: View {
+    @Environment(\.scrollWheelRouter) private var scrollWheelRouter
     @Binding var color: HSBAColor
     @State private var isHovering: Bool = false
     var storeColor: () -> Void
@@ -20,8 +21,13 @@ struct BrightnessSliderView: View {
                 .frame(width: width, height: height)
                 .clipShape(RoundedRectangle(cornerRadius: width))
                 .overlay{ SliderThumb(color: color, width: width, height: height) }
-                .background(ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor, onScroll: handleScroll))
-                .onHover { isHovering = $0 }
+                .onHover { isHovering in
+                    if isHovering {
+                        scrollWheelRouter.scrollHandler = handleScroll
+                    } else {
+                        scrollWheelRouter.scrollHandler = nil
+                    }
+                }
         }
     }
     
@@ -39,8 +45,7 @@ struct BrightnessSliderView: View {
         }
     }
     
-    private func handleScroll(_: CGPoint, event: NSEvent) {
-        guard isHovering else { return }
+    private func handleScroll(event: NSEvent) {
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         color.brightness = min(max(color.brightness + delta, 0), 1)

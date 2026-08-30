@@ -7,32 +7,38 @@
 
 import SwiftUI
 
+final class ScrollWheelRouter {
+    var scrollHandler: ((NSEvent) -> Void)?
+}
+
+extension EnvironmentValues {
+    @Entry var scrollWheelRouter = ScrollWheelRouter()
+}
+
+
 struct ScrollWheelMonitor: NSViewRepresentable {
-    var isHovering: Bool
-    var storeColor: () -> Void
-    var onScroll: (CGPoint, NSEvent) -> Void
+    let router: ScrollWheelRouter
+    let storeColor: () -> Void
     
-    init(isHovering: Bool, storeColor: @escaping () -> Void = {}, onScroll: @escaping (CGPoint, NSEvent) -> Void) {
-        self.isHovering = isHovering
+    init(router: ScrollWheelRouter, storeColor: @escaping () -> Void) {
+        self.router = router
         self.storeColor = storeColor
-        self.onScroll = onScroll
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(isHovering: isHovering, onScroll, storeColor)
+        Coordinator(router)
     }
     
     func makeNSView(context: Context) -> some NSView {
         let view = NSView(frame: .zero)
         context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-            guard context.coordinator.isHovering else { return event }
-            let point = view.convert(event.locationInWindow, from: nil)
-            context.coordinator.onScroll(point, event)
+            guard context.coordinator.router.scrollHandler != nil else { return event }
+            context.coordinator.router.scrollHandler!(event)
             context.coordinator.historyTask?.cancel()
             context.coordinator.historyTask = Task { @MainActor in
                 do {
                     try await Task.sleep(for: .milliseconds(450))
-                    context.coordinator.storeColor()
+                    storeColor()
                 } catch {}
             }
             return nil
@@ -40,11 +46,7 @@ struct ScrollWheelMonitor: NSViewRepresentable {
         return view
     }
     
-    func updateNSView(_ nsView: NSViewType, context: Context) {
-        context.coordinator.isHovering = isHovering
-        context.coordinator.storeColor = storeColor
-        context.coordinator.onScroll = onScroll
-    }
+    func updateNSView(_ nsView: NSViewType, context: Context) {}
     
     static func dismantleNSView(_ nsView: NSViewType, coordinator: Coordinator) {
         coordinator.historyTask?.cancel()
@@ -55,16 +57,12 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     }
     
     final class Coordinator {
-        var isHovering: Bool
-        var onScroll: (CGPoint, NSEvent) -> Void
         var monitor: Any?
-        var storeColor: () -> Void
+        var router: ScrollWheelRouter
         var historyTask: Task<Void, Never>?
         
-        init(isHovering: Bool, _ onScroll: @escaping (CGPoint, NSEvent) -> Void, _ storeColor: @escaping () -> Void) {
-            self.isHovering = isHovering
-            self.onScroll = onScroll
-            self.storeColor = storeColor
+        init(_ router: ScrollWheelRouter) {
+            self.router = router
         }
     }
 }

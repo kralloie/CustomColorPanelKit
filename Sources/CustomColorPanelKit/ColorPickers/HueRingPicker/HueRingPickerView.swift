@@ -24,7 +24,6 @@ public struct HueRingPickerView: View {
     let antialiasing: Bool
     let hueRotation: Bool
     let colorHistory: ColorHistory
-    @State private var isHoveringRing: Bool = false
     
     init(color: Binding<HSBAColor>, antialiasing: Bool = true, hueRotation: Bool = true, colorHistory: ColorHistory) {
         self._color = color
@@ -54,10 +53,8 @@ public struct HueRingPickerView: View {
                             storeColor: storeColor
                         )
                         .positionIndicator(geometry: geometry)
-                        .hueRingScrollHandler(isHovering: isHoveringRing, size: ringSize, hue: $color.hue, storeColor: storeColor)
                         .frame(width: ringSize, height: ringSize)
                         .frame(maxWidth: .infinity)
-                        .onHover { isHoveringRing = $0 }
                         
                         HSVTriangle(
                             color: $color,
@@ -81,30 +78,6 @@ public struct HueRingPickerView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(minWidth: Layout.hueRingMinSize, minHeight: Layout.hueRingMinSize)
-    }
-}
-
-// MARK: - View Modifiers
-
-private extension View {
-    func hueRingScrollHandler(isHovering: Bool, size: CGFloat, hue: Binding<CGFloat>, storeColor: @escaping () -> Void) -> some View {
-        background {
-            ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor) { point, event in
-                if point.x < 0 || point.y < 0 || point.x > size || point.y > size {
-                    return
-                }
-                
-                let r = size * 0.5
-                let dist = hypot(point.x - r, point.y - r)
-                if dist > r || dist < r * 0.75 { return }
-                
-                let delta = event.scrollingDeltaY > 0 ? GeometryConstants.hueStep: -GeometryConstants.hueStep
-                
-                var newHue = (hue.wrappedValue + delta).truncatingRemainder(dividingBy: 1)
-                if newHue < 0 { newHue += 1 }
-                hue.wrappedValue = newHue
-            }
-        }
     }
 }
 

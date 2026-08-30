@@ -23,6 +23,7 @@ private enum Layout {
 }
 
 struct ColorComponentField<T: ColorComponentNumeric>: View {
+    @Environment(\.scrollWheelRouter) private var scrollWheelRouter
     @Binding var value: T
     @State private var text: String
     @State private var isHovering: Bool = false
@@ -87,10 +88,12 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             .onHover { hovering in
                 isHovering = hovering
                 if hovering { NSCursor.iBeam.set() } else { NSCursor.arrow.set() }
-            }
-            .background {
-                if inputType != .hex {
-                    ScrollWheelMonitor(isHovering: isHovering, storeColor: storeColor, onScroll: handleScroll)
+                if hovering {
+                    if inputType != .hex {
+                        scrollWheelRouter.scrollHandler = handleScroll
+                    }
+                } else {
+                    scrollWheelRouter.scrollHandler = nil
                 }
             }
             
@@ -250,9 +253,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         return .handled
     }
     
-    private func handleScroll(_: CGPoint, event: NSEvent) {
+    private func handleScroll(event: NSEvent) {
         guard inputType != .hex else { return }
-        guard isHovering else { return }
         let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
         stepValue(by: delta)
     }
