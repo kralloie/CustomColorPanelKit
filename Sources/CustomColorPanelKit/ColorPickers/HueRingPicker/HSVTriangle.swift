@@ -20,7 +20,7 @@ struct HSVTriangle: NSViewRepresentable {
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
-        mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
+        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         
         return mtkView
     }
@@ -167,21 +167,5 @@ struct HSVTriangle: NSViewRepresentable {
         color = c
         
         if gesture.state == .ended { storeColor() }
-    }
-    
-    @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
-        guard let view = gesture.view else { return }
-        let size = min(view.bounds.width, view.bounds.height)
-        let loc = gesture.location(in: view)
-        let (w0, w1, w2) = getBarycentricCoordinates(for: loc, size: size)
-        if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-            let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
-            var c = color
-            c.brightness = brightness
-            c.saturation = saturation
-            color = c
-            
-            storeColor()
-        }
     }
 }

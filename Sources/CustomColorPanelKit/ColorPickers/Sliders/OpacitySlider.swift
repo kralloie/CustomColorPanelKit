@@ -10,16 +10,16 @@ import MetalKit
 
 struct OpacitySlider: NSViewRepresentable {
     @Binding var color: HSBAColor
+    @Binding var isDragging: Bool
     
     func makeCoordinator() -> OpacitySliderCoordinator {
-        OpacitySliderCoordinator(color: $color)
+        OpacitySliderCoordinator(color: $color, isDragging: $isDragging)
     }
     
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
-        mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
-        
+        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         return mtkView
     }
     
@@ -40,6 +40,7 @@ struct OpacitySlider: NSViewRepresentable {
     static let fragmentShader: String = "OpacitySliderFragmentShader"
     
     @Binding var color: HSBAColor
+    @Binding var isDragging: Bool
     
     var hue: CGFloat = .nan
     var saturation: CGFloat = .nan
@@ -53,8 +54,9 @@ struct OpacitySlider: NSViewRepresentable {
     private var centerLock = false
     private let snapDistance: CGFloat = 6
     
-    init(color: Binding<HSBAColor>) {
+    init(color: Binding<HSBAColor>, isDragging: Binding<Bool>) {
         _color = color
+        _isDragging = isDragging
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -92,7 +94,10 @@ struct OpacitySlider: NSViewRepresentable {
         
         let center = width * 0.5
         
-        if gesture.state == .began { centerLock = false }
+        if gesture.state == .began {
+            centerLock = false
+            isDragging = true
+        }
         
         if !centerLock && abs(pos - center) < snapDistance {
             centerLock = true
@@ -103,12 +108,9 @@ struct OpacitySlider: NSViewRepresentable {
             centerLock = false
             color.alpha = (pos / width)
         }
-    }
-    
-    @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
-        guard let view = gesture.view, view.bounds.width > 0 else { return }
-        let width = view.bounds.width
-        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
-        color.alpha = (pos / width)
+        
+        if gesture.state == .ended {
+            isDragging = false
+        }
     }
 }

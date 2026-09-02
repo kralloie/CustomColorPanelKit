@@ -17,7 +17,6 @@ private enum Layout {
 struct HSVSquarePickerView: View {
     @Binding var color: HSBAColor
     let colorHistory: ColorHistory
-    @State private var hoveringSlider: Bool = false
     private func storeColor() -> Void { colorHistory.add(color) }
     
     var body: some View {

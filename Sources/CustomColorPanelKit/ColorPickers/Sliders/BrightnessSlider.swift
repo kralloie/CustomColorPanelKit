@@ -10,16 +10,17 @@ import MetalKit
 
 struct BrightnessSlider: NSViewRepresentable {
     @Binding var color: HSBAColor
+    @Binding var isDragging: Bool
     var storeColor: () -> Void
     
     func makeCoordinator() -> BrightnessSliderCoordinator {
-        BrightnessSliderCoordinator(color: $color, storeColor: storeColor)
+        BrightnessSliderCoordinator(color: $color, isDragging: $isDragging, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
-        mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
+        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         
         return mtkView
     }
@@ -38,6 +39,7 @@ struct BrightnessSlider: NSViewRepresentable {
     static let fragmentShader: String = "BrightnessSliderFragmentShader"
     
     @Binding var color: HSBAColor
+    @Binding var isDragging: Bool
     var storeColor: () -> Void
     
     var hue: CGFloat = .nan
@@ -47,8 +49,9 @@ struct BrightnessSlider: NSViewRepresentable {
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
-    init(color: Binding<HSBAColor>, storeColor: @escaping () -> Void) {
+    init(color: Binding<HSBAColor>, isDragging: Binding<Bool>, storeColor: @escaping () -> Void) {
         _color = color
+        _isDragging = isDragging
         self.storeColor = storeColor
         
         self.hue = color.wrappedValue.hue
@@ -85,22 +88,16 @@ struct BrightnessSlider: NSViewRepresentable {
     
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view, view.bounds.height > 0 else { return }
+        if gesture.state == .began { isDragging = true }
         let height = view.bounds.height
         
         var pos = min(max(gesture.location(in: view).y, 0), view.bounds.height)
         
         color.brightness = (pos / height)
         
-        if gesture.state == .ended { storeColor() }
-    }
-    
-    @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
-        guard let view = gesture.view, view.bounds.height > 0 else { return }
-        let height = view.bounds.height
-        
-        var pos = min(max(gesture.location(in: view).y, 0), view.bounds.height)
-    
-        color.brightness = (pos / height)
-        storeColor()
+        if gesture.state == .ended {
+            isDragging = false
+            storeColor()
+        }
     }
 }

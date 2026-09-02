@@ -19,7 +19,7 @@ struct HSVSquare: NSViewRepresentable {
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
         mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
-        mtkView.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:))))
+        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         
         return mtkView
     }
@@ -95,20 +95,5 @@ struct HSVSquare: NSViewRepresentable {
         color = c
         
         if gesture.state == .ended { storeColor() }
-    }
-    
-    @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
-        guard let view = gesture.view else { return }
-        let loc = gesture.location(in: view)
-        
-        let x = min(max(loc.x, 0), view.bounds.width)
-        let y = min(max(loc.y, 0), view.bounds.height)
-        
-        var c = color
-        c.brightness = y / view.bounds.height
-        c.saturation = x / view.bounds.width
-        color = c
-        
-        storeColor()
     }
 }

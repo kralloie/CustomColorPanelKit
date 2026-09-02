@@ -10,17 +10,17 @@ import SwiftUI
 struct BrightnessSliderView: View {
     @Environment(\.scrollWheelRouter) private var scrollWheelRouter
     @Binding var color: HSBAColor
-    @State private var isHovering: Bool = false
+    @State private var isDragging: Bool = false
     var storeColor: () -> Void
     
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
-            BrightnessSlider(color: $color, storeColor: storeColor)
+            BrightnessSlider(color: $color, isDragging: $isDragging, storeColor: storeColor)
                 .frame(width: width, height: height)
                 .clipShape(RoundedRectangle(cornerRadius: width))
-                .overlay{ SliderThumb(color: color, width: width, height: height) }
+                .overlay { SliderThumb(color: color, isDragging: isDragging, width: width, height: height) }
                 .onHover { isHovering in
                     if isHovering {
                         scrollWheelRouter.scrollHandler = handleScroll
@@ -33,6 +33,7 @@ struct BrightnessSliderView: View {
     
     private struct SliderThumb: View {
         var color: HSBAColor
+        var isDragging: Bool
         let width: CGFloat
         let height: CGFloat
         var body: some View {
@@ -40,6 +41,7 @@ struct BrightnessSliderView: View {
                 .fill(Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness))
                 .stroke(Color.primary, lineWidth: 2)
                 .frame(width: width + width * 0.25)
+                .scaleEffect(isDragging ? 1.2 : 1)
                 .allowsHitTesting(false)
                 .position(x: width * 0.5, y: height - color.brightness * height)
         }
