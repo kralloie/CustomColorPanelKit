@@ -20,7 +20,16 @@ struct BrightnessSliderView: View {
             BrightnessSlider(color: $color, isDragging: $isDragging, storeColor: storeColor)
                 .frame(width: width, height: height)
                 .clipShape(RoundedRectangle(cornerRadius: width))
-                .overlay { SliderThumb(color: color, isDragging: isDragging, width: width, height: height) }
+                .overlay {
+                    SliderThumb(
+                        orientation: .vertical,
+                        color: Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness),
+                        value: color.brightness,
+                        isDragging: isDragging,
+                        width: width,
+                        height: height
+                    )
+                }
                 .onHover { isHovering in
                     if isHovering {
                         scrollWheelRouter.scrollHandler = handleScroll
@@ -28,22 +37,6 @@ struct BrightnessSliderView: View {
                         scrollWheelRouter.scrollHandler = nil
                     }
                 }
-        }
-    }
-    
-    private struct SliderThumb: View {
-        var color: HSBAColor
-        var isDragging: Bool
-        let width: CGFloat
-        let height: CGFloat
-        var body: some View {
-            Circle()
-                .fill(Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness))
-                .stroke(Color.primary, lineWidth: 2)
-                .frame(width: width + width * 0.25)
-                .scaleEffect(isDragging ? 1.2 : 1)
-                .allowsHitTesting(false)
-                .position(x: width * 0.5, y: height - color.brightness * height)
         }
     }
     

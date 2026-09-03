@@ -24,7 +24,14 @@ struct OpacitySliderView: View {
                     Rectangle()
                         .fill(.thickMaterial)
                         .frame(width: 2, height: height)
-                    SliderThumb(color: color, isDragging: isDragging, width: width, height: height)
+                    SliderThumb(
+                        orientation: .horizontal,
+                        color: color.color,
+                        value: color.alpha,
+                        isDragging: isDragging,
+                        width: width,
+                        height: height
+                    )
                 }
                 .onHover { isHovering in
                     if isHovering {
@@ -33,24 +40,6 @@ struct OpacitySliderView: View {
                         scrollWheelRouter.scrollHandler = nil
                     }
                 }
-        }
-    }
-    
-    private struct SliderThumb: View {
-        var color: HSBAColor
-        var isDragging: Bool
-        let width: CGFloat
-        let height: CGFloat
-        
-        var body: some View {
-            Circle()
-                .fill(color.color)
-                .stroke(Color.primary, lineWidth: 2)
-                .background { CheckerboardView(rows: 3).clipShape(.circle) }
-                .frame(height: height + height * 0.25)
-                .scaleEffect(isDragging ? 1.15 : 1)
-                .position(x: width * color.alpha, y: height * 0.5)
-                .allowsHitTesting(false)
         }
     }
     
