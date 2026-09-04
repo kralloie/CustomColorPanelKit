@@ -8,12 +8,15 @@
 import SwiftUI
 
 enum SidebarLayout {
-    static let panelWidth: CGFloat = 270
     static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
     static let sidebarCornerRadius: CGFloat = 12
     static let componentLabelWidth: CGFloat = 45
     static let colorComponentRowCornerRadius: CGFloat = 24
+    static let colorComponentRowMinWidth: CGFloat = 210
+    static var panelWidth: CGFloat {
+        Self.colorComponentRowMinWidth + Self.panelInnerPadding * 2 + 20
+    }
 }
 
 struct SidebarView: View {
@@ -41,7 +44,6 @@ struct SidebarView: View {
     var body: some View {
         ScrollView {
             SidebarContent(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory, panelWidth: panelWidth)
-            .frame(width: isOpen ? panelWidth : 0)
         }
         .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
@@ -64,8 +66,6 @@ struct SidebarContent: View {
     @Binding var pickerMode: PickerMode
     var colorHistory: ColorHistory
     var panelWidth: CGFloat
-    
-    private var sliderWidth: CGFloat { max(panelWidth - 190, 10) }
     private func storeColor() { colorHistory.add(color) }
     
     var body: some View {
@@ -89,8 +89,6 @@ struct SidebarContent: View {
                 
                 ColorHistoryView(colorHistory: colorHistory)
             }
-            .padding(10)
-
         }
         .padding(SidebarLayout.panelInnerPadding)
     }
@@ -124,6 +122,7 @@ extension SidebarContent {
             
             ColorComponentField(value: $color.hex, inputType: .hex, storeColor: storeColor)
         }
+        .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
@@ -140,8 +139,9 @@ extension SidebarContent {
             
             Spacer()
             
-            ColorComponentField(value: $color.alpha, inputType: .percentage, sliderWidth: sliderWidth)
+            ColorComponentField(value: $color.alpha, inputType: .percentage)
         }
+        .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
@@ -152,13 +152,13 @@ extension SidebarContent {
     private var hsvValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hue, inputType: .degrees, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.hue, inputType: .degrees, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.saturation, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.saturation, inputType: .percentage, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "V") {
-                ColorComponentField(value: $color.brightness, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.brightness, inputType: .percentage, storeColor: storeColor)
             }
         }
     }
@@ -166,13 +166,13 @@ extension SidebarContent {
     private var hslValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "L") {
-                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
             }
         }
     }
@@ -180,13 +180,13 @@ extension SidebarContent {
     private var rgbValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "R") {
-                ColorComponentField(value: $color.rgb.red, inputType: .numerical, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "G") {
-                ColorComponentField(value: $color.rgb.green, inputType: .numerical, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "B") {
-                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
             }
         }
     }
@@ -194,16 +194,16 @@ extension SidebarContent {
     private var cmykValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "C") {
-                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "M") {
-                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "Y") {
-                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "K") {
-                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor, sliderWidth: sliderWidth)
+                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
             }
         }
     }
@@ -238,6 +238,7 @@ extension SidebarContent {
                         .clipped()
                 }
             }
+            .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
             .padding(8)
             .background {
                 RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
@@ -289,12 +290,14 @@ extension SidebarView {
                         
                         let newWidth = (dragStartWidth ?? panelWidth) + delta
                         
-                        panelWidth = min(500, max(newWidth, 0))
-                        
-                        if isOpen && panelWidth < 40 {
+                        if isOpen && newWidth < SidebarLayout.panelWidth * 0.5 {
                             isOpen = false
-                        } else if !isOpen && panelWidth > 60 {
+                        } else if !isOpen && newWidth > (SidebarLayout.panelWidth * 1.5) {
                             isOpen = true
+                        }
+                        
+                        if isOpen {
+                            panelWidth = min(500, max(newWidth, SidebarLayout.panelWidth))
                         }
                     }
                     .onEnded { _ in

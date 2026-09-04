@@ -17,7 +17,6 @@ private enum Layout {
     static let stepperHeight: CGFloat = 20 + Layout.stepperSpacing
     static let stepperWidth: CGFloat = 14
     
-    static let minSliderWidth: CGFloat = 50
     static let sliderThumbWidth: CGFloat = 5
     static let sliderThumbHeight: CGFloat = 15
 }
@@ -28,7 +27,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     @State private var text: String
     @State private var isHovering: Bool = false
     @FocusState private var isFocused: Bool
-    var sliderWidth: CGFloat
     private var valueString: String { inputType.format(value.cgFloatValue) }
     
     let inputType: InputType
@@ -37,14 +35,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     init(value: Binding<T>, inputType: InputType, storeColor: @escaping () -> Void = {}, sliderWidth: CGFloat = 0) {
         self.inputType = inputType
         self._value = value
-        self.sliderWidth = sliderWidth
         self.storeColor = storeColor
         self._text = .init(initialValue: inputType.format(value.wrappedValue.cgFloatValue))
     }
     
     var body: some View {
         HStack(spacing: 6) {
-            if inputType != .hex && sliderWidth > Layout.minSliderWidth {
+            if inputType != .hex {
                 ColorComponentSlider(
                     normalized: Binding(
                         get: { isFocused ? inputType.normalize(text) ?? value.cgFloatValue : value.cgFloatValue },
@@ -56,7 +53,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                             }
                         }
                     ),
-                    width: sliderWidth,
                     storeColor: storeColor
                 )
             }
@@ -188,21 +184,9 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     
     private struct ColorComponentSlider: View {
         @Binding var normalized: CGFloat
-        var width: CGFloat
         var storeColor: () -> Void
+        @State private var width: CGFloat = 0
         @State private var isDragging: Bool = false
-        
-        var dragGesture: some Gesture {
-            DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                .onChanged {
-                    if !isDragging { isDragging = true }
-                    normalized = ($0.location.x / width).clamped(to: 0...1)
-                }
-                .onEnded { _ in
-                    isDragging = false
-                    storeColor()
-                }
-        }
         
         var body: some View {
             ZStack(alignment: .leading) {
@@ -212,7 +196,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     .fill(Color.accentColor)
                     .frame(width: max(normalized * width, 0))
             }
-            .frame(width: width, height: 5)
+            .frame(height: 5)
+            .frame(maxWidth: .infinity)
                 .overlay(alignment: .leading) {
                     Capsule()
                         .fill(.clear)
@@ -233,6 +218,19 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 }
                 .position(x: width * 0.5, y: Layout.textFieldHeight * 0.5)
                 .gesture(dragGesture)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+        }
+        
+        var dragGesture: some Gesture {
+            DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                .onChanged {
+                    if !isDragging { isDragging = true }
+                    normalized = ($0.location.x / width).clamped(to: 0...1)
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    storeColor()
+                }
         }
     }
     
