@@ -19,7 +19,6 @@ struct HSVTriangle: NSViewRepresentable {
     
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
-        mtkView.addGestureRecognizer(NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         
         return mtkView
