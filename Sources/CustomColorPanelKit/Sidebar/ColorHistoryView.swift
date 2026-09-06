@@ -18,7 +18,7 @@ struct ColorHistoryView: View {
     private func setColor(_ c: HSBAColor) { colorHistory.pendingChange = c }
     
     var body: some View {
-        return LazyVGrid(
+        LazyVGrid(
             columns: [
                 GridItem(.adaptive(minimum: colorSize, maximum: colorSize), spacing: spacing)
             ],

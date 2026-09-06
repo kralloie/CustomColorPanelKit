@@ -9,7 +9,8 @@ import SwiftUI
 
 @Observable
 final class ColorHistory {
-    var colors: [HSBAColor] = []
+    private(set) var colors: [HSBAColor] = []
+    private var hexes: [UInt32] = []
     private let capacity = 144
     var pendingChange: HSBAColor?
     
@@ -18,18 +19,22 @@ final class ColorHistory {
     func add(_ color: HSBAColor) {
         var color = color
         color.alpha = 1.0
+        let hex = color.hex
         
-        if let index = colors.firstIndex(where: { $0.hex == color.hex }) {
+        if let index = hexes.firstIndex(of: hex ) {
             colors.remove(at: index)
+            hexes.remove(at: index)
         }
         
-        if colors.count == capacity { colors.removeLast() }
+        if colors.count == capacity { colors.removeLast(); hexes.removeLast() }
         
         colors.insert(color, at: 0)
+        hexes.insert(hex, at: 0)
     }
     
     func delete(_ color: HSBAColor) {
-        if let index = colors.firstIndex(where : { $0.hex == color.hex }) {
+        let hex = color.hex
+        if let index = hexes.firstIndex(of: hex) {
             colors.remove(at: index)
         }
     }
