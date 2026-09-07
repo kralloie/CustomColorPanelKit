@@ -278,7 +278,11 @@ extension SidebarView {
             .contentShape(Rectangle())
             .onHover { hovering in
                 guard dragStartWidth == nil else { return }
-                if hovering { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
+                if hovering {
+                    NSCursor.resizeLeftRight.push()
+                } else {
+                    NSCursor.pop()
+                }
             }
             .gesture(
                 DragGesture(minimumDistance: 0, coordinateSpace: .global)
