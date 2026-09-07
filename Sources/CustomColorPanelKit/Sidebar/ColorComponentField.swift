@@ -21,6 +21,7 @@ private enum Layout {
     static let sliderThumbHeight: CGFloat = 15
 }
 
+@MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View {
     @Environment(\.scrollWheelRouter) private var scrollWheelRouter
     @Binding var value: T

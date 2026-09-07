@@ -90,7 +90,7 @@ struct BrightnessSlider: NSViewRepresentable {
         if gesture.state == .began { isDragging = true }
         let height = view.bounds.height
         
-        var pos = min(max(gesture.location(in: view).y, 0), view.bounds.height)
+        let pos = min(max(gesture.location(in: view).y, 0), view.bounds.height)
         
         color.brightness = (pos / height)
         

@@ -8,7 +8,7 @@
 import SwiftUI
 import AppKit
 
-func pickColorFromScreen(completion: @escaping (Color?) -> Void) {
+func pickColorFromScreen(completion: @escaping @Sendable (Color?) -> Void) {
     let sampler = NSColorSampler()
     sampler.show { nsColor in
         completion(nsColor.map { Color($0) })

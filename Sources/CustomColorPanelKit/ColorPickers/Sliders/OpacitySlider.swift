@@ -89,7 +89,7 @@ struct OpacitySlider: NSViewRepresentable {
         guard let view = gesture.view, view.bounds.width > 0 else { return }
         let width = view.bounds.width
         
-        var pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
+        let pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
         
         let center = width * 0.5
         
