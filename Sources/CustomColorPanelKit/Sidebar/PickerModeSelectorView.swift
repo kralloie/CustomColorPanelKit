@@ -10,23 +10,28 @@ import SwiftUI
 struct PickerModeSelectorView: View {
     @Binding var selectedMode: PickerMode
     @State private var hoveringMode: PickerMode?
-    private static let accentColor: Binding<HSBAColor> = .constant(HSBAColor(with: .accentColor))
+    private var accentColor: Binding<HSBAColor> {
+        Binding(
+            get: { HSBAColor(with: .accentColor) },
+            set: { _ in  }
+        )
+    }
     var body: some View {
         HStack {
-            HSVSquare(color: Self.accentColor, storeColor: {})
+            HSVSquare(color: accentColor, storeColor: {})
                 .frame(width: 20, height: 20)
                 .allowsHitTesting(false)
                 .selectorButton(for: .hsvSquare, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
             
-            HSVSphere(color: Self.accentColor, storeColor: {})
+            HSVSphere(color: accentColor, storeColor: {})
                 .frame(width: 20, height: 20)
                 .allowsHitTesting(false)
                 .selectorButton(for: .hsvSphere, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
             
-            HueRing(color: Self.accentColor, storeColor: {})
+            HueRing(color: accentColor, storeColor: {})
                 .frame(width: 20, height: 20)
                 .overlay {
-                    HSVTriangle(color:  Self.accentColor, hueRotation: false, storeColor: {})
+                    HSVTriangle(color:  accentColor, hueRotation: true, storeColor: {})
                         .frame(width: 14, height: 14)
                 }
                 .allowsHitTesting(false)

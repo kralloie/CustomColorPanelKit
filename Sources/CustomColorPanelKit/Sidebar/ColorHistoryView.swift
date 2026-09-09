@@ -89,15 +89,35 @@ extension ColorHistoryView {
             Button("Select") { setColor(entryColor) }
             
             Menu {
-                Button("HEX") { NSPasteboard.copy(color.hexString) }
+                Button{ NSPasteboard.copy(color.hexString) }
+                label: {
+                    Text("HEX")
+                    Text("\(color.hexString)")
+                }
                 
-                Button("HSV") { NSPasteboard.copy(color.hsvString) }
+                Button{ NSPasteboard.copy(color.hsvString) }
+                label: {
+                    Text("HSV")
+                    Text("\(color.hsvString)")
+                }
                 
-                Button("HSL") { NSPasteboard.copy(color.hsl.string) }
+                Button { NSPasteboard.copy(color.hsl.string) }
+                label: {
+                    Text("HSL")
+                    Text("\(color.hsl.string)")
+                }
                 
-                Button("RGB") { NSPasteboard.copy(color.rgb.string) }
+                Button{ NSPasteboard.copy(color.rgb.string) }
+                label: {
+                    Text("RGB")
+                    Text("\(color.rgb.string)")
+                }
                 
-                Button("CMYK") { NSPasteboard.copy(color.cmyk.string) }
+                Button{ NSPasteboard.copy(color.cmyk.string) }
+                label: {
+                    Text("CMYK")
+                    Text("\(color.cmyk.string)")
+                }
                 
             } label: {
                 Label("Copy As", systemImage: "doc.on.doc")
