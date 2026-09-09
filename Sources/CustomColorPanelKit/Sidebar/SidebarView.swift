@@ -235,7 +235,6 @@ extension SidebarContent {
                     content()
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.vertical, 4)
-                        .clipped()
                 }
             }
             .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)

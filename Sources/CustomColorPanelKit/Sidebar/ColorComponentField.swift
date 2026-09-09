@@ -84,7 +84,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             .contentShape(Rectangle())
             .onHover { hovering in
                 isHovering = hovering
-                if hovering { NSCursor.iBeam.set() } else { NSCursor.arrow.set() }
                 if hovering {
                     if inputType != .hex {
                         scrollWheelRouter.scrollHandler = handleScroll
