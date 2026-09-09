@@ -30,6 +30,11 @@ struct HueSliderView: View {
                         height: height
                     )
                 }
+                .background {
+                    RoundedRectangle(cornerRadius: width)
+                        .fill(.tertiary)
+                        .frame(width: width + 2, height: height + 2)
+                }
                 .onHover { isHovering in
                     if isHovering {
                         scrollWheelRouter.scrollHandler = handleScroll

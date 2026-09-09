@@ -94,10 +94,20 @@ private extension HueRing {
                 )
                 .overlay(alignment: .trailing) {
                     LeftPointingTriangle()
-                        .fill(.primary)
+                        .fill(.white)
                         .frame(width: Layout.hueRingIndicatorSize, height: Layout.hueRingIndicatorSize)
-                        .shadow(radius: 2)
-                        .padding(.trailing, -Layout.hueRingIndicatorSize * 0.5)
+                        .background(alignment: .leading) {
+                            UnevenRoundedRectangle(
+                                topLeadingRadius: 0,
+                                bottomLeadingRadius: 0,
+                                bottomTrailingRadius: 4,
+                                topTrailingRadius: 4,
+                            )
+                                .fill(.white)
+                                .frame(width: Layout.hueRingIndicatorSize * 0.5, height: Layout.hueRingIndicatorSize)
+                                .padding(.leading, Layout.hueRingIndicatorSize * 0.985)
+                                .shadow(radius: 2)
+                        }
                 }
                 .rotationEffect(Angle(radians: -geometry.hueAngle))
                 .offset(geometry.hueRingIndicatorOffset)

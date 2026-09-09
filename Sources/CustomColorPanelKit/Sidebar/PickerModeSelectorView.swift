@@ -46,17 +46,17 @@ private extension View {
         self
             .frame(maxWidth: .infinity)
             .background {
-            RoundedRectangle(cornerRadius: 30)
-                .glassEffect(
-                    .clear.tint(
-                        selectedMode.wrappedValue == mode ? .accentColor
-                        : hoveringMode.wrappedValue == mode ? .gray
-                        : .clear
-                    ),
-                    in: .rect(cornerRadius: 30)
-                )
-                .frame(height: 30)
-                .frame(maxWidth: .infinity)
+                RoundedRectangle(cornerRadius: 30)
+                    .glassEffect(
+                        .regular.tint(
+                            selectedMode.wrappedValue == mode ? .accentColor
+                            : hoveringMode.wrappedValue == mode ? .gray
+                            : .clear
+                        ),
+                        in: .rect(cornerRadius: 30)
+                    )
+                    .frame(height: 30)
+                    .frame(maxWidth: .infinity)
             }
             .frame(height: 30)
             .frame(maxWidth: .infinity)
