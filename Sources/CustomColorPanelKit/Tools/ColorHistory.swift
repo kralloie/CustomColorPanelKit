@@ -38,4 +38,9 @@ final class ColorHistory {
             colors.remove(at: index)
         }
     }
+    
+    func clear() {
+        colors.removeAll()
+        hexes.removeAll()
+    }
 }

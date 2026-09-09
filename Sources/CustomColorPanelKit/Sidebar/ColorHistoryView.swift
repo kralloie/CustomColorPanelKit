@@ -39,6 +39,14 @@ struct ColorHistoryView: View {
             RoundedRectangle(cornerRadius: 8)
                 .clearGlassEffect(in: RoundedRectangle(cornerRadius: 8))
         }
+        .contextMenu {
+            Button() {
+                colorHistory.clear()
+            } label: {
+                Label("Clear History", systemImage: "trash")
+            }
+                .disabled(colorHistory.colors.isEmpty)
+        }
     }
 }
 
