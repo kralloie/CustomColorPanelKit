@@ -13,7 +13,7 @@ private struct ClearGlass<S: Shape>: ViewModifier {
     
     func body(content: Content) -> some View {
         content.glassEffect(
-            .clear.tint(colorScheme == .dark ? .black : .white),
+            .clear,
             in: shape
         )
     }

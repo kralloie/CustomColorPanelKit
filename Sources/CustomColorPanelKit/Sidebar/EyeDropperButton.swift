@@ -1,5 +1,5 @@
 //
-//  EyeDropperView.swift
+//  EyeDropperButton.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 27/06/2026.
@@ -15,9 +15,10 @@ func pickColorFromScreen(completion: @escaping @Sendable (Color?) -> Void) {
     }
 }
 
-struct EyeDropperView: View {
+@MainActor
+struct EyeDropperButton: View {
     @Binding var pickedColor: HSBAColor
-    var storeColor: (HSBAColor) -> Void
+    let storeColor: () -> Void
     @State private var isHovering: Bool = false
     
     var body: some View {
@@ -31,10 +32,17 @@ struct EyeDropperView: View {
                 pickColorFromScreen { color in
                     if let color {
                         let c = HSBAColor(with: color)
-                        pickedColor = c
-                        storeColor(c)
+                        Task { @MainActor in
+                            pickedColor = c
+                            storeColor()
+                        }
                     }
                 }
+            }
+            .background {
+                Circle()
+                    .glassEffect(.clear.tint(isHovering ? .gray : .clear), in: Circle())
+                    .animation(.easeInOut(duration: 0.1), value: isHovering)
             }
     }
 }

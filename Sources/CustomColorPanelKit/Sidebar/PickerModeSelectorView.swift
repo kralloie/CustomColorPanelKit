@@ -9,66 +9,100 @@ import SwiftUI
 
 struct PickerModeSelectorView: View {
     @Binding var selectedMode: PickerMode
-    @State private var hoveringMode: PickerMode?
+    @State private var selectedModeIndex: Int
+    @State private var isDragging: Bool = false
+    @State private var indicatorPosition: CGFloat = 0
+    
+    init(selectedMode: Binding<PickerMode>) {
+        self._selectedMode = selectedMode
+        self._selectedModeIndex = State(
+            initialValue: selectedMode.wrappedValue == .hueRing ? 2 :
+                          selectedMode.wrappedValue == .hsvSphere ? 1 : 0
+        )
+    }
+    
     private var accentColor: Binding<HSBAColor> {
         Binding(
             get: { HSBAColor(with: .accentColor) },
             set: { _ in  }
         )
     }
+    
     var body: some View {
-        HStack {
-            HSVSquare(color: accentColor, storeColor: {})
-                .frame(width: 20, height: 20)
-                .allowsHitTesting(false)
-                .selectorButton(for: .hsvSquare, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
-            
-            HSVSphere(color: accentColor, storeColor: {})
-                .frame(width: 20, height: 20)
-                .allowsHitTesting(false)
-                .selectorButton(for: .hsvSphere, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
-            
-            HueRing(color: accentColor, storeColor: {})
-                .frame(width: 20, height: 20)
-                .overlay {
-                    HSVTriangle(color:  accentColor, hueRotation: true, storeColor: {})
-                        .frame(width: 14, height: 14)
-                }
-                .allowsHitTesting(false)
-                .selectorButton(for: .hueRing, selectedMode: $selectedMode, hoveringMode: $hoveringMode)
+        GeometryReader { proxy in
+            let buttonWidth = proxy.size.width / 3
+            HStack(spacing: 0) {
+                HSVSquare(color: accentColor, storeColor: {})
+                    .frame(width: 20, height: 20)
+                    .allowsHitTesting(false)
+                    .frame(maxWidth: .infinity)
+                
+                HSVSphere(color: accentColor, storeColor: {})
+                    .frame(width: 20, height: 20)
+                    .allowsHitTesting(false)
+                    .frame(maxWidth: .infinity)
+                
+                HueRing(color: accentColor, storeColor: {})
+                    .frame(width: 20, height: 20)
+                    .overlay {
+                        HSVTriangle(color:  accentColor, hueRotation: true, storeColor: {})
+                            .frame(width: 14, height: 14)
+                    }
+                    .allowsHitTesting(false)
+                    .frame(maxWidth: .infinity)
+            }
+            .frame(height: 30)
+            .background {
+                RoundedRectangle(cornerRadius: 50)
+                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: 50))
+                RoundedRectangle(cornerRadius: 50)
+                    .fill(.white.opacity(0.25))
+                    .frame(width: buttonWidth)
+                    .position(
+                        x: isDragging ? indicatorPosition.clamped(to: (buttonWidth * 0.5)...proxy.size.width - (buttonWidth * 0.5)) :
+                            (CGFloat(selectedModeIndex) * buttonWidth) + buttonWidth * 0.5,
+                        y: 15
+                    )
+                    .animation(.easeInOut(duration: 0.25), value: isDragging)
+                    .animation(.easeInOut(duration: 0.25), value: selectedModeIndex)
+            }
+            .gesture(
+                SpatialTapGesture()
+                    .onEnded { value in
+                        selectedModeIndex = min(2, Int(max(0, min(proxy.size.width, value.location.x)) / buttonWidth))
+                        selectedMode = selectedModeIndex == 0 ? .hsvSquare :(selectedModeIndex == 1) ? .hsvSphere : .hueRing
+                    }
+            )
+            .gesture(
+                DragGesture(minimumDistance: 5)
+                    .onChanged { value in
+                        if !isDragging { isDragging = true }
+                        let posX = max(0, min(proxy.size.width, value.location.x))
+                        selectedModeIndex = min(2, (Int(posX / buttonWidth)))
+                        indicatorPosition = posX
+                    }
+                    .onEnded { _ in
+                        isDragging = false
+                        selectedMode = selectedModeIndex == 0 ? .hsvSquare :(selectedModeIndex == 1) ? .hsvSphere : .hueRing
+                    }
+            )
         }
-        .padding(4)
-        .background {
-            RoundedRectangle(cornerRadius: 50)
-                .clearGlassEffect(in: RoundedRectangle(cornerRadius: 50))
-        }
+        .frame(height: 30)
         .padding(.bottom, 8)
     }
 }
 
 private extension View {
-    func selectorButton(for mode: PickerMode, selectedMode: Binding<PickerMode>, hoveringMode: Binding<PickerMode?>) -> some View {
+    func selectorButton() -> some View {
         self
             .frame(maxWidth: .infinity)
             .background {
                 RoundedRectangle(cornerRadius: 30)
-                    .glassEffect(
-                        .regular.tint(
-                            selectedMode.wrappedValue == mode ? .accentColor
-                            : hoveringMode.wrappedValue == mode ? .gray
-                            : .clear
-                        ),
-                        in: .rect(cornerRadius: 30)
-                    )
+                    .fill(.clear)
                     .frame(height: 30)
                     .frame(maxWidth: .infinity)
             }
             .frame(height: 30)
             .frame(maxWidth: .infinity)
-            .contentShape(.rect)
-            .onHover { hoveringMode.wrappedValue = $0 ? mode : nil }
-            .onTapGesture { selectedMode.wrappedValue = mode }
-            .animation(.easeInOut(duration: 0.1), value: hoveringMode.wrappedValue == mode)
-            .animation(.easeInOut(duration: 0.1), value: selectedMode.wrappedValue == mode)
     }
 }

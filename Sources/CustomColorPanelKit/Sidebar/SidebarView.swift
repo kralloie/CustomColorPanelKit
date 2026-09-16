@@ -72,45 +72,55 @@ struct SidebarContent: View {
         VStack(spacing: 4) {
             PickerModeSelectorView(selectedMode: $pickerMode)
             
-            colorPreview
-                .contextMenu {
-                    Menu {
-                        Button{ NSPasteboard.copy(color.hexString) }
-                        label: {
-                            Text("HEX")
-                            Text("\(color.hexString)")
+            HStack {
+                colorPreview
+                    .contextMenu {
+                        Menu {
+                            Button{ NSPasteboard.copy(color.hexString) }
+                            label: {
+                                Text("HEX")
+                                Text("\(color.hexString)")
+                            }
+                            
+                            Button{ NSPasteboard.copy(color.hsvString) }
+                            label: {
+                                Text("HSV")
+                                Text("\(color.hsvString)")
+                            }
+                            
+                            Button { NSPasteboard.copy(color.hsl.string) }
+                            label: {
+                                Text("HSL")
+                                Text("\(color.hsl.string)")
+                            }
+                            
+                            Button{ NSPasteboard.copy(color.rgb.string) }
+                            label: {
+                                Text("RGB")
+                                Text("\(color.rgb.string)")
+                            }
+                            
+                            Button{ NSPasteboard.copy(color.cmyk.string) }
+                            label: {
+                                Text("CMYK")
+                                Text("\(color.cmyk.string)")
+                            }
+                            
+                        } label: {
+                            Label("Copy As", systemImage: "doc.on.doc")
                         }
-                        
-                        Button{ NSPasteboard.copy(color.hsvString) }
-                        label: {
-                            Text("HSV")
-                            Text("\(color.hsvString)")
-                        }
-                        
-                        Button { NSPasteboard.copy(color.hsl.string) }
-                        label: {
-                            Text("HSL")
-                            Text("\(color.hsl.string)")
-                        }
-                        
-                        Button{ NSPasteboard.copy(color.rgb.string) }
-                        label: {
-                            Text("RGB")
-                            Text("\(color.rgb.string)")
-                        }
-                        
-                        Button{ NSPasteboard.copy(color.cmyk.string) }
-                        label: {
-                            Text("CMYK")
-                            Text("\(color.cmyk.string)")
-                        }
-                        
-                    } label: {
-                        Label("Copy As", systemImage: "doc.on.doc")
                     }
-                }
+                
+                EyeDropperButton(pickedColor: $color, storeColor: { colorHistory.add(color) })
+                
+                DiceButton(color: $color, storeColor: { colorHistory.add(color) })
+                
+                PaletteButton(color: $color, storeColor: { colorHistory.add(color) })
+            }
             
             VStack(spacing: 15) {
+                Divider()
+                
                 hexValue
                 
                 ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
@@ -123,6 +133,8 @@ struct SidebarContent: View {
                 
                 alphaValue
                 
+                Divider()
+                
                 ColorHistoryView(colorHistory: colorHistory)
             }
         }
@@ -132,18 +144,16 @@ struct SidebarContent: View {
 
 extension SidebarContent {
     private var colorPreview: some View {
-        ColorExample(color: color)
-            .frame(width: min(panelWidth * 0.8, 80), height: min(panelWidth * 0.8, 80))
-            .background(CheckerboardView(rows: 5))
-            .overlay {
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(.separator, lineWidth: 2)
-            }
+        let size = min(panelWidth * 0.8, 80)
+        return ColorExample(color: color)
+            .frame(width: size, height: size)
+            .background(
+                CheckerboardView(rows: 5)
+                    .frame(width: size - 1, height: size - 1)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            )
             .clipShape(RoundedRectangle(cornerRadius: 6))
-            .overlay(alignment: .trailing) {
-                EyeDropperView(pickedColor: $color, storeColor: { colorHistory.add($0) })
-                    .offset(x: 30)
-            }
+            .shadow(radius: 2)
             .padding(.bottom, 10)
     }
     
@@ -162,7 +172,7 @@ extension SidebarContent {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
+                .fill(.background.tertiary)
         }
     }
     
@@ -181,7 +191,7 @@ extension SidebarContent {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
+                .fill(.background.tertiary)
         }
     }
     
@@ -277,7 +287,7 @@ extension SidebarContent {
             .padding(8)
             .background {
                 RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
+                    .fill(.background.tertiary)
             }
         }
     }
