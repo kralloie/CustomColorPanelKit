@@ -212,6 +212,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                             }
                         }
                         .scaleEffect(isDragging ? 1.25 : 1)
+                        .shadow(radius: 1)
                         .animation(.easeInOut(duration: 0.1), value: isDragging)
                         .offset(x: width * normalized - (Layout.sliderThumbWidth * 0.5))
                         .gesture(dragGesture)

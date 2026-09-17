@@ -137,7 +137,7 @@ extension SidebarContent {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                .fill(.background.tertiary)
+                .fill(.background.secondary)
         }
     }
     
@@ -156,7 +156,7 @@ extension SidebarContent {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                .fill(.background.tertiary)
+                .fill(.background.secondary)
         }
     }
     
@@ -252,7 +252,7 @@ extension SidebarContent {
             .padding(8)
             .background {
                 RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                    .fill(.background.tertiary)
+                    .fill(.background.secondary)
             }
         }
     }

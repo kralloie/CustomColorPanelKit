@@ -96,6 +96,7 @@ private extension HueRing {
                     HueRingIndicator(rectangleWidth: Layout.hueRingIndicatorSize * 0.5, cornerRadius: 4)
                         .fill(.white)
                         .frame(width: Layout.hueRingIndicatorSize, height: Layout.hueRingIndicatorSize)
+                        .shadow(radius: 1)
                 }
                 .rotationEffect(Angle(radians: -geometry.hueAngle))
                 .offset(geometry.hueRingIndicatorOffset)
