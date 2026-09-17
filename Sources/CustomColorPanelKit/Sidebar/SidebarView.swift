@@ -74,7 +74,6 @@ struct SidebarContent: View {
             
             HStack {
                 colorPreview
-                    .contextMenu { CopyColorMenu(color: color) }
                 
                 EyeDropperButton(pickedColor: $color, storeColor: { colorHistory.add(color) })
                 
@@ -119,6 +118,7 @@ extension SidebarContent {
             )
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .shadow(radius: 2)
+            .contextMenu { CopyColorMenu(color: color) }
             .padding(.bottom, 10)
     }
     

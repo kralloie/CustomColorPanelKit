@@ -141,7 +141,13 @@ struct PaletteButton: View {
                     
                     Spacer()
                     
-                    Text(palette.string)
+                    ZStack {
+                        Text(palette.string)
+                        ForEach(Palette.allCases, id: \.self) { p in
+                            Text(p.string)
+                                .opacity(0)
+                        }
+                    }
                     
                     Spacer()
                     
@@ -196,9 +202,8 @@ struct PaletteButton: View {
                     storeColor()
                 }
                 .onHover { isHovering = $0 }
-                .scaleEffect(isHovering ? 1.15 : 1.0)
+                .shadow(color: isHovering ? swatch : .black, radius: isHovering ? 2 : 1)
                 .animation(.easeInOut(duration: 0.1), value: isHovering)
-                .shadow(radius: 2)
         }
     }
 }
