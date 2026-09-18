@@ -112,7 +112,6 @@ struct PaletteButton: View {
     
     @Binding var color: HSBAColor
     let storeColor: () -> Void
-    @State private var isHovering: Bool = false
     @State private var showingPopover: Bool = false
     @State private var paletteIndex: Int = 0
     private var palette: Palette { Palette.allCases[paletteIndex] }
@@ -122,22 +121,18 @@ struct PaletteButton: View {
             showingPopover.toggle()
         } label: {
             Image(systemName: "paintpalette")
-                .padding(5)
-                .background {
-                    Circle()
-                        .glassEffect(.clear.tint(isHovering ? .gray : .clear), in: Circle())
-                        .animation(.easeInOut(duration: 0.1), value: isHovering)
-                }
         }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
+        .buttonStyle(.circleGlass)
         .popover(isPresented: $showingPopover, arrowEdge: .trailing) {
             VStack(spacing: 12) {
                 HStack {
-                    ChevronButton(chevronImage: "chevron.left")
-                        .onTapGesture {
-                            paletteIndex = abs(paletteIndex - 1 + Palette.allCases.count) % Palette.allCases.count
-                        }
+                    Button {
+                        paletteIndex = abs(paletteIndex - 1 + Palette.allCases.count) % Palette.allCases.count
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .bold()
+                    }
+                    .buttonStyle(.circleGlass)
                     
                     Spacer()
                     
@@ -151,10 +146,13 @@ struct PaletteButton: View {
                     
                     Spacer()
                     
-                    ChevronButton(chevronImage: "chevron.right")
-                        .onTapGesture {
-                            paletteIndex = abs(paletteIndex + 1) % Palette.allCases.count
-                        }
+                    Button {
+                        paletteIndex = abs(paletteIndex + 1) % Palette.allCases.count
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .bold()
+                    }
+                    .buttonStyle(.circleGlass)
                 }
                 .bold()
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 5) {
@@ -166,19 +164,6 @@ struct PaletteButton: View {
             .padding(12)
         }
 
-    }
-    
-    private struct ChevronButton: View {
-        let chevronImage: String
-        @State private var isHovering: Bool = false
-        var body: some View {
-            Image(systemName: chevronImage)
-                .padding(6)
-                .contentShape(.circle)
-                .glassEffect(.regular.tint(isHovering ? .gray : .clear), in: Circle())
-                .animation(.easeInOut(duration: 0.1), value: isHovering)
-                .onHover { isHovering = $0 }
-        }
     }
     
     private struct ColorSwatch: View {

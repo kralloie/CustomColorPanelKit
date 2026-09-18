@@ -10,7 +10,6 @@ import SwiftUI
 struct DiceButton: View {
     @Binding var color: HSBAColor
     let storeColor: () -> Void
-    @State private var isHovering: Bool = false
     
     var body: some View {
         Button {
@@ -18,15 +17,7 @@ struct DiceButton: View {
             storeColor()
         } label: {
             Image(systemName: "dice")
-                .padding(5)
-                .background {
-                    Circle()
-                        .glassEffect(.clear.tint(isHovering ? .gray : .clear), in: Circle())
-                        .animation(.easeInOut(duration: 0.1), value: isHovering)
-                }
         }
-        .buttonStyle(.plain)
-        .contentShape(Circle())
-        .onHover { isHovering = $0 }
+        .buttonStyle(.circleGlass)
     }
 }

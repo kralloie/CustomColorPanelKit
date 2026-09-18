@@ -262,19 +262,14 @@ extension SidebarContent {
         @State private var hoveringButton: Bool = false
         
         var body: some View {
-            Image(systemName: "chevron.right")
-                .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
-                .frame(width: 15, height: 10)
-                .bold()
-                .padding(5)
-                .contentShape(Circle())
-                .background {
-                    Circle()
-                        .glassEffect(.clear.tint(hoveringButton ? .gray : .clear), in: Circle())
-                        .animation(.easeInOut(duration: 0.1), value: hoveringButton)
-                }
-                .onHover { hoveringButton = $0 }
-                .onTapGesture { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
+            Button {
+                withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
+                    .bold()
+            }
+            .buttonStyle(.circleGlass)
         }
     }
 }
@@ -325,34 +320,22 @@ extension SidebarView {
         let alignment: Alignment
         @Binding var isOpen: Bool
         @Binding var panelWidth: CGFloat
-        @State private var isHoveringTogglePanel: Bool = false
-        var chevron: String {
-            if alignment == .trailing {
-                isOpen ? "chevron.left" : "chevron.right"
-            } else {
-                isOpen ? "chevron.right" : "chevron.left"
-            }
-        }
+        
         var offset: CGFloat { isOpen ? 10 : 25 }
         
         var body: some View {
-            Image(systemName: chevron)
-                .bold()
-                .frame(width: 20, height: 20)
-                .background {
-                    Circle()
-                        .glassEffect(.clear.tint(isHoveringTogglePanel ? .gray : .clear), in: Circle())
-                        .animation(.easeInOut(duration: 0.1), value: isHoveringTogglePanel)
+            Button {
+                if !isOpen { panelWidth = 270 }
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isOpen.toggle()
                 }
-                .offset(x: alignment == .trailing ? -offset : offset)
-                .onTapGesture {
-                    if !isOpen { panelWidth = 270 }
-                    withAnimation(.easeInOut(duration: 0.1)) {
-                        isOpen.toggle()
-                    }
-                }
-                .onHover { isHoveringTogglePanel = $0 }
-                .animation(.easeInOut(duration: 0.1), value: isHoveringTogglePanel)
+            } label: {
+                Image(systemName: "chevron.right")
+                    .rotationEffect(isOpen ? Angle(degrees: 0) : Angle(degrees: 180))
+                    .bold()
+            }
+            .buttonStyle(.circleGlass)
+            .offset(x: alignment == .trailing ? -offset : offset)
         }
     }
     
