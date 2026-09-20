@@ -179,16 +179,20 @@ struct PaletteButton: View {
         }
         
         var body: some View {
-            Circle()
-                .fill(swatch)
-                .frame(width: 15, height: 15)
-                .onTapGesture {
-                    color = .init(with: swatch)
-                    storeColor()
-                }
-                .onHover { isHovering = $0 }
-                .shadow(color: isHovering ? swatch : .black, radius: isHovering ? 2 : 1)
-                .animation(.easeInOut(duration: 0.1), value: isHovering)
+            Button {
+                color = .init(with: swatch)
+                storeColor()
+            } label: {
+                Circle()
+                    .fill(swatch)
+                    .shadow(color: .black, radius: 1)
+                    .animation(.easeInOut(duration: 0.1), value: isHovering)
+            }
+            .frame(width: 15, height: 15)
+            .buttonStyle(.plain)
+            .onHover { isHovering = $0 }
+            .scaleEffect(isHovering ? 1.15 : 1)
+            .animation(.easeInOut(duration: 0.1), value: isHovering)
         }
     }
 }

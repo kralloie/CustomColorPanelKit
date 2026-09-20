@@ -54,10 +54,14 @@ struct PickerModeSelectorView: View {
             .frame(height: 30)
             .background {
                 RoundedRectangle(cornerRadius: 50)
-                    .clearGlassEffect(in: RoundedRectangle(cornerRadius: 50))
+                    .fill(.clear)
+                    .glassEffect(.clear)
+                
                 RoundedRectangle(cornerRadius: 50)
-                    .fill(.white.opacity(0.25))
+                    .fill(.clear)
+                    .glassEffect(.clear.tint(.accentColor))
                     .frame(width: buttonWidth)
+                    .scaleEffect(isDragging ? 1.15 : 1)
                     .position(
                         x: isDragging ? indicatorPosition.clamped(to: (buttonWidth * 0.5)...proxy.size.width - (buttonWidth * 0.5)) :
                             (CGFloat(selectedModeIndex) * buttonWidth) + buttonWidth * 0.5,
@@ -67,19 +71,16 @@ struct PickerModeSelectorView: View {
                     .animation(.easeInOut(duration: 0.25), value: selectedModeIndex)
             }
             .gesture(
-                SpatialTapGesture()
-                    .onEnded { value in
-                        selectedModeIndex = min(2, Int(max(0, min(proxy.size.width, value.location.x)) / buttonWidth))
-                        selectedMode = selectedModeIndex == 0 ? .hsvSquare :(selectedModeIndex == 1) ? .hsvSphere : .hueRing
-                    }
-            )
-            .gesture(
-                DragGesture(minimumDistance: 5)
+                DragGesture(minimumDistance: 0)
                     .onChanged { value in
-                        if !isDragging { isDragging = true }
+                        var draggingStarted = false
+                        if !isDragging {
+                            isDragging = true
+                            draggingStarted = true
+                        }
                         let posX = max(0, min(proxy.size.width, value.location.x))
                         selectedModeIndex = min(2, (Int(posX / buttonWidth)))
-                        indicatorPosition = posX
+                        indicatorPosition = draggingStarted ? (CGFloat(selectedModeIndex) * buttonWidth) + buttonWidth * 0.5 : posX
                     }
                     .onEnded { _ in
                         isDragging = false

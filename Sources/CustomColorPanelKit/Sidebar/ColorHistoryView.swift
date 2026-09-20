@@ -61,14 +61,18 @@ extension ColorHistoryView {
         var body: some View {
             if colorHistory.colors.indices.contains(index) {
                 let c = colorHistory.colors[index]
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(c.color)
-                    .frame(width: colorSize, height: colorSize)
-                    .onHover { isHovering = $0 }
-                    .onTapGesture { setColor(c) }
-                    .scaleEffect(isHovering ? 1.25 : 1)
-                    .animation(.easeInOut(duration: 0.1), value: isHovering)
-                    .contextMenu{ ColorEntryContextMenu(color: c, entryColor: c, colorHistory: colorHistory, setColor: setColor) }
+                Button {
+                    setColor(c)
+                } label: {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(c.color)
+                }
+                .frame(width: colorSize, height: colorSize)
+                .buttonStyle(.plain)
+                .onHover { isHovering = $0 }
+                .scaleEffect(isHovering ? 1.25 : 1)
+                .animation(.easeInOut(duration: 0.1), value: isHovering)
+                .contextMenu{ ColorEntryContextMenu(color: c, entryColor: c, colorHistory: colorHistory, setColor: setColor) }
             } else {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(.separator, lineWidth: 1)

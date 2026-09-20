@@ -19,9 +19,18 @@ struct CircleGlass: ButtonStyle {
             .padding(5)
             .background {
                 Circle()
-                    .glassEffect(.regular.tint(isHovering ? hoveringTint : .clear), in: .circle)
+                    .fill(.clear)
+                    .glassEffect(
+                        .regular.tint(isHovering && !configuration.isPressed ? hoveringTint
+                                      :(configuration.isPressed) ? .black.opacity(0.25)
+                                      : .clear
+                         ),
+                         in: .circle
+                    )
                     .animation(.easeInOut(duration: 0.1), value: isHovering)
             }
+            .scaleEffect(configuration.isPressed ? 1.1 : 1)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
             .contentShape(.circle)
             .onHover { isHovering = $0 }
     }
