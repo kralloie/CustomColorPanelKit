@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OpacitySliderView: View {
-    @Environment(\.scrollWheelRouter) private var scrollWheelRouter
+    private var scrollWheelRouter = ScrollWheelRouter.shared
     @Binding var color: HSBAColor
     @State var isDragging: Bool = false
     

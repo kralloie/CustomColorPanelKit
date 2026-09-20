@@ -7,12 +7,11 @@
 
 import SwiftUI
 
+@MainActor
 final class ScrollWheelRouter {
     var scrollHandler: ((NSEvent) -> Void)?
-}
-
-extension EnvironmentValues {
-    @Entry var scrollWheelRouter = ScrollWheelRouter()
+    
+    static let shared = ScrollWheelRouter()
 }
 
 

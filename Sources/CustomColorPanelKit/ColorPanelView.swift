@@ -26,7 +26,6 @@ public struct ColorPanelView: View {
     }
     @State var colorHistory = ColorHistory()
     @State var pickerMode: PickerMode = .hueRing
-    @State private var scrollWheelRouter = ScrollWheelRouter()
     var sidebarAligment: SidebarAlignment
         
     public init(_ c: Binding<Color>, sidebarAlignment: SidebarAlignment = .leading, antialiasing: Bool = true) {
@@ -62,8 +61,7 @@ public struct ColorPanelView: View {
                 SidebarView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
             }
         }
-        .environment(\.scrollWheelRouter, scrollWheelRouter)
-        .background { ScrollWheelMonitor(router: scrollWheelRouter, storeColor: { colorHistory.add(color) }) }
+        .background { ScrollWheelMonitor(router: ScrollWheelRouter.shared, storeColor: { colorHistory.add(color) }) }
         .onChange(of: colorHistory.pendingChange) {
             guard var newColor = colorHistory.pendingChange else { return }
             newColor.alpha = color.alpha

@@ -23,7 +23,7 @@ private enum Layout {
 
 @MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View {
-    @Environment(\.scrollWheelRouter) private var scrollWheelRouter
+    private var scrollWheelRouter = ScrollWheelRouter.shared
     @Binding var value: T
     @State private var text: String
     @State private var isHovering: Bool = false
@@ -169,8 +169,10 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             stepValue(step)
             if !isFocused { storeColor() }
             let t = Timer(timeInterval: 0.15, repeats: true) { _ in
-                stepValue(step)
-                if !isFocused { storeColor() }
+                Task { @MainActor in
+                    stepValue(step)
+                    if !isFocused { storeColor() }
+                }
             }
             RunLoop.main.add(t, forMode: .common)
             timer = t

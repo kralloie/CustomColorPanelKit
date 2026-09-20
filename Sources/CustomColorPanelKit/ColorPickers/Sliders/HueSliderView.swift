@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HueSliderView: View {
-    @Environment(\.scrollWheelRouter) private var scrollWheelRouter
+    private var scrollWheelRouter = ScrollWheelRouter.shared
     @Binding var color: HSBAColor
     @State private var isDragging: Bool = false
     var storeColor: () -> Void
