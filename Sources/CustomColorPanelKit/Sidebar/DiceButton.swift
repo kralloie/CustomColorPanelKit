@@ -19,5 +19,6 @@ struct DiceButton: View {
             Image(systemName: "dice")
         }
         .buttonStyle(.circleGlass)
+        .accessibilityLabel("Random Color")
     }
 }

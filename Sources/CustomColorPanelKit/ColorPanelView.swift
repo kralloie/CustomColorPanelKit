@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum PickerMode: Int, CaseIterable {
+enum PickerMode: Int, CaseIterable, Hashable {
     case hueRing, hsvSquare, hsvSphere
     
     var string: String {

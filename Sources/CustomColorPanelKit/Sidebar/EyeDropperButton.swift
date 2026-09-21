@@ -35,5 +35,6 @@ struct EyeDropperButton: View {
             Image(systemName: "eyedropper")
         }
         .buttonStyle(.circleGlass)
+        .accessibilityLabel("Eye Dropper")
     }
 }

@@ -17,6 +17,7 @@ private enum Layout {
     static let stepperHeight: CGFloat = 20 + Layout.stepperSpacing
     static let stepperWidth: CGFloat = 14
     
+    static let sliderTrackHeight: CGFloat = 5
     static let sliderThumbWidth: CGFloat = 5
     static let sliderThumbHeight: CGFloat = 15
 }
@@ -31,11 +32,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     private var valueString: String { inputType.format(value.cgFloatValue) }
     
     let inputType: InputType
+    let label: String
     let storeColor: () -> Void
     
-    init(value: Binding<T>, inputType: InputType, storeColor: @escaping () -> Void = {}, sliderWidth: CGFloat = 0) {
+    init(value: Binding<T>, inputType: InputType, label: String, storeColor: @escaping () -> Void = {}) {
         self.inputType = inputType
         self._value = value
+        self.label = label
         self.storeColor = storeColor
         self._text = .init(initialValue: inputType.format(value.wrappedValue.cgFloatValue))
     }
@@ -54,8 +57,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                             }
                         }
                     ),
-                    storeColor: storeColor
+                    inputType: inputType,
+                    label: label,
+                    storeColor: isFocused ? {} : storeColor
                 )
+                .padding(.trailing, 4)
             }
             
             ZStack(alignment: .leading) {
@@ -93,7 +99,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 }
             }
             
-            if inputType != .hex { ColorComponentStepper(isFocused: isFocused, storeColor: storeColor, stepValue: stepValue(by:)) }
+            if inputType != .hex {
+                ColorComponentStepper(
+                    storeColor: isFocused ? {} : storeColor,
+                    stepValue: stepValue
+                )
+                .padding(.trailing, 8)
+            }
         }
     }
     
@@ -126,114 +138,91 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     }
     
     private struct ColorComponentStepper: View {
-        @State var isFocused: Bool
         var storeColor: () -> Void
         var stepValue: (CGFloat) -> Void
-        @State private var hoveringChevron: CGFloat? = nil
-        @State private var timer: Timer? = nil
-        @State private var activeStep: CGFloat? = nil
         
         var body: some View {
-            VStack(spacing: Layout.stepperSpacing) {
-                Image(systemName: "chevron.up")
-                    .background(RoundedRectangle(cornerRadius: 6).fill(activeStep == 1 ? .gray.opacity(0.2) : .clear))
-                Image(systemName: "chevron.down")
-                    .background(RoundedRectangle(cornerRadius: 6).fill(activeStep == -1 ? .gray.opacity(0.2) : .clear))
-            }
-            .frame(width: Layout.stepperWidth, height: Layout.stepperHeight)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let bounds = CGRect(x: 0, y: 0, width: Layout.stepperWidth, height: Layout.stepperHeight)
-                        guard bounds.contains(value.location) else {
-                            activeStep = nil
-                            stopStepping()
-                            return
-                        }
-                        let step: CGFloat = value.location.y < Layout.stepperHeight * 0.5 ? 1 : -1
-                        if activeStep != step {
-                            activeStep = step
-                            startStepping(step)
-                        }
-                    }
-                    .onEnded { _ in
-                        activeStep = nil
-                        stopStepping()
-                    }
-            )
-        }
-        
-        private func startStepping(_ step: CGFloat) {
-            stopStepping()
-            stepValue(step)
-            if !isFocused { storeColor() }
-            let t = Timer(timeInterval: 0.15, repeats: true) { _ in
-                Task { @MainActor in
-                    stepValue(step)
-                    if !isFocused { storeColor() }
+            Stepper(
+                "",
+                onIncrement: {
+                    stepValue(1)
+                    storeColor()
+                },
+                onDecrement:  {
+                    stepValue(-1)
+                    storeColor()
                 }
-            }
-            RunLoop.main.add(t, forMode: .common)
-            timer = t
-        }
-        
-        private func stopStepping() {
-            timer?.invalidate()
-            timer = nil
+            )
+            .frame(width: Layout.stepperWidth, height: Layout.stepperHeight)
+            .accessibilityHidden(true)
         }
     }
     
     private struct ColorComponentSlider: View {
         @Binding var normalized: CGFloat
+        let inputType: InputType
+        let label: String
         var storeColor: () -> Void
+        
         @State private var width: CGFloat = 0
-        @State private var isDragging: Bool = false
+        
+        @GestureState private var isDragging = false
         
         var body: some View {
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Color.primary)
+                    .frame(height: Layout.sliderTrackHeight)
+                
                 Capsule()
                     .fill(Color.accentColor)
-                    .frame(width: max(normalized * width, 0))
+                    .frame(width: max(normalized * width, 0), height: Layout.sliderTrackHeight)
+                
+                thumb
+                
             }
-            .frame(height: 5)
+            .frame(height: Layout.sliderTrackHeight)
             .frame(maxWidth: .infinity)
-                .overlay(alignment: .leading) {
-                    Capsule()
-                        .fill(.clear)
-                        .frame(width: Layout.sliderThumbWidth, height: Layout.sliderThumbHeight)
-                        .background {
-                            ZStack {
-                                if isDragging {
-                                    Capsule().glassEffect(.clear, in: Capsule())
-                                } else {
-                                    Capsule().fill(.white)
-                                }
-                            }
+            .position(x: width * 0.5, y: Layout.textFieldHeight * 0.5)
+            .gesture(dragGesture)
+            .accessibilityRepresentation {
+                Slider(
+                    value: Binding(
+                        get: { normalized },
+                        set: {
+                            normalized = $0
+                            storeColor()
                         }
-                        .scaleEffect(isDragging ? 1.25 : 1)
-                        .shadow(radius: 1)
-                        .animation(.easeInOut(duration: 0.1), value: isDragging)
-                        .offset(x: width * normalized - (Layout.sliderThumbWidth * 0.5))
-                        .gesture(dragGesture)
-                }
-                .position(x: width * 0.5, y: Layout.textFieldHeight * 0.5)
-                .gesture(dragGesture)
-                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+                    ),
+                    in: 0...1,
+                    step: 1 / CGFloat(inputType.multiplier)
+                )
+                    .accessibilityLabel(label)
+                    .accessibilityValue(inputType.format(normalized))
+            }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
         }
         
-        var dragGesture: some Gesture {
+        private var thumb: some View {
+            Capsule()
+                .fill(isDragging ? Color.clear : .white)
+                .frame(width: Layout.sliderThumbWidth, height: Layout.sliderThumbHeight)
+                .glassEffect(isDragging ? .clear : .identity, in: .capsule)
+                .scaleEffect(isDragging ? 1.25 : 1)
+                .shadow(radius: 1)
+                .animation(.easeInOut(duration: 0.1), value: isDragging)
+                .offset(x: width * normalized - (Layout.sliderThumbWidth * 0.5))
+                .gesture(dragGesture)
+        }
+        
+        private var dragGesture: some Gesture {
             DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                .updating($isDragging) { _, state, _ in state = true }
                 .onChanged {
-                    if !isDragging { isDragging = true }
+                    guard width > 0 else { return }
                     normalized = ($0.location.x / width).clamped(to: 0...1)
                 }
-                .onEnded { _ in
-                    isDragging = false
-                    storeColor()
-                }
+                .onEnded { _ in storeColor() }
         }
     }
     

@@ -120,6 +120,8 @@ extension SidebarContent {
             .shadow(radius: 2)
             .contextMenu { CopyColorMenu(color: color) }
             .padding(.bottom, 10)
+            .accessibilityLabel("Color Preview")
+            .accessibilityValue(color.hexString)
     }
     
     private var hexValue: some View {
@@ -131,7 +133,7 @@ extension SidebarContent {
             
             Spacer()
             
-            ColorComponentField(value: $color.hex, inputType: .hex, storeColor: storeColor)
+            ColorComponentField(value: $color.hex, inputType: .hex, label: "Hex", storeColor: storeColor)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(8)
@@ -150,7 +152,7 @@ extension SidebarContent {
             
             Spacer()
             
-            ColorComponentField(value: $color.alpha, inputType: .percentage)
+            ColorComponentField(value: $color.alpha, inputType: .percentage, label: "Alpha",)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(8)
@@ -163,13 +165,13 @@ extension SidebarContent {
     private var hsvValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hue, inputType: .degrees, storeColor: storeColor)
+                ColorComponentField(value: $color.hue, inputType: .degrees, label: "Hue", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.saturation, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.saturation, inputType: .percentage, label: "Saturation", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "V") {
-                ColorComponentField(value: $color.brightness, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.brightness, inputType: .percentage, label: "Brightness", storeColor: storeColor)
             }
         }
     }
@@ -177,13 +179,13 @@ extension SidebarContent {
     private var hslValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, label: "Hue", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, label: "Saturation", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "L") {
-                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, label: "Lightness", storeColor: storeColor)
             }
         }
     }
@@ -191,13 +193,13 @@ extension SidebarContent {
     private var rgbValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "R") {
-                ColorComponentField(value: $color.rgb.red, inputType: .numerical, storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.red, inputType: .numerical, label: "Red", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "G") {
-                ColorComponentField(value: $color.rgb.green, inputType: .numerical, storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.green, inputType: .numerical, label: "Green", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "B") {
-                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, label: "Blue", storeColor: storeColor)
             }
         }
     }
@@ -205,16 +207,16 @@ extension SidebarContent {
     private var cmykValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "C") {
-                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, label: "Cyan", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "M") {
-                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, label: "Magenta", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "Y") {
-                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, label: "Yellow", storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "K") {
-                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, label: "Black", storeColor: storeColor)
             }
         }
     }

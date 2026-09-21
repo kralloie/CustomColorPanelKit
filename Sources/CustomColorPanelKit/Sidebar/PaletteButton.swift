@@ -123,6 +123,7 @@ struct PaletteButton: View {
             Image(systemName: "paintpalette")
         }
         .buttonStyle(.circleGlass)
+        .accessibilityLabel("Palette")
         .popover(isPresented: $showingPopover, arrowEdge: .trailing) {
             VStack(spacing: 12) {
                 HStack {
