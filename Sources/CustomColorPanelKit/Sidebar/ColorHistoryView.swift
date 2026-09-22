@@ -45,8 +45,10 @@ struct ColorHistoryView: View {
             } label: {
                 Label("Clear History", systemImage: "trash")
             }
-                .disabled(colorHistory.colors.isEmpty)
+            .disabled(colorHistory.colors.isEmpty)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Color History")
     }
 }
 
@@ -73,6 +75,7 @@ extension ColorHistoryView {
                 .scaleEffect(isHovering ? 1.25 : 1)
                 .animation(.easeInOut(duration: 0.1), value: isHovering)
                 .contextMenu{ ColorEntryContextMenu(color: c, entryColor: c, colorHistory: colorHistory, setColor: setColor) }
+                .accessibilityLabel(Text("Entry \(index + 1) \(Text(c.hexString).speechSpellsOutCharacters(true))"))
             } else {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(.separator, lineWidth: 1)

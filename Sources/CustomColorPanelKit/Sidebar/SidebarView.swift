@@ -45,6 +45,8 @@ struct SidebarView: View {
         ScrollView {
             SidebarContent(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory, panelWidth: panelWidth)
         }
+        .accessibilityHidden(!isOpen)
+        .accessibilityLabel("Sidebar")
         .frame(width: isOpen ? panelWidth : 0)
         .scrollIndicators(.hidden)
         .clipped()
@@ -55,7 +57,7 @@ struct SidebarView: View {
         }
         .overlay(alignment: oppositeAlignment) { dragHandle }
         .overlay(alignment: oppositeAlignment) {
-            TogglePanelButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
+            ToggleSidebarButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
         }
         .padding(isOpen ? SidebarLayout.panelOuterPadding : 0)
     }
@@ -120,8 +122,10 @@ extension SidebarContent {
             .shadow(radius: 2)
             .contextMenu { CopyColorMenu(color: color) }
             .padding(.bottom, 10)
-            .accessibilityLabel("Color Preview")
-            .accessibilityValue(color.hexString)
+            .accessibilityRepresentation {
+                Rectangle()
+                    .accessibilityLabel(Text("Current Color: \(Text(color.hexString).speechSpellsOutCharacters(true))"))
+            }
     }
     
     private var hexValue: some View {
@@ -141,6 +145,8 @@ extension SidebarContent {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
                 .fill(.background.secondary)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Hex")
     }
     
     private var alphaValue: some View {
@@ -160,6 +166,8 @@ extension SidebarContent {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
                 .fill(.background.secondary)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Alpha")
     }
     
     private var hsvValues: some View {
@@ -256,6 +264,8 @@ extension SidebarContent {
                 RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
                     .fill(.background.secondary)
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("\(title) Components")
         }
     }
     
@@ -272,6 +282,7 @@ extension SidebarContent {
                     .bold()
             }
             .buttonStyle(.circleGlass)
+            .accessibilityLabel(isOpen ? "Close Disclosure Group" : "Open Disclosure Group")
         }
     }
 }
@@ -318,7 +329,7 @@ extension SidebarView {
             )
     }
 
-    private struct TogglePanelButton: View {
+    private struct ToggleSidebarButton: View {
         let alignment: Alignment
         @Binding var isOpen: Bool
         @Binding var panelWidth: CGFloat
@@ -338,6 +349,7 @@ extension SidebarView {
             }
             .buttonStyle(.circleGlass)
             .offset(x: alignment == .trailing ? -offset : offset)
+            .accessibilityLabel(isOpen ? "Hide Sidebar" : "Show Sidebar")
         }
     }
     

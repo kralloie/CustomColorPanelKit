@@ -41,7 +41,6 @@ struct PickerModeSelectorView: View {
                                 Button(mode.string) {
                                     selectedMode = mode
                                 }
-                                .accessibilityValue(mode == selectedMode ? "Selected" : "Not Selected")
                             }
                     }
                 }

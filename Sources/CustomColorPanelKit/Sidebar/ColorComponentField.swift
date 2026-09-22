@@ -66,26 +66,15 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             
             ZStack(alignment: .leading) {
                 ColorComponentTextField(
+                    label: label,
                     text: $text,
                     isFocused: _isFocused,
                     inputType: inputType,
                     handleArrows: handleArrows,
                     submitText: submitText,
-                    cancelField: cancelField,
-                    updateText: updateText
+                    cancelField: cancelField
                 )
                 .equatable()
-                
-                Text(valueString)
-                    .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
-                    .contentShape(Rectangle())
-                    .onTapGesture { isFocused = true }
-                    .background {
-                        RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
-                            .fill(.background.secondary)
-                            .stroke(.separator, lineWidth: 1)
-                    }
-                    .opacity(isFocused ? 0 : 1)
             }
             .contentShape(Rectangle())
             .onHover { hovering in
@@ -107,16 +96,21 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .padding(.trailing, 8)
             }
         }
+        .onChange(of: value.cgFloatValue) {
+            if !isFocused {
+                text = inputType.format(value.cgFloatValue)
+            }
+        }
     }
     
     struct ColorComponentTextField: View {
+        let label: String
         @Binding var text: String
         @FocusState var isFocused: Bool
         let inputType: InputType
         let handleArrows: (KeyPress) -> KeyPress.Result
         let submitText: () -> Void
         let cancelField: () -> Void
-        let updateText: () -> Void
         
         var body: some View {
             TextField("", text: $text)
@@ -127,13 +121,12 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .onSubmit(submitText)
                 .onExitCommand(perform: cancelField)
                 .focused($isFocused)
-                .onChange(of: isFocused, updateText)
                 .background {
                     RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
                         .fill(.background.secondary)
-                        .stroke(Color.accentColor, lineWidth: 2)
+                        .stroke(isFocused ? Color.accentColor : Color.gray.opacity(0.25), lineWidth: isFocused ? 2 : 1)
                 }
-                .opacity(isFocused ? 1 : 0)
+                .accessibilityLabel(label)
         }
     }
     
@@ -248,8 +241,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
         stepValue(by: delta)
     }
-    
-    private func updateText() { text = valueString }
     
     private func submitText() {
         commitColor()
