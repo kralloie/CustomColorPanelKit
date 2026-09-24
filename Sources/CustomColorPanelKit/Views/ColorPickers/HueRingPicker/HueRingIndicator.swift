@@ -1,5 +1,5 @@
 //
-//  Shapes.swift
+//  HueRingIndicator.swift
 //  CustomColorPanel
 //
 //  Created by Franco Gargiulo on 17/06/2026.
