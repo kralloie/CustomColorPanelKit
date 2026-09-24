@@ -1,5 +1,5 @@
 //
-//  ColorValuesView.swift
+//  SidebarView.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 23/06/2026.
@@ -14,6 +14,10 @@ enum SidebarLayout {
     static let componentLabelWidth: CGFloat = 45
     static let colorComponentRowCornerRadius: CGFloat = 24
     static let colorComponentRowMinWidth: CGFloat = 210
+    static let dragHandleWidth: CGFloat = 4
+    static let closeThresholdRatio: CGFloat = 0.5
+    static let openThresholdRatio: CGFloat = 1.5
+    static let maxPanelWidth: CGFloat = 500
     static var panelWidth: CGFloat {
         Self.colorComponentRowMinWidth + Self.panelInnerPadding * 2 + 20
     }
@@ -158,7 +162,7 @@ extension SidebarContent {
             
             Spacer()
             
-            ColorComponentField(value: $color.alpha, inputType: .percentage, label: "Alpha",)
+            ColorComponentField(value: $color.alpha, inputType: .percentage, label: "Alpha")
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(8)
@@ -267,22 +271,22 @@ extension SidebarContent {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("\(title) Components")
         }
-    }
-    
-    private struct ColorDisclosureGroupToggle: View {
-        @Binding var isOpen: Bool
-        @State private var hoveringButton: Bool = false
         
-        var body: some View {
-            Button {
-                withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() }
-            } label: {
-                Image(systemName: "chevron.right")
-                    .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
-                    .bold()
+        private struct ColorDisclosureGroupToggle: View {
+            @Binding var isOpen: Bool
+            @State private var hoveringButton: Bool = false
+            
+            var body: some View {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
+                        .bold()
+                }
+                .buttonStyle(.circleGlass)
+                .accessibilityLabel(isOpen ? "Close Disclosure Group" : "Open Disclosure Group")
             }
-            .buttonStyle(.circleGlass)
-            .accessibilityLabel(isOpen ? "Close Disclosure Group" : "Open Disclosure Group")
         }
     }
 }
@@ -292,7 +296,7 @@ extension SidebarView {
     private var dragHandle: some View {
         Rectangle()
             .fill(.clear)
-            .frame(width: 4)
+            .frame(width: SidebarLayout.dragHandleWidth)
             .contentShape(Rectangle())
             .onHover { hovering in
                 guard dragStartWidth == nil else { return }
@@ -312,14 +316,15 @@ extension SidebarView {
                         
                         let newWidth = (dragStartWidth ?? panelWidth) + delta
                         
-                        if isOpen && newWidth < SidebarLayout.panelWidth * 0.5 {
+                        if isOpen && newWidth < SidebarLayout.panelWidth * SidebarLayout.closeThresholdRatio {
                             isOpen = false
-                        } else if !isOpen && newWidth > (SidebarLayout.panelWidth * 1.5) {
+                            panelWidth = SidebarLayout.panelWidth
+                        } else if !isOpen && newWidth > SidebarLayout.panelWidth * SidebarLayout.openThresholdRatio {
                             isOpen = true
                         }
                         
                         if isOpen {
-                            panelWidth = min(500, max(newWidth, SidebarLayout.panelWidth))
+                            panelWidth = min(SidebarLayout.maxPanelWidth, max(newWidth, SidebarLayout.panelWidth))
                         }
                     }
                     .onEnded { _ in
@@ -338,7 +343,7 @@ extension SidebarView {
         
         var body: some View {
             Button {
-                if !isOpen { panelWidth = 270 }
+                if !isOpen { panelWidth = SidebarLayout.panelWidth }
                 withAnimation(.easeInOut(duration: 0.1)) {
                     isOpen.toggle()
                 }

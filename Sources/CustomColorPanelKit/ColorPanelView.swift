@@ -19,6 +19,10 @@ enum PickerMode: Int, CaseIterable, Hashable {
     }
 }
 
+public enum SidebarAlignment {
+    case leading, trailing
+}
+
 public struct ColorPanelView: View {
     @Binding var colorBinding: Color
     @State var color: HSBAColor {
@@ -38,26 +42,18 @@ public struct ColorPanelView: View {
         HStack(spacing: 0) {
             if sidebarAligment == .leading {
                 SidebarView(alignment: .leading, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
-                
-                switch pickerMode {
-                case .hueRing:
-                    HueRingPickerView(color: $color, colorHistory: colorHistory)
-                case .hsvSquare:
-                    HSVSquarePickerView(color: $color, colorHistory: colorHistory)
-                case .hsvSphere:
-                    HSVSpherePickerView(color: $color, colorHistory: colorHistory)
-                }
-                
-            } else {
-                switch pickerMode {
-                case .hueRing:
-                    HueRingPickerView(color: $color, colorHistory: colorHistory)
-                case .hsvSquare:
-                    HSVSquarePickerView(color: $color, colorHistory: colorHistory)
-                case .hsvSphere:
-                    HSVSpherePickerView(color: $color, colorHistory: colorHistory)
-                }
-                
+            }
+            
+            switch pickerMode {
+            case .hueRing:
+                HueRingPickerView(color: $color, colorHistory: colorHistory)
+            case .hsvSquare:
+                HSVSquarePickerView(color: $color, colorHistory: colorHistory)
+            case .hsvSphere:
+                HSVSpherePickerView(color: $color, colorHistory: colorHistory)
+            }
+            
+            if sidebarAligment == .trailing {
                 SidebarView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
             }
         }
@@ -69,8 +65,4 @@ public struct ColorPanelView: View {
             colorHistory.pendingChange = nil
         }
     }
-}
-
-public enum SidebarAlignment {
-    case leading, trailing
 }

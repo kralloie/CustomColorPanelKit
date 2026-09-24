@@ -134,6 +134,7 @@ struct PaletteButton: View {
                             .bold()
                     }
                     .buttonStyle(.circleGlass)
+                    .accessibilityLabel("Previous Palette")
                     
                     Spacer()
                     
@@ -143,6 +144,9 @@ struct PaletteButton: View {
                             Text(p.string)
                                 .opacity(0)
                         }
+                    }
+                    .accessibilityRepresentation {
+                        Text("\(palette.string) Palette")
                     }
                     
                     Spacer()
@@ -154,6 +158,7 @@ struct PaletteButton: View {
                             .bold()
                     }
                     .buttonStyle(.circleGlass)
+                    .accessibilityLabel("Next Palette")
                 }
                 .bold()
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 5) {
@@ -194,6 +199,7 @@ struct PaletteButton: View {
             .onHover { isHovering = $0 }
             .scaleEffect(isHovering ? 1.15 : 1)
             .animation(.easeInOut(duration: 0.1), value: isHovering)
+            .accessibilityLabel(Text(HSBAColor(with: swatch).hexString).speechSpellsOutCharacters(true))
         }
     }
 }

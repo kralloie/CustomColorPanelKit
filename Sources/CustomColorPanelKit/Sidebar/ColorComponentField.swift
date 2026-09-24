@@ -97,9 +97,10 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             }
         }
         .onChange(of: value.cgFloatValue) {
-            if !isFocused {
-                text = inputType.format(value.cgFloatValue)
-            }
+            if !isFocused { text = inputType.format(value.cgFloatValue) }
+        }
+        .onChange(of: isFocused) {
+            if !isFocused { text = inputType.format(value.cgFloatValue) }
         }
     }
     

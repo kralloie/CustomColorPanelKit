@@ -11,7 +11,7 @@ struct CircleGlass: ButtonStyle {
     @State private var isHovering: Bool = false
     @Environment(\.colorScheme) private var colorScheme
     private var hoveringTint: Color {
-        colorScheme == .dark ? .white.opacity(0.25) : .gray.opacity(0.25)
+        colorScheme == .dark ? .white : .gray
     }
     
     func makeBody(configuration: Configuration) -> some View {
@@ -21,8 +21,8 @@ struct CircleGlass: ButtonStyle {
                 Circle()
                     .fill(.clear)
                     .glassEffect(
-                        .regular.tint(isHovering && !configuration.isPressed ? hoveringTint
-                                      :(configuration.isPressed) ? .black.opacity(0.25)
+                        .regular.tint(isHovering && !configuration.isPressed ? hoveringTint.opacity(0.25)
+                                      :(configuration.isPressed) ? hoveringTint.opacity(0.5)
                                       : .clear
                          ),
                          in: .circle
