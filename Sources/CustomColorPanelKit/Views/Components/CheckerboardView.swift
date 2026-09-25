@@ -7,8 +7,14 @@
 
 import SwiftUI
 
+/// A view that displays a white and gray checkerboard pattern.
+///
+/// Its purpose is to be used as background of the color preview and sliders to give a better contrast
+/// when previewing opacity.
 struct CheckerboardView: View {
+    /// The number of tile rows used to size each square based on the view's shorter dimension.
     let rows: UInt8
+    
     private let color1: Color = .white
     private let color2: Color = Color(white: 0.50)
     

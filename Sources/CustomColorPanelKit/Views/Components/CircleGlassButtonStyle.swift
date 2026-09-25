@@ -7,12 +7,16 @@
 
 import SwiftUI
 
+
+/// A button style that displays its label inside a circular glass background, tinting and scaling in response to hover and press interactions.
 struct CircleGlass: ButtonStyle {
+    /// Whether the cursor is currently hovering over the button.
     @State private var isHovering: Bool = false
+    
     @Environment(\.colorScheme) private var colorScheme
-    private var hoveringTint: Color {
-        colorScheme == .dark ? .white : .gray
-    }
+    
+    /// The tint color applied to the glass in the press and hover effects, chosen for contrast against the system color scheme.
+    private var hoveringTint: Color { colorScheme == .dark ? .white : .gray }
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -37,5 +41,6 @@ struct CircleGlass: ButtonStyle {
 }
 
 extension ButtonStyle where Self == CircleGlass {
+    /// A button style that displays its label inside a circular glass background, tinting and scaling in response to hover and press interactions.
     static var circleGlass: Self { CircleGlass() }
 }

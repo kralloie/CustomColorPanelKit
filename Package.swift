@@ -15,7 +15,8 @@ let package = Package(
         .target(
             name: "CustomColorPanelKit",
             resources: [
-                .process("Shaders/Metal")
+                .process("Shaders/Metal"),
+                .process("Resources")
             ]
         )
     ]
