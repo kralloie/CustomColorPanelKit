@@ -16,18 +16,19 @@ enum SidebarLayout {
     static let componentLabelWidth: CGFloat = 45
     static let colorComponentRowCornerRadius: CGFloat = 24
     static let colorComponentRowMinWidth: CGFloat = 210
-    static let dragHandleWidth: CGFloat = 4
-    static let closeThresholdRatio: CGFloat = 0.5
-    static let openThresholdRatio: CGFloat = 1.5
-    static let maxPanelWidth: CGFloat = 500
-    static var panelWidth: CGFloat {
-        Self.colorComponentRowMinWidth + Self.panelInnerPadding * 2 + 20
-    }
+    static let colorPreviewSize: CGFloat = 80
+    static let componentRowPadding: CGFloat = 8
 }
 
-/// A resizable, collapsible sidebar that hosts the features for modifying and inspecting the color being edited.
+/// The sidebar panel of the color picker, containing features for modifying and inspecting the color.
 ///
-/// ``SidebarView`` can be resized and closed using its inner edge drag handle or closed and opened using the floating toggle button.
+/// - The selector for changing the color picker mode between the three available modes.
+/// - The preview of the current color with a checkerboard pattern background to contrast the opacity.
+/// - A random color generator.
+/// - An eye dropper for sampling colors from anywhere on the screen.
+/// - A set of premade palettes to use as reference.
+/// - A set of group rows for each color component and their respective channels.
+/// - A color history grid with up to 144 previously selected colors.
 struct SidebarView: View {
     /// The color currently being edited, shared with the rest of the picker.
     @Binding var color: HSBAColor
@@ -36,31 +37,19 @@ struct SidebarView: View {
     
     /// The object storing and managing previously selected colors through the picker session.
     var colorHistory: ColorHistory
-    /// The edge of the parent view this sidebar is pinned to.
-    var alignment: Alignment
-    /// The opposite alignment where the drag handle and toggle button are anchored so they sit on the sidebar's inner edge.
-    var oppositeAlignment: Alignment {
-        if alignment == .leading { .trailing } else { .leading }
-    }
     
-    /// Whether the sidebar is currently expanded.
-    @State private var isOpen: Bool = true
-    /// The sidebar's current width while open.
-    @State private var panelWidth = SidebarLayout.panelWidth
-    /// The width stored when a drag gesture begins, used to compute the delta for the remainder of the gesture.`nil` when idle.
-    @State private var dragStartWidth: CGFloat? = nil
+    /// Stores the current color in the history.
+    ///
+    /// Passed to child views as a closure instead of forwarding the whole ``ColorHistory`` object.
+    func storeColor() { colorHistory.add(color) }
     
-    
-    /// Creates a sidebar pinned to the specified horizontal edge of its parent view.
+    /// Creates the sidebar of the color picker.
     ///
     /// - Parameters:
-    ///   - alignment: The horizontal edge to pin the sidebar to. A value of `.center` is treated as `.leading`.
     ///   - color: A binding to the color currently being edited.
     ///   - pickerMode: A binding to the active picker mode state.
     ///   - colorHistory: The instance of the ``ColorHistory`` object being used to manage color history.
-    init(alignment: HorizontalAlignment, color: Binding<HSBAColor>, pickerMode: Binding<PickerMode>, colorHistory: ColorHistory) {
-        let alignment = alignment == .center ? .leading : alignment
-        self.alignment = Alignment(horizontal: alignment, vertical: .center)
+    init(color: Binding<HSBAColor>, pickerMode: Binding<PickerMode>, colorHistory: ColorHistory) {
         _color = color
         _pickerMode = pickerMode
         self.colorHistory = colorHistory
@@ -68,87 +57,54 @@ struct SidebarView: View {
     
     var body: some View {
         ScrollView {
-            SidebarContent(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory, panelWidth: panelWidth)
+            VStack(spacing: 4) {
+                PickerModeSelectorView(selectedMode: $pickerMode)
+                
+                HStack {
+                    colorPreview
+                    
+                    EyeDropperButton(pickedColor: $color, storeColor: { colorHistory.add(color) })
+                    
+                    DiceButton(color: $color, storeColor: { colorHistory.add(color) })
+                    
+                    PaletteButton(color: $color, storeColor: { colorHistory.add(color) })
+                }
+                
+                VStack(spacing: 15) {
+                    Divider()
+                    
+                    hexValue
+                    
+                    ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
+                    
+                    ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: { hslValues })
+                    
+                    ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: { rgbValues })
+                    
+                    ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: { cmykValues })
+                    
+                    alphaValue
+                    
+                    Divider()
+                    
+                    ColorHistoryView(colorHistory: colorHistory)
+                }
+            }
+            .padding(SidebarLayout.panelInnerPadding)
         }
-        .accessibilityHidden(!isOpen)
-        .accessibilityLabel("Sidebar")
-        .frame(width: isOpen ? panelWidth : 0)
-        .scrollIndicators(.hidden)
-        .clipped()
         .background {
-            RoundedRectangle(cornerRadius: SidebarLayout.sidebarCornerRadius)
-                .fill(.background)
-                .stroke(.separator, lineWidth: 1)
+            SidebarBackground(material: .sidebar, blendingMode: .behindWindow)
+                   .ignoresSafeArea(.container, edges: .top)
         }
-        .overlay(alignment: oppositeAlignment) { dragHandle }
-        .overlay(alignment: oppositeAlignment) {
-            ToggleSidebarButton(alignment: alignment, isOpen: $isOpen, panelWidth: $panelWidth)
-        }
-        .padding(isOpen ? SidebarLayout.panelOuterPadding : 0)
+        .accessibilityLabel("Sidebar")
+        .scrollIndicators(.hidden)
     }
 }
 
-
-/// The scrollable content of ``SidebarView``: picker mode selector, color preview, per-component inspectors,
-/// random color generator, eye dropper, palettes and history.
-struct SidebarContent: View {
-    /// The color currently being edited.
-    @Binding var color: HSBAColor
-    /// The active picker mode.
-    @Binding var pickerMode: PickerMode
-    
-    /// The object storing and managing previously selected colors through the picker session.
-    var colorHistory: ColorHistory
-    /// The width available for layout, forwarded from parent ``SidebarView``.
-    var panelWidth: CGFloat
-    
-    /// Stores the current ``color`` in ``colorHistory``.
-    ///
-    /// Passed to each ``ColorComponentField`` as a commit callback.
-    private func storeColor() { colorHistory.add(color) }
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            PickerModeSelectorView(selectedMode: $pickerMode)
-            
-            HStack {
-                colorPreview
-                
-                EyeDropperButton(pickedColor: $color, storeColor: { colorHistory.add(color) })
-                
-                DiceButton(color: $color, storeColor: { colorHistory.add(color) })
-                
-                PaletteButton(color: $color, storeColor: { colorHistory.add(color) })
-            }
-            
-            VStack(spacing: 15) {
-                Divider()
-                
-                hexValue
-                
-                ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
-                
-                ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: { hslValues })
-                
-                ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: { rgbValues })
-                
-                ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: { cmykValues })
-                
-                alphaValue
-                
-                Divider()
-                
-                ColorHistoryView(colorHistory: colorHistory)
-            }
-        }
-        .padding(SidebarLayout.panelInnerPadding)
-    }
-}
-
-extension SidebarContent {
+extension SidebarView {
     /// The swatch representing the current color with a checkerboard pattern background and a context menu for copying the color.
     private var colorPreview: some View {
-        let size = min(panelWidth * 0.8, 80)
+        let size: CGFloat = SidebarLayout.colorPreviewSize
         return ColorExample(color: color)
             .frame(width: size, height: size)
             .background(
@@ -179,7 +135,7 @@ extension SidebarContent {
             ColorComponentField(value: $color.hex, inputType: .hex, label: "Hex", storeColor: storeColor)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
-        .padding(8)
+        .padding(SidebarLayout.componentRowPadding)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
                 .fill(.background.secondary)
@@ -201,7 +157,7 @@ extension SidebarContent {
             ColorComponentField(value: $color.alpha, inputType: .percentage, label: "Alpha")
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
-        .padding(8)
+        .padding(SidebarLayout.componentRowPadding)
         .background {
             RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
                 .fill(.background.secondary)
@@ -289,16 +245,17 @@ extension SidebarContent {
         var body: some View {
             VStack(spacing: 0) {
                 HStack {
-                    ColorDisclosureGroupToggle(isOpen: $isOpen)
-                    
                     Text("\(title)")
                         .lineLimit(1)
                         .fontWeight(.bold)
+                        .padding(.leading, SidebarLayout.componentRowPadding)
                     
                     Spacer()
                     
                     Text(!isOpen ? value : "")
                         .animation(nil, value: isOpen)
+                    
+                    ColorDisclosureGroupToggle(isOpen: $isOpen)
                 }
                 .frame(height: 24)
                 .contentShape(Rectangle())
@@ -315,6 +272,7 @@ extension SidebarContent {
                 RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
                     .fill(.background.secondary)
             }
+
             .accessibilityElement(children: .contain)
             .accessibilityLabel("\(title) Components")
         }
@@ -339,86 +297,8 @@ extension SidebarContent {
     }
 }
 
-extension SidebarView {
-    
-    /// An invisible strip on the sidebar's inner edge that resizes the sidebar via drag.
-    ///
-    /// - Note: Collapsing and reopening use different thresholds
-    /// (``SidebarLayout/closeThresholdRatio`` vs. ``SidebarLayout/openThresholdRatio``)
-    /// so the sidebar doesn't flicker open and closed right at one boundary.
-    private var dragHandle: some View {
-        Rectangle()
-            .fill(.clear)
-            .frame(width: SidebarLayout.dragHandleWidth)
-            .contentShape(Rectangle())
-            .onHover { hovering in
-                guard dragStartWidth == nil else { return }
-                if hovering {
-                    NSCursor.resizeLeftRight.push()
-                } else {
-                    NSCursor.pop()
-                }
-            }
-            .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                    .onChanged { value in
-                        if dragStartWidth == nil { dragStartWidth = panelWidth }
-                        let delta = alignment == .trailing
-                        ? -(value.location.x - value.startLocation.x)
-                        : (value.location.x - value.startLocation.x)
-                        
-                        let newWidth = (dragStartWidth ?? panelWidth) + delta
-                        
-                        if isOpen && newWidth < SidebarLayout.panelWidth * SidebarLayout.closeThresholdRatio {
-                            isOpen = false
-                            panelWidth = SidebarLayout.panelWidth
-                        } else if !isOpen && newWidth > SidebarLayout.panelWidth * SidebarLayout.openThresholdRatio {
-                            isOpen = true
-                        }
-                        
-                        if isOpen {
-                            panelWidth = min(SidebarLayout.maxPanelWidth, max(newWidth, SidebarLayout.panelWidth))
-                        }
-                    }
-                    .onEnded { _ in
-                        dragStartWidth = nil
-                        NSCursor.pop()
-                    }
-            )
-    }
-
-    /// The button for toggling the sidebar's expanded state.
-    private struct ToggleSidebarButton: View {
-        /// The sidebar alignment to determine the horizontal offset of the button.
-        let alignment: Alignment
-        /// Whether the sidebar is currently expanded.
-        @Binding var isOpen: Bool
-        /// The current width of the sidebar.
-        @Binding var panelWidth: CGFloat
-        
-        var offset: CGFloat { isOpen ? 10 : 25 }
-        
-        var body: some View {
-            Button {
-                if !isOpen { panelWidth = SidebarLayout.panelWidth }
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isOpen.toggle()
-                }
-            } label: {
-                Image(systemName: "chevron.right")
-                    .rotationEffect(isOpen ? Angle(degrees: 0) : Angle(degrees: 180))
-                    .bold()
-            }
-            .buttonStyle(.circleGlass)
-            .offset(x: alignment == .trailing ? -offset : offset)
-            .accessibilityLabel(isOpen ? "Hide Sidebar" : "Show Sidebar")
-        }
-    }
-    
-}
-
 #Preview {
-    SidebarView(alignment: .trailing, color: .constant(HSBAColor(with: .orange)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
+    SidebarView(color: .constant(HSBAColor(with: .orange)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
         .frame(width: 200)
         .padding()
 }

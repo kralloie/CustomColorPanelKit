@@ -19,10 +19,6 @@ enum PickerMode: Int, CaseIterable, Hashable {
     }
 }
 
-public enum SidebarAlignment {
-    case leading, trailing
-}
-
 public struct ColorPanelView: View {
     @Binding var colorBinding: Color
     @State var color: HSBAColor {
@@ -30,20 +26,16 @@ public struct ColorPanelView: View {
     }
     @State var colorHistory = ColorHistory()
     @State var pickerMode: PickerMode = .hueRing
-    var sidebarAligment: SidebarAlignment
         
-    public init(_ c: Binding<Color>, sidebarAlignment: SidebarAlignment = .leading, antialiasing: Bool = true) {
+    public init(_ c: Binding<Color>, antialiasing: Bool = true) {
         self._colorBinding = c
         self.color = HSBAColor(with: c.wrappedValue)
-        self.sidebarAligment = sidebarAlignment
     }
     
     public var body: some View {
-        HStack(spacing: 0) {
-            if sidebarAligment == .leading {
-                SidebarView(alignment: .leading, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
-            }
-            
+        NavigationSplitView {
+            SidebarView(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
+        } detail : {
             switch pickerMode {
             case .hueRing:
                 HueRingPickerView(color: $color, colorHistory: colorHistory)
@@ -52,12 +44,11 @@ public struct ColorPanelView: View {
             case .hsvSphere:
                 HSVSpherePickerView(color: $color, colorHistory: colorHistory)
             }
-            
-            if sidebarAligment == .trailing {
-                SidebarView(alignment: .trailing, color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
-            }
+
         }
-        .background { ScrollWheelMonitor(router: ScrollWheelRouter.shared, storeColor: { colorHistory.add(color) }) }
+        .background {
+            ScrollWheelMonitor(router: ScrollWheelRouter.shared, storeColor: { colorHistory.add(color) })
+        }
         .onChange(of: colorHistory.pendingChange) {
             guard var newColor = colorHistory.pendingChange else { return }
             newColor.alpha = color.alpha

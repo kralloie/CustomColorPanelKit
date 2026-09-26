@@ -25,7 +25,7 @@ struct CircleGlass: ButtonStyle {
                 Circle()
                     .fill(.clear)
                     .glassEffect(
-                        .regular.tint(isHovering && !configuration.isPressed ? hoveringTint.opacity(0.25)
+                        .clear.tint(isHovering && !configuration.isPressed ? hoveringTint.opacity(0.25)
                                       :(configuration.isPressed) ? hoveringTint.opacity(0.5)
                                       : .clear
                          ),
