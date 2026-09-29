@@ -93,6 +93,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     storeColor: isFocused ? {} : storeColor,
                     stepValue: stepValue
                 )
+                .equatable()
                 .padding(.trailing, 8)
             }
         }
@@ -126,12 +127,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
                         .fill(.background.secondary)
                         .stroke(isFocused ? Color.accentColor : Color.gray.opacity(0.25), lineWidth: isFocused ? 2 : 1)
+                        .animation(.easeInOut(duration: 0.1), value: isFocused)
                 }
                 .accessibilityLabel(label)
         }
     }
     
-    private struct ColorComponentStepper: View {
+    private struct ColorComponentStepper: View, @MainActor Equatable {
         var storeColor: () -> Void
         var stepValue: (CGFloat) -> Void
         
@@ -150,6 +152,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             .frame(width: Layout.stepperWidth, height: Layout.stepperHeight)
             .accessibilityHidden(true)
         }
+        
+        static func == (a: Self, b: Self) -> Bool { true }
     }
     
     private struct ColorComponentSlider: View {
@@ -201,7 +205,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             Capsule()
                 .fill(isDragging ? Color.clear : .white)
                 .frame(width: Layout.sliderThumbWidth, height: Layout.sliderThumbHeight)
-                .glassEffect(isDragging ? .clear : .identity, in: .capsule)
+                .background {
+                    if isDragging {
+                        Capsule().fill(.clear).glassEffect(.clear, in: .capsule)
+                    }
+                }
                 .scaleEffect(isDragging ? 1.25 : 1)
                 .shadow(radius: 1)
                 .animation(.easeInOut(duration: 0.1), value: isDragging)

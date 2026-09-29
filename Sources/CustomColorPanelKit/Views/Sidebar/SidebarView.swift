@@ -8,16 +8,25 @@
 import SwiftUI
 
 
-/// Layout constants shared by every piece of ``SidebarView``
+/// Layout constants shared by every piece of ``SidebarView``.
 enum SidebarLayout {
     static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
     static let sidebarCornerRadius: CGFloat = 12
     static let componentLabelWidth: CGFloat = 45
-    static let colorComponentRowCornerRadius: CGFloat = 24
+    static let colorComponentRowCornerRadius: CGFloat = 12
     static let colorComponentRowMinWidth: CGFloat = 210
     static let colorPreviewSize: CGFloat = 80
     static let componentRowPadding: CGFloat = 8
+}
+
+/// The background view for color component rows to contrast with the translucent background.
+struct ColorComponentBackground: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
+            .fill(.ultraThickMaterial)
+            .stroke(.separator, lineWidth: 0.5)
+    }
 }
 
 /// The sidebar panel of the color picker, containing features for modifying and inspecting the color.
@@ -97,7 +106,6 @@ struct SidebarView: View {
                    .ignoresSafeArea(.container, edges: .top)
         }
         .accessibilityLabel("Sidebar")
-        .scrollIndicators(.hidden)
     }
 }
 
@@ -136,10 +144,7 @@ extension SidebarView {
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)
-        .background {
-            RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                .fill(.background.secondary)
-        }
+        .background(ColorComponentBackground())
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Hex")
     }
@@ -158,10 +163,7 @@ extension SidebarView {
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)
-        .background {
-            RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                .fill(.background.secondary)
-        }
+        .background(ColorComponentBackground())
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Alpha")
     }
@@ -255,45 +257,31 @@ extension SidebarView {
                     Text(!isOpen ? value : "")
                         .animation(nil, value: isOpen)
                     
-                    ColorDisclosureGroupToggle(isOpen: $isOpen)
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
                 }
                 .frame(height: 24)
+                .padding(8)
                 .contentShape(Rectangle())
+                .onTapGesture(perform: toggle)
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(title)
+                .accessibilityValue(isOpen ? "Expanded" : value)
+                .accessibilityAction { toggle() }
                 
                 if isOpen {
                     content()
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.vertical, 4)
+                        .padding(8)
                 }
             }
             .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
-            .padding(8)
-            .background {
-                RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-                    .fill(.background.secondary)
-            }
-
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel("\(title) Components")
+            .background(ColorComponentBackground())
         }
         
-        /// The button for toggling the parent disclosure group's expanded state.
-        private struct ColorDisclosureGroupToggle: View {
-            /// Whether the parent disclosure group is expanded.
-            @Binding var isOpen: Bool
-            
-            var body: some View {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() }
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
-                        .bold()
-                }
-                .buttonStyle(.circleGlass)
-                .accessibilityLabel(isOpen ? "Close Disclosure Group" : "Open Disclosure Group")
-            }
-        }
+        func toggle() { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
     }
 }
 

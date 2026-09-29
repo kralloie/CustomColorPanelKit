@@ -19,7 +19,7 @@ struct SliderThumb: View {
     var body: some View {
         Circle()
             .fill(color)
-            .stroke(Color.secondary, lineWidth: 2)
+            .stroke(.secondary, lineWidth: 1)
             .background { CheckerboardView(rows: 3).clipShape(.circle) }
             .frame(width: size, height: size)
             .scaleEffect(isDragging ? 1.15 : 1)
