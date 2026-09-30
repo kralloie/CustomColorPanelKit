@@ -18,16 +18,16 @@ struct SliderThumb: View {
     
     var body: some View {
         Circle()
-            .fill(color)
-            .stroke(.secondary, lineWidth: 1)
-            .background { CheckerboardView(rows: 3).clipShape(.circle) }
+            .fill(isDragging ? .clear : .white)
+            .glassEffect(isDragging ? .clear.tint(color) : .identity)
             .frame(width: size, height: size)
             .scaleEffect(isDragging ? 1.15 : 1)
+            .animation(.easeInOut(duration: 0.1), value: isDragging)
             .position(
                 x: width * (orientation == .horizontal ? value : 0.5),
                 y: height - height * (orientation == .vertical ? value : 0.5)
             )
-            .allowsHitTesting(false)
+            .shadow(color: .black, radius: 1)
     }
     
     enum SliderOrientation {

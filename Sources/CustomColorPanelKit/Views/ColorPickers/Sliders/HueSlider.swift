@@ -9,17 +9,14 @@ import SwiftUI
 import MetalKit
 
 struct HueSlider: NSViewRepresentable {
-    @Binding var color: HSBAColor
-    @Binding var isDragging: Bool
-    var storeColor: () -> Void
+    var color: HSBAColor
     
     func makeCoordinator() -> HueSliderCoordinator {
-        HueSliderCoordinator(color: $color, isDragging: $isDragging, storeColor: storeColor)
+        HueSliderCoordinator(color: color)
     }
     
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
-        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         
         return mtkView
     }
@@ -31,22 +28,16 @@ struct HueSlider: NSViewRepresentable {
     static let vertexShader: String = "HueSliderVertexShader"
     static let fragmentShader: String = "HueSliderFragmentShader"
     
-    @Binding var color: HSBAColor
-    @Binding var isDragging: Bool
-    private var storeColor: () -> Void
+    private var color: HSBAColor
     
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
     init(
-        color: Binding<HSBAColor>,
-        isDragging: Binding<Bool>,
-        storeColor: @escaping () -> Void,
+        color: HSBAColor,
     ) {
-        _color = color
-        _isDragging = isDragging
-        self.storeColor = storeColor
+        self.color = color
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -73,18 +64,5 @@ struct HueSlider: NSViewRepresentable {
         
         commandBuffer.present(drawable)
         commandBuffer.commit()
-    }
-    
-    @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view else { return }
-        if gesture.state == .began { isDragging = true }
-        
-        let y = min(max(gesture.location(in: view).y, 0), view.bounds.height)
-        color.hue = y / view.bounds.height
-        
-        if gesture.state == .ended {
-            isDragging = false
-            storeColor()
-        }
     }
 }

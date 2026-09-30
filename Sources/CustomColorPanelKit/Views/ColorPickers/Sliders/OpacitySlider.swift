@@ -9,16 +9,14 @@ import SwiftUI
 import MetalKit
 
 struct OpacitySlider: NSViewRepresentable {
-    @Binding var color: HSBAColor
-    @Binding var isDragging: Bool
+    var color: HSBAColor
     
     func makeCoordinator() -> OpacitySliderCoordinator {
-        OpacitySliderCoordinator(color: $color, isDragging: $isDragging)
+        OpacitySliderCoordinator(color: color)
     }
     
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
-        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
         return mtkView
     }
     
@@ -38,8 +36,7 @@ struct OpacitySlider: NSViewRepresentable {
     static let vertexShader: String = "OpacitySliderVertexShader"
     static let fragmentShader: String = "OpacitySliderFragmentShader"
     
-    @Binding var color: HSBAColor
-    @Binding var isDragging: Bool
+    var color: HSBAColor
     
     var hue: CGFloat = .nan
     var saturation: CGFloat = .nan
@@ -50,13 +47,8 @@ struct OpacitySlider: NSViewRepresentable {
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
-    private var centerLock = false
-    private let snapDistance: CGFloat = 6
-    
-    init(color: Binding<HSBAColor>, isDragging: Binding<Bool>) {
-        _color = color
-        _isDragging = isDragging
-        
+    init(color: HSBAColor) {
+        self.color = color
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
@@ -83,33 +75,5 @@ struct OpacitySlider: NSViewRepresentable {
         
         commandBuffer.present(drawable)
         commandBuffer.commit()
-    }
-    
-    @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view, view.bounds.width > 0 else { return }
-        let width = view.bounds.width
-        
-        let pos = min(max(gesture.location(in: view).x, 0), view.bounds.width)
-        
-        let center = width * 0.5
-        
-        if gesture.state == .began {
-            centerLock = false
-            isDragging = true
-        }
-        
-        if !centerLock && abs(pos - center) < snapDistance {
-            centerLock = true
-            color.alpha = 0.5
-        } else if centerLock && abs(pos - center) < snapDistance * 2 {
-            color.alpha = 0.5
-        } else {
-            centerLock = false
-            color.alpha = (pos / width)
-        }
-        
-        if gesture.state == .ended {
-            isDragging = false
-        }
     }
 }
