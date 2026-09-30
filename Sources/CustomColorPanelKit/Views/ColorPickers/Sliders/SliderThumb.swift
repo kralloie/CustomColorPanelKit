@@ -19,7 +19,7 @@ struct SliderThumb: View {
     var body: some View {
         Circle()
             .fill(isDragging ? .clear : .white)
-            .glassEffect(isDragging ? .clear.tint(color) : .identity)
+            .glassEffect(isDragging ? .regular.tint(color) : .identity)
             .frame(width: size, height: size)
             .scaleEffect(isDragging ? 1.15 : 1)
             .animation(.easeInOut(duration: 0.1), value: isDragging)

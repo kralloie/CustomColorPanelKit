@@ -18,8 +18,7 @@ private enum Layout {
     static let stepperWidth: CGFloat = 14
     
     static let sliderTrackHeight: CGFloat = 5
-    static let sliderThumbWidth: CGFloat = 5
-    static let sliderThumbHeight: CGFloat = 15
+    static let sliderThumbSize: CGFloat = 12
 }
 
 @MainActor
@@ -202,9 +201,9 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
         
         private var thumb: some View {
-            Capsule()
+            Circle()
                 .fill(isDragging ? Color.clear : .white)
-                .frame(width: Layout.sliderThumbWidth, height: Layout.sliderThumbHeight)
+                .frame(width: Layout.sliderThumbSize, height: Layout.sliderThumbSize)
                 .background {
                     if isDragging {
                         Capsule().fill(.clear).glassEffect(.clear, in: .capsule)
@@ -213,7 +212,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .scaleEffect(isDragging ? 1.25 : 1)
                 .shadow(radius: 1)
                 .animation(.easeInOut(duration: 0.1), value: isDragging)
-                .offset(x: width * normalized - (Layout.sliderThumbWidth * 0.5))
+                .offset(x: width * normalized - (Layout.sliderThumbSize * 0.5))
                 .gesture(dragGesture)
         }
         

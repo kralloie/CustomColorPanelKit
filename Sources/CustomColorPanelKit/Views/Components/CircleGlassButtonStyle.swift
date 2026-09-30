@@ -20,12 +20,12 @@ struct CircleGlass: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(5)
+            .padding(6)
             .background {
                 Circle()
                     .fill(.clear)
                     .glassEffect(
-                        .clear.tint(isHovering && !configuration.isPressed ? hoveringTint.opacity(0.25)
+                        .regular.tint(isHovering && !configuration.isPressed ? hoveringTint.opacity(0.15)
                                       :(configuration.isPressed) ? hoveringTint.opacity(0.5)
                                       : .clear
                          ),

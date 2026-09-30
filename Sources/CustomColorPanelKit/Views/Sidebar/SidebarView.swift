@@ -24,8 +24,7 @@ enum SidebarLayout {
 struct ColorComponentBackground: View {
     var body: some View {
         RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
-            .fill(.ultraThickMaterial)
-            .stroke(.separator, lineWidth: 0.5)
+            .fill(.background.secondary)
     }
 }
 
@@ -66,7 +65,7 @@ struct SidebarView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 4) {
+            VStack(spacing: 8) {
                 PickerModeSelectorView(selectedMode: $pickerMode)
                 
                 HStack {
@@ -79,25 +78,41 @@ struct SidebarView: View {
                     PaletteButton(color: $color, storeColor: { colorHistory.add(color) })
                 }
                 
-                VStack(spacing: 15) {
-                    Divider()
+                hexValue
+                
                     
-                    hexValue
-                    
+                VStack(spacing: 0) {
                     ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
+                        .background(alignment: .bottom) {
+                            Divider()
+                                .padding(.horizontal, 6)
+                        }
                     
                     ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: { hslValues })
+                        .background(alignment: .bottom) {
+                            Divider()
+                                .padding(.horizontal, 6)
+                        }
                     
                     ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: { rgbValues })
+                        .background(alignment: .bottom) {
+                            Divider()
+                                .padding(.horizontal, 6)
+                        }
                     
                     ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: { cmykValues })
-                    
-                    alphaValue
-                    
-                    Divider()
-                    
-                    ColorHistoryView(colorHistory: colorHistory)
                 }
+                .background {
+                    RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
+                        .fill(.background.secondary)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius))
+                
+                alphaValue
+                
+                Spacer()
+                
+                ColorHistoryView(colorHistory: colorHistory)
             }
             .padding(SidebarLayout.panelInnerPadding)
         }
@@ -127,6 +142,7 @@ extension SidebarView {
             .accessibilityRepresentation {
                 Rectangle()
                     .accessibilityLabel(Text("Current Color: \(Text(color.hexString).speechSpellsOutCharacters(true))"))
+                    .contextMenu { CopyColorMenu(color: color) }
             }
     }
     
@@ -246,39 +262,36 @@ extension SidebarView {
         
         var body: some View {
             VStack(spacing: 0) {
-                HStack {
-                    Text("\(title)")
-                        .lineLimit(1)
-                        .fontWeight(.bold)
-                        .padding(.leading, SidebarLayout.componentRowPadding)
-                    
-                    Spacer()
-                    
-                    Text(!isOpen ? value : "")
-                        .animation(nil, value: isOpen)
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
+                Button {
+                    toggle()
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("\(title)")
+                            .lineLimit(1)
+                            .fontWeight(.bold)
+                            .padding(.leading, SidebarLayout.componentRowPadding)
+                        
+                        Spacer()
+                        
+                        Text(!isOpen ? value : "")
+                            .animation(nil, value: isOpen)
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
+                    }
                 }
-                .frame(height: 24)
-                .padding(8)
-                .contentShape(Rectangle())
-                .onTapGesture(perform: toggle)
-                .accessibilityElement(children: .ignore)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityLabel(title)
-                .accessibilityValue(isOpen ? "Expanded" : value)
-                .accessibilityAction { toggle() }
+                .buttonStyle(ColorComponentGroupButtonStyle())
                 
                 if isOpen {
                     content()
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(8)
+                        .padding(.horizontal, 8)
+                        .padding(.top, 6)
+                        .padding(.bottom, 18)
                 }
             }
             .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
-            .background(ColorComponentBackground())
         }
         
         func toggle() { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }

@@ -33,6 +33,7 @@ struct EyeDropperButton: View {
             }
         } label: {
             Image(systemName: "eyedropper")
+                .font(.system(size: 16))
         }
         .buttonStyle(.circleGlass)
         .accessibilityLabel("Eye Dropper")

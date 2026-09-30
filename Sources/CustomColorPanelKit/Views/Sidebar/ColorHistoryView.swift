@@ -37,8 +37,7 @@ struct ColorHistoryView: View {
         .padding(8)
         .background {
             RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThickMaterial)
-                .stroke(.separator, lineWidth: 0.5)
+                .fill(.background.secondary)
         }
         .contextMenu {
             Button() {

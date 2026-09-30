@@ -121,6 +121,7 @@ struct PaletteButton: View {
             showingPopover.toggle()
         } label: {
             Image(systemName: "paintpalette")
+                .font(.system(size: 16))
         }
         .buttonStyle(.circleGlass)
         .accessibilityLabel("Palette")

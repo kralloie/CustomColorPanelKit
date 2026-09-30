@@ -17,6 +17,7 @@ struct DiceButton: View {
             storeColor()
         } label: {
             Image(systemName: "dice")
+                .font(.system(size: 16))
         }
         .buttonStyle(.circleGlass)
         .accessibilityLabel("Random Color")
