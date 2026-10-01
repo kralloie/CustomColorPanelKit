@@ -9,17 +9,14 @@ import SwiftUI
 import MetalKit
 
 struct HueRing: NSViewRepresentable {
-    @Binding var color: HSBAColor
-    var storeColor: () -> Void
+    let color: HSBAColor
     
     func makeCoordinator() -> HueRingCoordinator {
-        HueRingCoordinator(color: $color, storeColor: storeColor)
+        HueRingCoordinator(color: color)
     }
     
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalContext.shared.makeDefaultMTKView(delegate: context.coordinator)
-        mtkView.addGestureRecognizer(ImmediatePanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDrag(_:))))
-        
         return mtkView
     }
     
@@ -30,8 +27,7 @@ struct HueRing: NSViewRepresentable {
     static let vertexShader: String = "HueRingVertexShader"
     static let fragmentShader: String = "HueRingFragmentShader"
     
-    @Binding var color: HSBAColor
-    private var storeColor: () -> Void
+    let color: HSBAColor
     
     private var draggingStart: CGPoint?
     
@@ -39,12 +35,8 @@ struct HueRing: NSViewRepresentable {
     private var metalCommandQueue: MTLCommandQueue!
     private var renderPipeline: MTLRenderPipelineState
     
-    init(
-        color: Binding<HSBAColor>,
-        storeColor: @escaping () -> Void,
-    ) {
-        _color = color
-        self.storeColor = storeColor
+    init(color: HSBAColor) {
+        self.color = color
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
@@ -71,33 +63,5 @@ struct HueRing: NSViewRepresentable {
         
         commandBuffer.present(drawable)
         commandBuffer.commit()
-    }
-    
-    @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view else { return }
-        let radius = min(view.bounds.width, view.bounds.height) * 0.5
-        
-        let loc = gesture.location(in: view)
-        if gesture.state == .began { draggingStart = loc }
-        
-        var x = (loc.x - radius) / radius
-        var y = (loc.y - radius) / radius
-        
-        if let draggingStart = draggingStart {
-            let draggingStartPoint = CGPoint(
-                x: (draggingStart.x - radius) / radius,
-                y: (draggingStart.y - radius) / radius
-            )
-            let draggingStartPointLen = hypot(draggingStartPoint.x, draggingStartPoint.y)
-            if draggingStartPointLen > 1.0 || draggingStartPointLen < 0.75 { return }
-        }
-        
-        let len = hypot(x, y)
-        if len > 1.0 || len < 0.75 { x /= len; y /= len }
-        var hue = atan2(y, x) / (2 * .pi)
-        if hue < 0 { hue += 1 }
-        color.hue = hue
-        
-        if gesture.state == .ended { storeColor() }
     }
 }

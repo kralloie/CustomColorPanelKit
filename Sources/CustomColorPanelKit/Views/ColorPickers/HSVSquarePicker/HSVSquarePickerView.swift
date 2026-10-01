@@ -34,7 +34,12 @@ struct HSVSquarePickerView: View {
                             .positionIndicator(squareSize: squareSize, color: color)
                             .frame(width: squareSize, height: squareSize)
                         
-                        HueSliderView(color: $color, storeColor: storeColor)
+                        VerticalSlider(
+                            slider: HueSlider(color: color),
+                            value: $color.hue,
+                            thumbTint: Color(hue: color.hue, saturation: 1, brightness: 1),
+                            storeColor: storeColor
+                        )
                             .frame(width: sliderThickness, height: squareSize)
                     }
                     OpacitySliderView(color: $color)

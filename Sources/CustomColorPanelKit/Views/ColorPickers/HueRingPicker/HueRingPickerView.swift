@@ -15,6 +15,7 @@ private enum Layout {
     static let hsbTriangleIndicatorSize: CGFloat = 10
     static let stackSpacing: CGFloat = 10
     static let outerPadding: CGFloat = 20
+    static let ringInnerRatio: CGFloat = 0.75
 }
 
 // MARK: - HueRingPickerView
@@ -48,12 +49,10 @@ public struct HueRingPickerView: View {
                 
                 VStack(spacing: Layout.stackSpacing) {
                     ZStack {
-                        HueRing(
-                            color: $color,
-                            storeColor: storeColor
-                        )
+                        HueRing(color: color)
                         .positionIndicator(geometry: geometry)
                         .frame(width: ringSize, height: ringSize)
+                        .modifier(HueRingDragModifier(color: $color, ringSize: ringSize, storeColor: storeColor))
                         .frame(maxWidth: .infinity)
                         
                         HSVTriangle(
@@ -167,5 +166,76 @@ private struct HueRingPickerGeometry {
         self.hueAngle = color.hue * 2 * .pi
         self.hueRingIndicatorSize = CGSize(width: viewSize.width * 0.125, height: 1)
         self.hueRotation = hueRotation
+    }
+}
+
+private struct HueRingDragModifier: ViewModifier {
+    @Binding var color: HSBAColor
+    let ringSize: CGFloat
+    let storeColor: () -> Void
+
+    @State private var gestureBegan = false
+    @State private var hueAnimation: Task<Void, Never>?
+
+    func body(content: Content) -> some View {
+        content.gesture(dragGesture)
+    }
+
+    private func isOnRing(_ point: CGPoint) -> Bool {
+        let radius = ringSize * 0.5
+        let distance = hypot(point.x - radius, point.y - radius) / radius
+        return (Layout.ringInnerRatio...1).contains(distance)
+    }
+
+    private func hue(at point: CGPoint) -> CGFloat {
+        let radius = ringSize * 0.5
+        var hue = atan2(radius - point.y, point.x - radius) / (2 * .pi)
+        if hue < 0 { hue += 1 }
+        return hue
+    }
+
+    private func animateHue(to target: CGFloat, duration: Duration = .milliseconds(100)) {
+        hueAnimation?.cancel()
+        let start = color.hue
+        var delta = target - start
+        if delta > 0.5 { delta -= 1 } else if delta < -0.5 { delta += 1 }
+        let clock = ContinuousClock()
+        let begin = clock.now
+
+        hueAnimation = Task { @MainActor in
+            while !Task.isCancelled {
+                let t = min(1, (clock.now - begin) / duration)
+                let eased = 1 - pow(1 - t, 3)
+                var hue = (start + delta * eased).truncatingRemainder(dividingBy: 1)
+                if hue < 0 { hue += 1 }
+                color.hue = t >= 1 ? target : hue
+                if t >= 1 { break }
+                try? await Task.sleep(for: .milliseconds(8))
+            }
+        }
+    }
+
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { value in
+                guard isOnRing(value.startLocation) else { return }
+                let target = hue(at: value.location)
+
+                if !gestureBegan {
+                    gestureBegan = true
+                    animateHue(to: target)
+                } else {
+                    hueAnimation?.cancel()
+                    color.hue = target
+                }
+            }
+            .onEnded { value in
+                gestureBegan = false
+                guard isOnRing(value.startLocation) else { return }
+                Task { @MainActor in
+                    await hueAnimation?.value
+                    storeColor()
+                }
+            }
     }
 }

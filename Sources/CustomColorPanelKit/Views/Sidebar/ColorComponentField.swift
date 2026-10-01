@@ -122,9 +122,14 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .onSubmit(submitText)
                 .onExitCommand(perform: cancelField)
                 .focused($isFocused)
+                .clipped()
                 .background {
                     RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
                         .fill(.background.secondary)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: Layout.textFieldCornerRadius)
+                        .fill(.clear)
                         .stroke(isFocused ? Color.accentColor : Color.gray.opacity(0.25), lineWidth: isFocused ? 2 : 1)
                         .animation(.easeInOut(duration: 0.1), value: isFocused)
                 }

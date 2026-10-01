@@ -81,7 +81,7 @@ struct PickerModeSelectorView: View {
         case .hsvSphere:
             HSVSphere(color: accentColor, storeColor: {}).frame(width: 20, height: 20)
         case .hueRing:
-            HueRing(color: accentColor, storeColor: {})
+            HueRing(color: accentColor.wrappedValue)
                 .frame(width: 20, height: 20)
                 .overlay {
                     HSVTriangle(color: accentColor, hueRotation: true, storeColor: {})

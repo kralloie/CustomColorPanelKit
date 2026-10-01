@@ -20,7 +20,7 @@ struct ColorComponentGroupButtonStyle: ButtonStyle {
                 if configuration.isPressed {
                     Rectangle()
                         .fill(.background.tertiary)
-                        .padding(.top, -1)
+                        .padding(.vertical, -1)
                 }
             }
     }

@@ -274,6 +274,7 @@ extension SidebarView {
                         Spacer()
                         
                         Text(!isOpen ? value : "")
+                            .lineLimit(1)
                             .animation(nil, value: isOpen)
                         
                         Image(systemName: "chevron.right")

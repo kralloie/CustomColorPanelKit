@@ -37,7 +37,12 @@ struct HSVSpherePickerView: View {
                             .positionIndicator(color: color, sphereRadius: sphereRadius)
                             .frame(width: sphereSize, height: sphereSize)
                         
-                        BrightnessSliderView(color: $color, storeColor: storeColor)
+                        VerticalSlider(
+                            slider: BrightnessSlider(color: color),
+                            value: $color.brightness,
+                            thumbTint: Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness),
+                            storeColor: storeColor
+                        )
                             .frame(width: sliderThickness, height: sphereSize)
                     }
                     
