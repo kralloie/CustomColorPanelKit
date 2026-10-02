@@ -52,11 +52,12 @@ struct OpacitySliderView: View {
         }
     }
     
-    private func handleScroll(event: NSEvent) {
+    private func handleScroll(event: NSEvent) -> Bool {
         alphaAnimation?.cancel()
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         color.alpha = min(max(color.alpha + delta, 0), 1)
+        return false
     }
     
     private func targetAlpha(at pos: CGFloat) -> CGFloat {

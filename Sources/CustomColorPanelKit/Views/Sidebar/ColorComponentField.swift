@@ -26,7 +26,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     private var scrollWheelRouter = ScrollWheelRouter.shared
     @Binding var value: T
     @State private var text: String
-    @State private var isHovering: Bool = false
     @FocusState private var isFocused: Bool
     private var valueString: String { inputType.format(value.cgFloatValue) }
     
@@ -77,7 +76,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             }
             .contentShape(Rectangle())
             .onHover { hovering in
-                isHovering = hovering
                 if hovering {
                     if inputType != .hex {
                         scrollWheelRouter.scrollHandler = handleScroll
@@ -89,8 +87,9 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             
             if inputType != .hex {
                 ColorComponentStepper(
-                    storeColor: isFocused ? {} : storeColor,
-                    stepValue: stepValue
+                    storeColor: storeColor,
+                    stepValue: stepValue,
+                    isFocused: isFocused
                 )
                 .equatable()
                 .padding(.trailing, 8)
@@ -104,7 +103,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
     }
     
-    struct ColorComponentTextField: View {
+    struct ColorComponentTextField: View, @MainActor Equatable {
         let label: String
         @Binding var text: String
         @FocusState var isFocused: Bool
@@ -135,29 +134,34 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 }
                 .accessibilityLabel(label)
         }
+        
+        static func == (a: Self, b: Self) -> Bool {
+            a.text == b.text && a.inputType == b.inputType && a.isFocused == b.isFocused
+        }
     }
     
     private struct ColorComponentStepper: View, @MainActor Equatable {
         var storeColor: () -> Void
         var stepValue: (CGFloat) -> Void
+        var isFocused: Bool
         
         var body: some View {
             Stepper(
                 "",
                 onIncrement: {
                     stepValue(1)
-                    storeColor()
+                    if !isFocused { storeColor() }
                 },
                 onDecrement:  {
                     stepValue(-1)
-                    storeColor()
+                    if !isFocused { storeColor() }
                 }
             )
             .frame(width: Layout.stepperWidth, height: Layout.stepperHeight)
             .accessibilityHidden(true)
         }
         
-        static func == (a: Self, b: Self) -> Bool { true }
+        static func == (a: Self, b: Self) -> Bool { a.isFocused == b.isFocused }
     }
     
     private struct ColorComponentSlider: View {
@@ -267,10 +271,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         return .handled
     }
     
-    private func handleScroll(event: NSEvent) {
-        guard inputType != .hex else { return }
+    private func handleScroll(event: NSEvent) -> Bool {
+        guard inputType != .hex else { return false }
         let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
         stepValue(by: delta)
+        return !isFocused
     }
     
     private func submitText() {
@@ -327,11 +332,5 @@ struct ColorComponentFieldContainer<Content: View>: View {
                 .frame(width: SidebarLayout.componentLabelWidth)
             componentField()
         }
-    }
-}
-
-extension ColorComponentField.ColorComponentTextField: @MainActor Equatable {
-    static func == (a: Self, b: Self) -> Bool {
-        a.text == b.text && a.inputType == b.inputType && a.isFocused == b.isFocused
     }
 }

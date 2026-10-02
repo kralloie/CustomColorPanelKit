@@ -47,11 +47,12 @@ struct VerticalSlider<Content: View>: View {
         .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
     }
     
-    private func handleScroll(event: NSEvent) {
+    private func handleScroll(event: NSEvent) -> Bool {
         valueAnimation?.cancel()
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         value = min(max(value + delta, 0), 1)
+        return true
     }
     
     private var dragGesture: some Gesture {

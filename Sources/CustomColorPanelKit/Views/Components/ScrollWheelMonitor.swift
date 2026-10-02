@@ -17,25 +17,29 @@ import SwiftUI
 /// - Note: Only one handler can be registered at a time. Assigning a new ``scrollHandler`` replaces whatever was set before it.
 @MainActor
 final class ScrollWheelRouter {
-    var scrollHandler: ((NSEvent) -> Void)?
+    /// Handles a scroll event while a control is hovered, or `nil` when none is.
+    ///
+    /// Return `true` if the color should be stored after the scrolling stops. Return `false` for changes that shouldn't be recorded,
+    /// such as editing text field contents. The event is consumed either way.
+    var scrollHandler: ((NSEvent) -> Bool)?
     
     static let shared = ScrollWheelRouter()
 }
 
 /// An invisible view that installs a local scroll wheel event monitor and forwards received events through ``ScrollWheelRouter``.
 ///
-/// A single ``ScrollWheelMonitor`` is placed in ``ColorPanelView`` to monitor scroll events thorough the whole color panel and the widgets that need it.
+/// A single ``ScrollWheelMonitor`` is placed in ``ColorPanelView`` to monitor scroll events throughout the whole color panel and the widgets that need it.
 ///
 /// - Note: While a handler is registered, forwarded scroll wheel events are consumed and don't continue further
-/// along the responder chain. events pass through untouched whenever no handler is set.
-/// - Note: After forwarding an event, `storeColor` fires once scrolling has been idle for 450ms, so a color commits to the history
+/// along the responder chain. Events pass through untouched whenever no handler is set.
+/// - Note: After forwarding an event, `storeColor` fires once scrolling has been idle for 250ms, so a color commits to the history
 /// only after the user stops scrolling rather than on every tick.
 struct ScrollWheelMonitor: NSViewRepresentable {
     /// The router this monitor forwards the scroll wheel events through.
     let router: ScrollWheelRouter
     /// Called once scrolling has been idle for a short delay, to commit the resulting color to history.
     let storeColor: (HSBAColor) -> Void
-    ///
+    /// A binding to the current color for storing before committing to history.
     @Binding var color: HSBAColor
     
     init(router: ScrollWheelRouter, color: Binding<HSBAColor>, storeColor: @escaping (HSBAColor) -> Void) {
@@ -54,14 +58,14 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     func makeNSView(context: Context) -> some NSView {
         let view = NSView(frame: .zero)
         context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-            guard context.coordinator.router.scrollHandler != nil else { return event }
-            context.coordinator.router.scrollHandler!(event)
+            guard let handler = context.coordinator.router.scrollHandler else { return event }
+            guard handler(event) else { return nil }
+            let committed = color
             context.coordinator.historyTask?.cancel()
             context.coordinator.historyTask = Task { @MainActor in
                 do {
-                    let c = color
                     try await Task.sleep(for: .milliseconds(250))
-                    storeColor(c)
+                    storeColor(committed)
                 } catch {}
             }
             return nil
@@ -74,10 +78,7 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     /// Cancels any pending debounce task and removes the monitor when the view leaves the hierarchy, to avoid leaking a dangling monitor.
     static func dismantleNSView(_ nsView: NSViewType, coordinator: Coordinator) {
         coordinator.historyTask?.cancel()
-        
-        if let monitor = coordinator.monitor {
-            NSEvent.removeMonitor(monitor)
-        }
+        if let monitor = coordinator.monitor { NSEvent.removeMonitor(monitor) }
     }
     
     /// Owns the installed event monitor token, the router being forwarded through,
