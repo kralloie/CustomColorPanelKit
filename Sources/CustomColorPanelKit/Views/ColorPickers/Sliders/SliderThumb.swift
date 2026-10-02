@@ -19,6 +19,14 @@ struct SliderThumb: View {
     var body: some View {
         Circle()
             .fill(isPressed ? .clear : .white)
+            .overlay {
+                if !isPressed {
+                    Circle()
+                        .fill(color)
+                        .frame(width: size * 0.6, height: size * 0.6)
+                        .shadow(color: .black, radius: 1)
+                }
+            }
             .glassEffect(isPressed ? .regular.tint(color) : .identity)
             .frame(width: size, height: size)
             .scaleEffect(isPressed ? 1.25 : 1)

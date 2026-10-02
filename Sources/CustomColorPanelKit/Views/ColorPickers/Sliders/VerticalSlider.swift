@@ -59,14 +59,12 @@ struct VerticalSlider<Content: View>: View {
             .updating($isDragging) { _, state, _ in state = true }
             .onChanged {
                 let isFirst = !gestureBegan
-                if !gestureBegan {
-                    gestureBegan = true
-                }
+                if !gestureBegan { gestureBegan = true }
                 let travel = size.height - size.width
                 let target = 1 - (($0.location.y - size.width * 0.5) / travel).clamped(to: 0...1)
                 
                 if isFirst {
-                    animateValue(to: target)
+                    animateValue($value, to: target, valueAnimation: $valueAnimation)
                 } else {
                     valueAnimation?.cancel()
                     value = target
@@ -79,22 +77,5 @@ struct VerticalSlider<Content: View>: View {
                     storeColor()
                 }
             }
-    }
-    
-    private func animateValue(to target: CGFloat, duration: Duration = .milliseconds(125)) {
-        valueAnimation?.cancel()
-        let start = value
-        let clock = ContinuousClock()
-        let begin = clock.now
-
-        valueAnimation = Task { @MainActor in
-            while !Task.isCancelled {
-                let t = min(1, (clock.now - begin) / duration)
-                let eased = 1 - pow(1 - t, 3)
-                value = start + (target - start) * eased
-                if t >= 1 { break }
-                try? await Task.sleep(for: .milliseconds(8))
-            }
-        }
     }
 }

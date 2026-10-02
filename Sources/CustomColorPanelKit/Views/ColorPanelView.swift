@@ -47,7 +47,7 @@ public struct ColorPanelView: View {
 
         }
         .background {
-            ScrollWheelMonitor(router: ScrollWheelRouter.shared, storeColor: { colorHistory.add(color) })
+            ScrollWheelMonitor(router: ScrollWheelRouter.shared, color: $color, storeColor: { colorHistory.add($0) })
         }
         .onChange(of: colorHistory.pendingChange) {
             guard var newColor = colorHistory.pendingChange else { return }

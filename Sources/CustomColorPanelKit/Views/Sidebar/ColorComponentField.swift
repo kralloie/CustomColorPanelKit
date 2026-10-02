@@ -58,7 +58,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     ),
                     inputType: inputType,
                     label: label,
-                    storeColor: isFocused ? {} : storeColor
+                    storeColor: { if !isFocused { storeColor() } }
                 )
                 .padding(.trailing, 4)
             }
@@ -166,19 +166,21 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         let label: String
         var storeColor: () -> Void
         
+        @State private var valueAnimation: Task<Void, Never>? = nil
         @State private var width: CGFloat = 0
-        
+        @State private var gestureBegan: Bool = false
         @GestureState private var isDragging = false
         
         var body: some View {
-            ZStack(alignment: .leading) {
+            ZStack(alignment: .center) {
                 Capsule()
                     .fill(Color.primary)
-                    .frame(height: Layout.sliderTrackHeight)
-                
-                Capsule()
-                    .fill(Color.accentColor)
-                    .frame(width: max(normalized * width, 0), height: Layout.sliderTrackHeight)
+                    .frame(width: width, height: Layout.sliderTrackHeight)
+                    .overlay(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.accentColor)
+                            .frame(width: max(normalized * width, 0), height: Layout.sliderTrackHeight)
+                    }
                 
                 thumb
                 
@@ -217,18 +219,34 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .scaleEffect(isDragging ? 1.25 : 1)
                 .shadow(radius: 1)
                 .animation(.easeInOut(duration: 0.1), value: isDragging)
-                .offset(x: width * normalized - (Layout.sliderThumbSize * 0.5))
-                .gesture(dragGesture)
+                .offset(x: (width - Layout.sliderThumbSize) * (normalized - 0.5))
         }
         
         private var dragGesture: some Gesture {
             DragGesture(minimumDistance: 0, coordinateSpace: .local)
                 .updating($isDragging) { _, state, _ in state = true }
                 .onChanged {
+                    let isFirst = !gestureBegan
+                    if !gestureBegan { gestureBegan = true }
+                    
                     guard width > 0 else { return }
-                    normalized = ($0.location.x / width).clamped(to: 0...1)
+                    let travel = width - Layout.sliderThumbSize
+                    let target = (($0.location.x - Layout.sliderThumbSize * 0.5) / travel).clamped(to: 0...1)
+                    
+                    if isFirst {
+                        animateValue($normalized, to: target, valueAnimation: $valueAnimation)
+                    } else {
+                        valueAnimation?.cancel()
+                        normalized = target
+                    }
                 }
-                .onEnded { _ in storeColor() }
+                .onEnded { _ in
+                    gestureBegan = false
+                    Task { @MainActor in
+                        await valueAnimation?.value
+                        storeColor()
+                    }
+                }
         }
     }
     

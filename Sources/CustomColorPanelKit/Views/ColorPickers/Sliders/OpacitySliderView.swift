@@ -87,29 +87,12 @@ struct OpacitySliderView: View {
                 let target = targetAlpha(at: $0.location.x)
                 
                 if isFirst {
-                    animateAlpha(to: target)
+                    animateValue($color.alpha, to: target, valueAnimation: $alphaAnimation)
                 } else {
                     alphaAnimation?.cancel()
                     color.alpha = target
                 }
             }
             .onEnded { _ in gestureBegan = false }
-    }
-    
-    private func animateAlpha(to target: CGFloat, duration: Duration = .milliseconds(125)) {
-        alphaAnimation?.cancel()
-        let start = color.alpha
-        let clock = ContinuousClock()
-        let begin = clock.now
-
-        alphaAnimation = Task { @MainActor in
-            while !Task.isCancelled {
-                let t = min(1, (clock.now - begin) / duration)
-                let eased = 1 - pow(1 - t, 3)
-                color.alpha = start + (target - start) * eased
-                if t >= 1 { break }
-                try? await Task.sleep(for: .milliseconds(8))
-            }
-        }
     }
 }

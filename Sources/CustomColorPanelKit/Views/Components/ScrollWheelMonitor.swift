@@ -34,10 +34,13 @@ struct ScrollWheelMonitor: NSViewRepresentable {
     /// The router this monitor forwards the scroll wheel events through.
     let router: ScrollWheelRouter
     /// Called once scrolling has been idle for a short delay, to commit the resulting color to history.
-    let storeColor: () -> Void
+    let storeColor: (HSBAColor) -> Void
+    ///
+    @Binding var color: HSBAColor
     
-    init(router: ScrollWheelRouter, storeColor: @escaping () -> Void) {
+    init(router: ScrollWheelRouter, color: Binding<HSBAColor>, storeColor: @escaping (HSBAColor) -> Void) {
         self.router = router
+        _color = color
         self.storeColor = storeColor
     }
     
@@ -56,8 +59,9 @@ struct ScrollWheelMonitor: NSViewRepresentable {
             context.coordinator.historyTask?.cancel()
             context.coordinator.historyTask = Task { @MainActor in
                 do {
-                    try await Task.sleep(for: .milliseconds(450))
-                    storeColor()
+                    let c = color
+                    try await Task.sleep(for: .milliseconds(250))
+                    storeColor(c)
                 } catch {}
             }
             return nil
