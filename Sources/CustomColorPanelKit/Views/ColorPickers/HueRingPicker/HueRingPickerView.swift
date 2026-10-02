@@ -49,7 +49,7 @@ public struct HueRingPickerView: View {
                 
                 VStack(spacing: Layout.stackSpacing) {
                     ZStack {
-                        HueRing(color: color)
+                        HueRing()
                         .positionIndicator(geometry: geometry)
                         .frame(width: ringSize, height: ringSize)
                         .modifier(HueRingDragModifier(color: $color, ringSize: ringSize, storeColor: storeColor))

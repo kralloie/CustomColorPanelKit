@@ -8,11 +8,13 @@
 import SwiftUI
 import MetalKit
 
+/// A Metal-rendered hue ring color picker.
+///
+/// ``HueRing`` displays a hue ring using MetalKit.
+/// Rendering is performed by ``HueRingCoordinator``.
 struct HueRing: NSViewRepresentable {
-    let color: HSBAColor
-    
     func makeCoordinator() -> HueRingCoordinator {
-        HueRingCoordinator(color: color)
+        HueRingCoordinator()
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -23,21 +25,18 @@ struct HueRing: NSViewRepresentable {
     func updateNSView(_ nsView: MTKView, context: Context) {}
 }
 
+/// The coordinator responsible for rendering a ``HueRing`` using MetalKit.
+///
+/// The coodinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HueRingCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HueRingVertexShader"
     static let fragmentShader: String = "HueRingFragmentShader"
-    
-    let color: HSBAColor
-    
-    private var draggingStart: CGPoint?
     
     var metalDevice: MTLDevice!
     private var metalCommandQueue: MTLCommandQueue!
     private var renderPipeline: MTLRenderPipelineState
     
-    init(color: HSBAColor) {
-        self.color = color
-        
+    override init() {
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue

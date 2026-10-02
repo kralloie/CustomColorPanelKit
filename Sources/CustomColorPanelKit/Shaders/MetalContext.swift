@@ -33,7 +33,7 @@ import MetalKit
     let colorExamplePipeline: MTLRenderPipelineState
     let hsvSquarePipeline: MTLRenderPipelineState
     let hueSliderPipeline: MTLRenderPipelineState
-    let hsvSpherePipeline: MTLRenderPipelineState
+    let hueSpherePipeline: MTLRenderPipelineState
     let brightnessSliderPipeline: MTLRenderPipelineState
     
     private init() throws {
@@ -69,7 +69,7 @@ import MetalKit
         colorExamplePipeline = try makePipeline(vertex: ColorExampleCoordinator.vertexShader, fragment: ColorExampleCoordinator.fragmentShader)
         hsvSquarePipeline = try makePipeline(vertex: HSVSquareCoordinator.vertexShader, fragment: HSVSquareCoordinator.fragmentShader)
         hueSliderPipeline = try makePipeline(vertex: HueSliderCoordinator.vertexShader, fragment: HueSliderCoordinator.fragmentShader)
-        hsvSpherePipeline = try makePipeline(vertex: HSVSphereCoordinator.vertexShader, fragment: HSVSphereCoordinator.fragmentShader)
+        hueSpherePipeline = try makePipeline(vertex: HueSphereCoordinator.vertexShader, fragment: HueSphereCoordinator.fragmentShader)
         brightnessSliderPipeline = try makePipeline(vertex: BrightnessSliderCoordinator.vertexShader, fragment: BrightnessSliderCoordinator.fragmentShader)
     }
 }

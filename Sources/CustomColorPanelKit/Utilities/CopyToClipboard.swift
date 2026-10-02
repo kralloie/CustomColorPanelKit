@@ -8,6 +8,9 @@
 import AppKit
 
 extension NSPasteboard {
+    /// Copies the passed string to the clipboard.
+    ///
+    /// - Parameter string: The string content that is copied to the clipboard.
     static func copy(_ string: String) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()

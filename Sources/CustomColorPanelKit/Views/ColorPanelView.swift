@@ -42,7 +42,7 @@ public struct ColorPanelView: View {
             case .hsvSquare:
                 HSVSquarePickerView(color: $color, colorHistory: colorHistory)
             case .hsvSphere:
-                HSVSpherePickerView(color: $color, colorHistory: colorHistory)
+                HueSpherePickerView(color: $color, colorHistory: colorHistory)
             }
 
         }

@@ -117,7 +117,7 @@ struct SidebarView: View {
             .padding(SidebarLayout.panelInnerPadding)
         }
         .background {
-            SidebarBackground(material: .sidebar, blendingMode: .behindWindow)
+            SidebarBackground(material: .popover, blendingMode: .behindWindow)
                    .ignoresSafeArea(.container, edges: .top)
         }
         .accessibilityLabel("Sidebar")

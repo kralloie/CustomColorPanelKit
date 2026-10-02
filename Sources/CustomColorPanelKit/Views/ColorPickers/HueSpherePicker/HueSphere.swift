@@ -8,12 +8,19 @@
 import MetalKit
 import SwiftUI
 
-struct HSVSphere: NSViewRepresentable {
+/// A Metal-rendered sphere where the magnitude of each pixel coordinate represents the saturation.
+///
+/// Rendering is performed by ``HueSpherecOORDINATOR``.
+///
+/// When creating the view, an ``ImmediatePanGestureRecognizer`` is added to the ``MTKView`` to modify the hue and saturation components with the gesture.
+struct HueSphere: NSViewRepresentable {
+    /// A binding to the current color being modified.
     @Binding var color: HSBAColor
+    /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
     
-    func makeCoordinator() -> HSVSphereCoordinator {
-        HSVSphereCoordinator(color: $color, storeColor: storeColor)
+    func makeCoordinator() -> HueSphereCoordinator {
+        HueSphereCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> some NSView {
@@ -26,13 +33,15 @@ struct HSVSphere: NSViewRepresentable {
     func updateNSView(_ nsView: NSViewType, context: Context) {}
 }
 
-@MainActor final class HSVSphereCoordinator: NSObject, MTKViewDelegate {
-    static let vertexShader: String = "HSVSphereVertexShader"
-    static let fragmentShader: String = "HSVSphereFragmentShader"
+@MainActor final class HueSphereCoordinator: NSObject, MTKViewDelegate {
+    static let vertexShader: String = "HueSphereVertexShader"
+    static let fragmentShader: String = "HueSphereFragmentShader"
     
+    /// A binding to the current color being modified.
     @Binding var color: HSBAColor
-    private var storeColor: () -> Void
-    
+    /// Called after the gesture finishes to store the color to the history.
+    var storeColor: () -> Void
+    /// The point where the dragging gesture started, `nil` if no gesture is being performed.
     private var draggingStart: CGPoint?
     
     var metalDevice: MTLDevice!
@@ -46,7 +55,7 @@ struct HSVSphere: NSViewRepresentable {
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
-        self.renderPipeline = ctx.hsvSpherePipeline
+        self.renderPipeline = ctx.hueSpherePipeline
         
         super.init()
     }
@@ -70,6 +79,10 @@ struct HSVSphere: NSViewRepresentable {
         commandBuffer.commit()
     }
     
+    /// The action that handles the drag gesture inside the Hue Sphere.
+    ///
+    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating the Hue and Saturation components
+    /// based on the angle and magnitude of the cursor coordinates.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let radius = min(view.bounds.width, view.bounds.height) * 0.5

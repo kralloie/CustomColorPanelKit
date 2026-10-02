@@ -1,5 +1,5 @@
 //
-//  HSVSpherePickerView.swift
+//  HueSpherePickerView.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 05/08/2026.
@@ -14,7 +14,7 @@ private enum Layout {
     static let stackSpacing: CGFloat = 10
 }
 
-struct HSVSpherePickerView: View {
+struct HueSpherePickerView: View {
     @Binding var color: HSBAColor
     var colorHistory: ColorHistory
     
@@ -33,7 +33,7 @@ struct HSVSpherePickerView: View {
                 VStack(alignment: .leading, spacing: Layout.stackSpacing) {
                     HStack(spacing: Layout.stackSpacing) {
                         
-                        HSVSphere(color: $color, storeColor: storeColor)
+                        HueSphere(color: $color, storeColor: storeColor)
                             .positionIndicator(color: color, sphereRadius: sphereRadius)
                             .frame(width: sphereSize, height: sphereSize)
                         
@@ -58,7 +58,7 @@ struct HSVSpherePickerView: View {
     }
 }
 
-private extension HSVSphere {
+private extension HueSphere {
     func positionIndicator(color: HSBAColor, sphereRadius: CGFloat) -> some View {
         overlay {
             Circle()

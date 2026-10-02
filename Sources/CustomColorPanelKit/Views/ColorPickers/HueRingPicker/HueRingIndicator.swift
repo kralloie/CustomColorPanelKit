@@ -7,9 +7,15 @@
 
 import SwiftUI
 
+/// An arrow-shaped marker: an equilateral triangle pointing left, joined to a rectangle with rounded right corners.
+///
+/// Used as the hue indicator on ``HueRing``.
 struct HueRingIndicator: Shape {
+    /// Width of the rectangle on the trailing edge of the triangle pointing to the left.
     var rectangleWidth: CGFloat
+    /// Corner radius of the trailing corners of the rectangle.
     var cornerRadius: CGFloat
+    
     func path(in rect: CGRect) -> Path {
         let height = rect.height
         let triangleWidth = height * sqrt(3) / 2

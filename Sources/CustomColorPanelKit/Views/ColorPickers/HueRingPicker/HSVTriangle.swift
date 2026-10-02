@@ -8,9 +8,18 @@
 import SwiftUI
 import MetalKit
 
+/// A Metal-rendered triangle with each corner representing one of the HSV components.
+///
+/// ``HSVTriangle`` displays a HSV ring using MetalKit and the current color.
+/// Rendering is performed by ``HSVTriangleCoordinator``.
+///
+/// When creating the view, an ``ImmediatePanGestureRecognizer`` is added to the ``MTKView`` to modify the HSV components with the gesture.
 struct HSVTriangle: NSViewRepresentable {
+    /// A binding to the current color being modified.
     @Binding var color: HSBAColor
+    /// Whether the triangle hue corner should be rotated to point to the hue angle.
     var hueRotation: Bool
+    /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
     
     func makeCoordinator() -> HSVTriangleCoordinator {
@@ -33,16 +42,24 @@ struct HSVTriangle: NSViewRepresentable {
     }
 }
 
+/// The coordinator responsible of rendering a ``HSVTriangle`` using MetalKit.
+///
+/// The coodinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HSVTriangleCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HSVTriangleVertexShader"
     static let fragmentShader: String = "HSVTriangleFragmentShader"
     
+    /// A binding to the current color being modified.
     @Binding var color: HSBAColor
+    /// Whether the triangle hue corner should be rotated to point to the hue angle.
     var hueRotation: Bool
-    private var storeColor: () -> Void
-    
+    /// Called after the gesture finishes to store the color to the history.
+    var storeColor: () -> Void
+    /// The point where the dragging gesture started, `nil` if no gesture is being performed.
     var draggingStart: CGPoint?
+    /// The hue component of ``color``.
     var hue: CGFloat = .nan
+    
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
@@ -87,22 +104,44 @@ struct HSVTriangle: NSViewRepresentable {
         commandBuffer.commit()
     }
     
+    /// Calculates and returns the area of the drawn triangle calculated using each vertex coordinate.
+    ///
+    /// - Returns: The area of the triangle.
+    ///
+    /// - Parameters:
+    ///   - a: Vertex 0.
+    ///   - b: Vertex 1.
+    ///   - c: Vertex 2.
     private func triangleArea(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> CGFloat {
         return ((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) * 0.5
     }
     
-    private func getBarycentricCoordinates(for p: CGPoint, size: CGFloat) -> (CGFloat, CGFloat, CGFloat) {
+    /// Returns the barycentric coordinates of a point within the triangle.
+    ///
+    /// - Returns: A tuple with the weight of each vertex.
+    ///
+    /// - Parameters:
+    ///   - point: The point within the triangle used for pbc, apc and abp triangles for calculating barycentric coordinates.
+    ///   - size: The size of the triangle.
+    private func getBarycentricCoordinates(for point: CGPoint, size: CGFloat) -> (w0: CGFloat, w1: CGFloat, w2: CGFloat) {
         let angle = hueRotation ? self.hue * 2 * .pi : .pi * 0.5
         let vertices = getVerticesForTriangle(size: size, angle: angle)
         let abc = abs(triangleArea(vertices[0], vertices[1], vertices[2]))
         
-        let w0 = triangleArea(p, vertices[1], vertices[2]) / abc
-        let w1 = triangleArea(vertices[0], p, vertices[2]) / abc
-        let w2 = triangleArea(vertices[0], vertices[1], p) / abc
+        let w0 = triangleArea(point, vertices[1], vertices[2]) / abc
+        let w1 = triangleArea(vertices[0], point, vertices[2]) / abc
+        let w2 = triangleArea(vertices[0], vertices[1], point) / abc
         
         return (w0, w1, w2)
     }
     
+    /// Returns the coordinates of each triangle's vertex.
+    ///
+    /// - Returns: A `[CGPoint]` with each vertex coordinate.
+    ///
+    /// - Parameters:
+    ///   - size: The size of the triangle.
+    ///   - angle: The angle in which triangle is rotated.
     private func getVerticesForTriangle(size: CGFloat, angle: CGFloat) -> [CGPoint] {
         let offset: CGFloat = GeometryConstants.triangleVertexSpacing
         let radius = size * 0.5
@@ -113,12 +152,22 @@ struct HSVTriangle: NSViewRepresentable {
         ]
     }
     
-    private func saturationAndBrightness(fromColorWeight w0: CGFloat, whiteWeight w2: CGFloat) -> (brightness: CGFloat, saturation: CGFloat) {
+    /// Calculates and returns saturation and brightness based on the weight of the hue and saturation vertices.
+    ///
+    /// - Returns: A tuple with the brightness and saturation values.
+    ///
+    /// - Parameters:
+    ///   - hueWeight: Weight of the hue vertex.
+    ///   - saturationWeight: Weight of the saturation vertex.
+    private func saturationAndBrightness(hueWeight w0: CGFloat, saturationWeight w2: CGFloat) -> (brightness: CGFloat, saturation: CGFloat) {
         let v = w0 + w2
         let s = v > 1e-5 ? w0 / v : 0
         return (v, s)
     }
     
+    /// The action that handles the drag gesture inside the HSV Triangle.
+    ///
+    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating the HSV components using barycentric coordinates.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let size = min(view.bounds.width, view.bounds.height)
@@ -133,7 +182,7 @@ struct HSVTriangle: NSViewRepresentable {
         
         var (w0, w1, w2) = getBarycentricCoordinates(for: loc, size: size)
         if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-            let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
+            let (brightness, saturation) = saturationAndBrightness(hueWeight: w0, saturationWeight: w2)
             var c = color
             c.brightness = brightness
             c.saturation = saturation
@@ -159,7 +208,7 @@ struct HSVTriangle: NSViewRepresentable {
             size: size
         )
         
-        let (brightness, saturation) = saturationAndBrightness(fromColorWeight: w0, whiteWeight: w2)
+        let (brightness, saturation) = saturationAndBrightness(hueWeight: w0, saturationWeight: w2)
         var c = color
         c.brightness = brightness
         c.saturation = saturation

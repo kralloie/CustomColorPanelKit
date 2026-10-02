@@ -10,20 +10,20 @@
 using namespace metal;
 
 
-struct HSVSphereVertexOut {
+struct HueSphereVertexOut {
     float4 pos [[position]];
     float2 uv;
 };
 
-vertex HSVSphereVertexOut HSVSphereVertexShader(unsigned int vid [[vertex_id]]) {
-    HSVSphereVertexOut out;
+vertex HueSphereVertexOut HueSphereVertexShader(unsigned int vid [[vertex_id]]) {
+    HueSphereVertexOut out;
     out.pos = float4(positions[vid], 0, 1);
     out.uv = positions[vid];
     
     return out;
 }
 
-fragment float4 HSVSphereFragmentShader(HSVSphereVertexOut in [[stage_in]]) {
+fragment float4 HueSphereFragmentShader(HueSphereVertexOut in [[stage_in]]) {
     float magnitude = length(in.uv);
     
     float hue = fract(atan2(in.uv.y, in.uv.x) / (2.0 * M_PI_F));
