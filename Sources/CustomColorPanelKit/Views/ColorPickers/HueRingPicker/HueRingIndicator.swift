@@ -1,6 +1,6 @@
 //
 //  HueRingIndicator.swift
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 17/06/2026.
 //
@@ -11,7 +11,7 @@ import SwiftUI
 ///
 /// Used as the hue indicator on ``HueRing``.
 struct HueRingIndicator: Shape {
-    /// Width of the rectangle on the trailing edge of the triangle pointing to the left.
+    /// Width of the rectangle on the right edge of the triangle.
     var rectangleWidth: CGFloat
     /// Corner radius of the trailing corners of the rectangle.
     var cornerRadius: CGFloat

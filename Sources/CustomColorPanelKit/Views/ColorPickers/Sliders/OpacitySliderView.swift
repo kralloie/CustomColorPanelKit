@@ -7,16 +7,24 @@
 
 import SwiftUI
 
+/// An opacity slider with a checkerboard pattern background.
 struct OpacitySliderView: View {
+    /// The shared scroll router instance to pass the scroll handler to.
     private var scrollWheelRouter = ScrollWheelRouter.shared
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
+    /// Whether the slider is being dragged, updated by the `dragGesture`.
     @GestureState var isDragging: Bool = false
+    /// Whether the current drag has already reported its first change, so only the press animates.
     @State private var gestureBegan: Bool = false
+    /// The size reported by the geometry reader.
     @State private var size: CGSize = .zero
+    /// Whether the dragging should be affected by the center locking.
     @State private var centerLock: Bool = false
+    /// The task running the animation that starts when the slider is pressed.
     @State private var alphaAnimation: Task<Void, Never>?
+    /// The snap distance used for exiting the center lock when dragging.
     private let snapDistance: CGFloat = 6
-
     
     var body: some View {
         GeometryReader { geo in
@@ -52,6 +60,13 @@ struct OpacitySliderView: View {
         }
     }
     
+    /// The handler passed to ``scrollWheelRouter`` to be called when a scroll is detected while the cursor is hovering the slider.
+    ///
+    /// Scrolling down decreases the opacity by 1% and scrolling up increases it by 1%.
+    ///
+    /// - Returns: `true` if the result should be stored to the color history, `false` if it shouldn't.
+    ///
+    /// - Parameter event: The event containing the information of the scroll.
     private func handleScroll(event: NSEvent) -> Bool {
         alphaAnimation?.cancel()
         let step: Double = 0.01
@@ -60,6 +75,11 @@ struct OpacitySliderView: View {
         return false
     }
     
+    /// Returns the alpha value based on the position inside the slider.
+    ///
+    /// - Note: Always returns `0.5` if `centerLock` is `true`.
+    ///
+    /// - Parameter pos: The position inside the slider.
     private func targetAlpha(at pos: CGFloat) -> CGFloat {
         let travel = size.width - size.height
         let center = size.width * 0.5
@@ -74,6 +94,9 @@ struct OpacitySliderView: View {
         }
     }
     
+    /// The gesture that handles dragging inside the Opacity Slider.
+    ///
+    /// The pointer is clamped when it leaves the slider shape.
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($isDragging) { _, state, _ in state = true }

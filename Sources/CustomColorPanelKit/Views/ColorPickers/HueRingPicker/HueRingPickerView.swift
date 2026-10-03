@@ -7,32 +7,31 @@
 
 import SwiftUI
 
-// MARK: - Layout
-
+/// Layout values for ``HueRingPickerView``.
 private enum Layout {
     static let hueRingMinSize: CGFloat = 250
-    static let hueRingIndicatorSize: CGFloat = 20
-    static let hsbTriangleIndicatorSize: CGFloat = 10
     static let stackSpacing: CGFloat = 10
     static let outerPadding: CGFloat = 20
     static let ringInnerRatio: CGFloat = 0.75
 }
 
-// MARK: - HueRingPickerView
-
-public struct HueRingPickerView: View {
+/// A color picker with a hue ring, an HSV triangle inside it and an opacity slider below.
+///
+/// - Dragging on the ring sets the hue.
+/// - Dragging inside the HSV triangle sets the saturation and brightness.
+/// - Dragging the slider sets the opacity.
+///
+/// The view keeps a square aspect ratio and has a minimum size. The slider is as wide as the ring, and
+/// its thickness is a small fraction of the available width.
+struct HueRingPickerView: View {
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
-    let antialiasing: Bool
-    let hueRotation: Bool
+    /// The object storing and managing previously selected colors through the picker session.
     let colorHistory: ColorHistory
     
-    init(color: Binding<HSBAColor>, antialiasing: Bool = true, hueRotation: Bool = true, colorHistory: ColorHistory) {
-        self._color = color
-        self.antialiasing = antialiasing
-        self.hueRotation = hueRotation
-        self.colorHistory = colorHistory
-    }
-    
+    /// Stores the current color in the history
+    ///
+    /// Passed to the subviews as a closure, so they can commit a color without needing to know about the ``ColorHistory`` object.
     private func storeColor() { colorHistory.add(color) }
     
     public var body: some View {
@@ -43,8 +42,7 @@ public struct HueRingPickerView: View {
                 let ringSize = size - sliderThickness
                 let geometry = HueRingPickerGeometry(
                     color: color,
-                    viewSize: CGSize(width: ringSize, height: ringSize),
-                    hueRotation: hueRotation
+                    viewSize: CGSize(width: ringSize, height: ringSize)
                 )
                 
                 VStack(spacing: Layout.stackSpacing) {
@@ -57,12 +55,11 @@ public struct HueRingPickerView: View {
                         
                         HSVTriangle(
                             color: $color,
-                            hueRotation: hueRotation,
                             storeColor: storeColor
                         )
                         .positionIndicator(
                             brightness: color.brightness,
-                            offset: geometry.hsbTriangleIndicatorOffset,
+                            offset: geometry.hsvTriangleIndicatorOffset,
                             color: Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness)
                         )
                         .frame(width: geometry.triangleSize, height: geometry.triangleSize)
@@ -80,55 +77,22 @@ public struct HueRingPickerView: View {
     }
 }
 
-// MARK: - HueRing
 
-private extension HueRing {
-    func positionIndicator(geometry: HueRingPickerGeometry) -> some View {
-        overlay {
-            Rectangle()
-                .fill(.clear)
-                .frame(
-                    width: geometry.hueRingIndicatorSize.width,
-                    height: geometry.hueRingIndicatorSize.height
-                )
-                .overlay(alignment: .trailing) {
-                    HueRingIndicator(rectangleWidth: Layout.hueRingIndicatorSize * 0.5, cornerRadius: 4)
-                        .fill(.white)
-                        .frame(width: Layout.hueRingIndicatorSize, height: Layout.hueRingIndicatorSize)
-                        .shadow(radius: 1)
-                }
-                .rotationEffect(Angle(radians: -geometry.hueAngle))
-                .offset(geometry.hueRingIndicatorOffset)
-                .allowsHitTesting(false)
-        }
-    }
-}
-
-// MARK: - HSBTriangle
- 
-private extension HSVTriangle {
-    func positionIndicator(brightness: CGFloat, offset: CGSize, color: Color) -> some View {
-        overlay {
-            Circle()
-                .fill(color)
-                .stroke(brightness > 0.5 ? .black : .white, lineWidth: 1)
-                .frame(width: Layout.hsbTriangleIndicatorSize)
-                .offset(offset)
-        }
-    }
-}
-
-// MARK: - HueRingPickerGeometry
-
-private struct HueRingPickerGeometry {
+/// An object that stores and calculates the needed measurements for placing indicators of ``HueRingPickerView``.
+struct HueRingPickerGeometry {
+    /// The current color the indicators are positioned for.
     let color: HSBAColor
+    /// The size of the hue ring.
     let viewSize: CGSize
+    /// The radius of the hue ring.
     let viewRadius: CGFloat
+    /// The side length of the square the triangle is drawn in.
     let triangleSize: CGFloat
+    /// The hue as an angle in radians.
     let hueAngle: CGFloat
+    /// The size of the strip that holds the hue indicator.
     let hueRingIndicatorSize: CGSize
-    let hueRotation: Bool
-    
+    /// The offset from the ring's center to the hue indicator.
     var hueRingIndicatorOffset: CGSize {
         CGSize(
             width: cos(hueAngle) * 0.875 * viewRadius,
@@ -136,7 +100,11 @@ private struct HueRingPickerGeometry {
         )
     }
     
-    var hsbTriangleIndicatorOffset: CGSize {
+    /// The offset from the triangle's center to the saturation and brightness indicator using
+    /// the barycentric weights of each vertex.
+    ///
+    /// - Note: The vertex order must mirror the order used to draw the vertices in the shader and `getVerticesForTriangle` in ``HSVTriangle``.
+    var hsvTriangleIndicatorOffset: CGSize {
         let v = color.brightness
         let s = color.saturation
 
@@ -145,7 +113,7 @@ private struct HueRingPickerGeometry {
         let w2 = v * (1 - s)
 
         let r = triangleSize * 0.5
-        let angle = hueRotation ? hueAngle : .pi * 0.5
+        let angle = hueAngle
         let offset: CGFloat = GeometryConstants.triangleVertexSpacing
 
         let v0 = CGPoint(x: cos(angle) * r, y: sin(angle) * r)
@@ -158,35 +126,53 @@ private struct HueRingPickerGeometry {
         return CGSize(width: px, height: -py)
     }
 
-    init(color: HSBAColor, viewSize: CGSize, hueRotation: Bool) {
+    init(color: HSBAColor, viewSize: CGSize) {
         self.color = color
         self.viewSize = viewSize
         self.viewRadius = viewSize.width * 0.5
         self.triangleSize = viewRadius * 1.25
         self.hueAngle = color.hue * 2 * .pi
         self.hueRingIndicatorSize = CGSize(width: viewSize.width * 0.125, height: 1)
-        self.hueRotation = hueRotation
     }
 }
 
+/// A view modifier that sets the hue by dragging on a ``HueRing``.
+///
+/// The ring is drawn in a square view, so the modifier ignores drags that start in points where the magnitude is
+/// greater than 1.0 or lesser than 0.75.
+///
+/// Pressing animates the hue to the pressed angle, taking the shorter way around the circle while dragging changes the value instantly.
 private struct HueRingDragModifier: ViewModifier {
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
+    /// The side length of the ring's square view.
     let ringSize: CGFloat
+    /// A closure called when a drag that started on the ring ends to store the color to the history.
     let storeColor: () -> Void
 
+    /// Whether the current drag has already reported its first change, so only the press animates.
     @State private var gestureBegan = false
+    /// The task running the animation that starts when the ring is pressed.
     @State private var hueAnimation: Task<Void, Never>?
 
     func body(content: Content) -> some View {
         content.gesture(dragGesture)
     }
-
+    
+    /// Returns whether a point lies on the ring itself, not in its hole or the corners of its square.
+    ///
+    /// - Parameter point: A point in the ring's local coordinates.
     private func isOnRing(_ point: CGPoint) -> Bool {
         let radius = ringSize * 0.5
         let distance = hypot(point.x - radius, point.y - radius) / radius
         return (Layout.ringInnerRatio...1).contains(distance)
     }
 
+    /// Returns the hue for the angle of a point around the ring's center.
+    ///
+    /// The vertical axis is flipped, because SwiftUI's Y axis grows downward.
+    ///
+    /// - Parameter point: A point in the ring's local coordinates.
     private func hue(at point: CGPoint) -> CGFloat {
         let radius = ringSize * 0.5
         var hue = atan2(radius - point.y, point.x - radius) / (2 * .pi)
@@ -194,6 +180,11 @@ private struct HueRingDragModifier: ViewModifier {
         return hue
     }
 
+    /// Animates the hue to a target value, taking the shorter way around the circle.
+    ///
+    /// - Parameters:
+    ///   - target: The hue to animate to, from 0.0 to 1.0.
+    ///   - duration: How long the animation takes.
     private func animateHue(to target: CGFloat, duration: Duration = .milliseconds(100)) {
         hueAnimation?.cancel()
         let start = color.hue
@@ -215,6 +206,12 @@ private struct HueRingDragModifier: ViewModifier {
         }
     }
 
+    
+    /// The gesture that handles the dragging inside the Hue Ring.
+    ///
+    /// Modifies the hue based on the angle of the position indicator.
+    ///
+    /// Drags outside that start outside the ring bounds are ignored and the pointer is clamped when it leaves the shape.
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .onChanged { value in

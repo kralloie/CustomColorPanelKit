@@ -8,7 +8,11 @@
 import SwiftUI
 import MetalKit
 
+/// A Metal-rendered slider that displays the current color with all possible brightness values from 0% to 100% brightness.
+///
+/// Rendering is performed by ``BrightnessSliderCoordinator``.
 struct BrightnessSlider: NSViewRepresentable {
+    /// The current color being edited.
     var color: HSBAColor
     
     func makeCoordinator() -> BrightnessSliderCoordinator {
@@ -30,13 +34,19 @@ struct BrightnessSlider: NSViewRepresentable {
     }
 }
 
+/// The coordinator responsible for rendering a ``BrightnessSlider`` using MetalKit.
+///
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class BrightnessSliderCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "BrightnessSliderVertexShader"
     static let fragmentShader: String = "BrightnessSliderFragmentShader"
     
+    /// The current color being edited.
     var color: HSBAColor
     
+    /// The last hue passed to the shader.
     var hue: CGFloat = .nan
+    /// The last saturation passed to the shader.
     var saturation: CGFloat = .nan
     
     var metalDevice: MTLDevice!

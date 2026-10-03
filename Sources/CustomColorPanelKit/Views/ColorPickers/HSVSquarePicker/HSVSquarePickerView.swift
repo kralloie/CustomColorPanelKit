@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Layout values for ``HSVSquarePickerView``.
 private enum Layout {
     static let hsvSquareMinSize: CGFloat = 250
     static let hsvSquareIndicatorSize: CGFloat = 10
@@ -14,10 +15,21 @@ private enum Layout {
     static let outerPadding: CGFloat = 20
 }
 
+/// A color picker with an HSV Square, a vertical hue slider and an opacity slider below.
+///
+/// - Dragging inside the HSV Square sets the saturation and brightness.
+/// - Dragging on the vertical slider sets the hue.
+/// - Dragging on the horizontal slider below sets the opacity.
 struct HSVSquarePickerView: View {
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
+    /// The object storing and managing previously selected colors through the picker session.
     let colorHistory: ColorHistory
-    private func storeColor() -> Void { colorHistory.add(color) }
+    
+    /// Stores the current color in the history
+    ///
+    /// Passed to the subviews as a closure, so they can commit a color without needing to know about the ``ColorHistory`` object.
+    private func storeColor() { colorHistory.add(color) }
     
     var body: some View {
         VStack {
@@ -35,7 +47,7 @@ struct HSVSquarePickerView: View {
                             .frame(width: squareSize, height: squareSize)
                         
                         VerticalSlider(
-                            slider: HueSlider(color: color),
+                            slider: HueSlider(),
                             value: $color.hue,
                             thumbTint: Color(hue: color.hue, saturation: 1, brightness: 1),
                             storeColor: storeColor
@@ -51,17 +63,5 @@ struct HSVSquarePickerView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(minWidth: Layout.hsvSquareMinSize, minHeight: Layout.hsvSquareMinSize)
-    }
-}
-
-private extension HSVSquare {
-    func positionIndicator(squareSize: CGFloat, color: HSBAColor) -> some View {
-        overlay {
-            Circle()
-                .fill(Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness))
-                .stroke(color.brightness > 0.5 ? .black : .white, lineWidth: 1)
-                .frame(width: Layout.hsvSquareIndicatorSize)
-                .position(x: squareSize * color.saturation, y: squareSize - squareSize * color.brightness)
-        }
     }
 }

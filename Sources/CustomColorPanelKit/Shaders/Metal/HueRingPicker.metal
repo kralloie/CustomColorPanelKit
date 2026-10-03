@@ -44,8 +44,8 @@ struct HSVTriangleVertexOut {
     float3 barycentric;
 };
 
-vertex HSVTriangleVertexOut HSVTriangleVertexShader(unsigned int vid[[vertex_id]], constant float &hue [[buffer(0)]], constant bool &hueRotation [[buffer(1)]]) {
-    float hueAngle = select(M_PI_F * 0.5, hue * 2 * M_PI_F, hueRotation);
+vertex HSVTriangleVertexOut HSVTriangleVertexShader(unsigned int vid[[vertex_id]], constant float &hue [[buffer(0)]]) {
+    float hueAngle = hue * 2 * M_PI_F;
     float vertexAngle = hueAngle + (2 * M_PI_F / 3) * vid;
     float2 pos = float2(cos(vertexAngle), sin(vertexAngle));
     

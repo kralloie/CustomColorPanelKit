@@ -8,13 +8,13 @@
 import SwiftUI
 import MetalKit
 
-/// A Metal-rendered square where the X axis represents saturation and Y axis represents brightness.
+/// A Metal-rendered square where the X axis represents saturation and the Y axis represents brightness.
 ///
 /// Rendering is performed by ``HSVSquareCoordinator``.
 ///
 /// When creating the view, an ``ImmediatePanGestureRecognizer`` is added to the ``MTKView`` to modify the HSV components with the gesture.
 struct HSVSquare: NSViewRepresentable {
-    /// A binding to the current color being modified.
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
@@ -36,20 +36,35 @@ struct HSVSquare: NSViewRepresentable {
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
+    
+    /// Returns an overlay for the MTKView that indicates the saturation and brightness values with its position inside the HSV Square.
+    ///
+    /// - Parameters:
+    ///   - squareSize: The size of the square being drawn.
+    ///   - color: The current color used as fill for the indicator.
+    func positionIndicator(squareSize: CGFloat, color: HSBAColor) -> some View {
+        overlay {
+            Circle()
+                .fill(Color(hue: color.hue, saturation: color.saturation, brightness: color.brightness))
+                .stroke(color.brightness > 0.5 ? .black : .white, lineWidth: 1)
+                .frame(width: 10)
+                .position(x: squareSize * color.saturation, y: squareSize - squareSize * color.brightness)
+        }
+    }
 }
 
-/// The coordinator responsible of rendering a ``HSVSquare`` using MetalKit.
+/// The coordinator responsible for rendering an``HSVSquare`` using MetalKit.
 ///
-/// The coordinator serves as the ``MTKViewDelegate`` using MetalKit.
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HSVSquareCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HSVSquareVertexShader"
     static let fragmentShader: String = "HSVSquareFragmentShader"
     
-    /// A binding to the current color being modified.
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
-    /// The hue component of ``color``.
+    /// The last hue passed to the shader.
     var hue: CGFloat = .nan
     
     var metalDevice: MTLDevice!
@@ -95,7 +110,10 @@ struct HSVSquare: NSViewRepresentable {
     
     /// The action that handles the drag gesture inside the HSV Square.
     ///
-    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating the HSV components the X position for saturation and Y position for brightness.
+    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating
+    /// the saturation and brightness components the X position for saturation and Y position for brightness.
+    ///
+    /// Drags outside that start outside the shape are ignored and the pointer is clamped when it leaves the shape.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let loc = gesture.location(in: view)

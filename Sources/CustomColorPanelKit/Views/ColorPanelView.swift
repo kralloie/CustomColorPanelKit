@@ -27,7 +27,7 @@ public struct ColorPanelView: View {
     @State var colorHistory = ColorHistory()
     @State var pickerMode: PickerMode = .hueRing
         
-    public init(_ c: Binding<Color>, antialiasing: Bool = true) {
+    public init(_ c: Binding<Color>) {
         self._colorBinding = c
         self.color = HSBAColor(with: c.wrappedValue)
     }

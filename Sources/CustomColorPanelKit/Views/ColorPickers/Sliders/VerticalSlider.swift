@@ -7,16 +7,26 @@
 
 import SwiftUI
 
+/// A view that hosts a Metal-rendered vertical slider.
 struct VerticalSlider<Content: View>: View {
+    /// The Metal-rendered slider that this view hosts.
     var slider: Content
+    /// A binding to the value that the slider controls.
     @Binding var value: CGFloat
+    /// The color used to fill the ``SliderThumb`` when dragging and the preview when not dragging.
     var thumbTint: Color
     
+    /// The shared scroll router instance to pass the scroll handler to.
     private var scrollWheelRouter = ScrollWheelRouter.shared
+    /// Whether the slider is being dragged, updated by the `dragGesture`.
     @GestureState private var isDragging: Bool = false
+    /// The size reported by the geometry reader.
     @State private var size: CGSize = .zero
+    /// Whether the current drag has already reported its first change, so only the press animates.
     @State private var gestureBegan: Bool = false
+    /// The task running the animation that starts when the slider is pressed.
     @State private var valueAnimation: Task<Void, Never>? = nil
+    /// Called after the scroll or drag gestures finishes to store the color to the history.
     var storeColor: () -> Void
     
     var body: some View {
@@ -47,6 +57,13 @@ struct VerticalSlider<Content: View>: View {
         .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
     }
     
+    /// The handler passed to ``scrollWheelRouter`` to be called when a scroll is detected while the cursor is hovering the slider.
+    ///
+    /// Scrolling down decreases the value by 1% and scrolling up increases it by 1%.
+    ///
+    /// - Returns: `true` if the result should be stored to the color history, `false` if it shouldn't.
+    ///
+    /// - Parameter event: The event containing the information of the scroll.
     private func handleScroll(event: NSEvent) -> Bool {
         valueAnimation?.cancel()
         let step: Double = 0.01
@@ -55,6 +72,9 @@ struct VerticalSlider<Content: View>: View {
         return true
     }
     
+    /// The gesture that handles dragging inside the slider.
+    ///
+    /// The pointer is clamped when it leaves the slider shape.
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($isDragging) { _, state, _ in state = true }

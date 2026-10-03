@@ -7,17 +7,28 @@
 
 import SwiftUI
 
+
+/// Layout values for ``HueSpherePickerView``.
 private enum Layout {
     static let hsvSphereMinSize: CGFloat = 250
-    static let hsvSpherePositionIndicatorSize: CGFloat = 10
     static let outerPadding: CGFloat = 20
     static let stackSpacing: CGFloat = 10
 }
 
+/// A color picker with a Hue Sphere, a vertical brightness slider and an opacity slider below.
+///
+/// - Dragging inside the Hue Sphere sets the hue and saturation.
+/// - Dragging on the vertical slider sets the brightness.
+/// - Dragging on the horizontal slider below sets the opacity.
 struct HueSpherePickerView: View {
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
-    var colorHistory: ColorHistory
+    /// The object storing and managing previously selected colors through the picker session.
+    let colorHistory: ColorHistory
     
+    /// Stores the current color in the history
+    ///
+    /// Passed to the subviews as a closure, so they can commit a color without needing to know about the ``ColorHistory`` object.
     private func storeColor() { colorHistory.add(color) }
     
     var body: some View {
@@ -55,20 +66,5 @@ struct HueSpherePickerView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(minWidth: Layout.hsvSphereMinSize, minHeight: Layout.hsvSphereMinSize)
-    }
-}
-
-private extension HueSphere {
-    func positionIndicator(color: HSBAColor, sphereRadius: CGFloat) -> some View {
-        overlay {
-            Circle()
-                .fill(Color(hue: color.hue, saturation: color.saturation, brightness: 1))
-                .stroke(.black)
-                .frame(width: Layout.hsvSpherePositionIndicatorSize)
-                .offset(
-                    x: sphereRadius * cos(color.hue * 2 * .pi) * color.saturation,
-                    y: -(sphereRadius * sin (color.hue * 2 * .pi)) * color.saturation
-                )
-        }
     }
 }

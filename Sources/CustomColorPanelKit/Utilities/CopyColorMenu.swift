@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// A menu for copying an ``HSBAColor`` in the available string formats.
 struct CopyColorMenu: View {
+    /// The color to be copied.
     let color: HSBAColor
+    
     var body: some View {
         Menu {
             Button{ NSPasteboard.copy(color.hexString) }

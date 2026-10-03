@@ -1,5 +1,5 @@
 //
-//  HSBTriangle.swift
+//  HSVTriangle.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 09/06/2026.
@@ -10,20 +10,17 @@ import MetalKit
 
 /// A Metal-rendered triangle with each corner representing one of the HSV components.
 ///
-/// ``HSVTriangle`` displays a HSV ring using MetalKit and the current color.
 /// Rendering is performed by ``HSVTriangleCoordinator``.
 ///
 /// When creating the view, an ``ImmediatePanGestureRecognizer`` is added to the ``MTKView`` to modify the HSV components with the gesture.
 struct HSVTriangle: NSViewRepresentable {
-    /// A binding to the current color being modified.
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
-    /// Whether the triangle hue corner should be rotated to point to the hue angle.
-    var hueRotation: Bool
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
     
     func makeCoordinator() -> HSVTriangleCoordinator {
-        HSVTriangleCoordinator(color: $color, hueRotation: hueRotation, storeColor: storeColor)
+        HSVTriangleCoordinator(color: $color, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -34,30 +31,44 @@ struct HSVTriangle: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
-        if context.coordinator.hue != color.hue || context.coordinator.hueRotation != hueRotation {
-            context.coordinator.hueRotation = hueRotation
+        if context.coordinator.hue != color.hue {
             context.coordinator.hue = color.hue
             nsView.setNeedsDisplay(nsView.bounds)
         }
     }
+    
+    /// Returns an overlay for the MTKView that indicates the saturation and brightness values with its position inside the HSV Triangle.
+    ///
+    /// - Parameters:
+    ///   - brightness: The current brightness value of the color being edited.
+    ///   - offset: The offset that places the indicator within the HSV Triangle, calculated in ``HueRingPickerGeometry``.
+    ///   - color: The color used as fill for the indicator with the current HSV values.
+    func positionIndicator(brightness: CGFloat, offset: CGSize, color: Color) -> some View {
+        overlay {
+            let indicatorSize: CGFloat = 10
+            Circle()
+                .fill(color)
+                .stroke(brightness > 0.5 ? .black : .white, lineWidth: 1)
+                .frame(width: indicatorSize)
+                .offset(offset)
+        }
+    }
 }
 
-/// The coordinator responsible of rendering a ``HSVTriangle`` using MetalKit.
+/// The coordinator responsible for rendering an ``HSVTriangle`` using MetalKit.
 ///
-/// The coodinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HSVTriangleCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HSVTriangleVertexShader"
     static let fragmentShader: String = "HSVTriangleFragmentShader"
     
-    /// A binding to the current color being modified.
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
-    /// Whether the triangle hue corner should be rotated to point to the hue angle.
-    var hueRotation: Bool
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
-    /// The point where the dragging gesture started, `nil` if no gesture is being performed.
+    /// The point where the most recent drag gesture began.
     var draggingStart: CGPoint?
-    /// The hue component of ``color``.
+    /// The last hue passed to the shader.
     var hue: CGFloat = .nan
     
     var metalDevice: MTLDevice!
@@ -66,11 +77,9 @@ struct HSVTriangle: NSViewRepresentable {
     
     init(
         color: Binding<HSBAColor>,
-        hueRotation: Bool,
         storeColor: @escaping () -> Void,
     ) {
         _color = color
-        self.hueRotation = hueRotation
         self.storeColor = storeColor
         self.hue = color.wrappedValue.hue
         
@@ -95,7 +104,6 @@ struct HSVTriangle: NSViewRepresentable {
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         var hue = Float(self.hue)
         renderEncoder.setVertexBytes(&hue, length: MemoryLayout<Float>.stride, index: 0)
-        renderEncoder.setVertexBytes(&hueRotation, length: MemoryLayout<Bool>.stride, index: 1)
         renderEncoder.setRenderPipelineState(renderPipeline)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         renderEncoder.endEncoding()
@@ -104,9 +112,10 @@ struct HSVTriangle: NSViewRepresentable {
         commandBuffer.commit()
     }
     
-    /// Calculates and returns the area of the drawn triangle calculated using each vertex coordinate.
+    /// Returns the signed area of a triangle defined by  three vertices.
     ///
-    /// - Returns: The area of the triangle.
+    /// The result is positive when the vertices are ordered counterclockwise
+    /// and negative when they are ordered clockwise.
     ///
     /// - Parameters:
     ///   - a: Vertex 0.
@@ -121,10 +130,10 @@ struct HSVTriangle: NSViewRepresentable {
     /// - Returns: A tuple with the weight of each vertex.
     ///
     /// - Parameters:
-    ///   - point: The point within the triangle used for pbc, apc and abp triangles for calculating barycentric coordinates.
+    ///   - point: A point within the square where the triangle is drawn.
     ///   - size: The size of the triangle.
     private func getBarycentricCoordinates(for point: CGPoint, size: CGFloat) -> (w0: CGFloat, w1: CGFloat, w2: CGFloat) {
-        let angle = hueRotation ? self.hue * 2 * .pi : .pi * 0.5
+        let angle = self.hue * 2 * .pi
         let vertices = getVerticesForTriangle(size: size, angle: angle)
         let abc = abs(triangleArea(vertices[0], vertices[1], vertices[2]))
         
@@ -135,13 +144,13 @@ struct HSVTriangle: NSViewRepresentable {
         return (w0, w1, w2)
     }
     
-    /// Returns the coordinates of each triangle's vertex.
+    /// Returns the coordinates for the triangle vertices.
     ///
     /// - Returns: A `[CGPoint]` with each vertex coordinate.
     ///
     /// - Parameters:
     ///   - size: The size of the triangle.
-    ///   - angle: The angle in which triangle is rotated.
+    ///   - angle: The angle at which triangle is rotated.
     private func getVerticesForTriangle(size: CGFloat, angle: CGFloat) -> [CGPoint] {
         let offset: CGFloat = GeometryConstants.triangleVertexSpacing
         let radius = size * 0.5
@@ -167,7 +176,10 @@ struct HSVTriangle: NSViewRepresentable {
     
     /// The action that handles the drag gesture inside the HSV Triangle.
     ///
-    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating the HSV components using barycentric coordinates.
+    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating
+    /// the saturation and brightness components using barycentric coordinates.
+    ///
+    /// Drags outside that start outside the shape are ignored and the pointer is clamped when it leaves the shape.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let size = min(view.bounds.width, view.bounds.height)
@@ -192,7 +204,7 @@ struct HSVTriangle: NSViewRepresentable {
             return
         }
         
-        let angle = hueRotation ? self.hue * 2 * .pi : .pi * 0.5
+        let angle = self.hue * 2 * .pi
         let triangle = getVerticesForTriangle(size: size, angle: angle)
         
         let c0 = max(0, w0)

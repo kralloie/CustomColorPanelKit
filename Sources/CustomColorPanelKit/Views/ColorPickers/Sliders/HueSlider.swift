@@ -8,11 +8,12 @@
 import SwiftUI
 import MetalKit
 
+/// A Metal-rendered slider that displays the current color with all possible hue values from 0° to 360°.
+///
+/// Rendering is performed by ``HueSliderCoordinator``.
 struct HueSlider: NSViewRepresentable {
-    var color: HSBAColor
-    
     func makeCoordinator() -> HueSliderCoordinator {
-        HueSliderCoordinator(color: color)
+        HueSliderCoordinator()
     }
     
     func makeNSView(context: Context) -> MTKView {
@@ -24,20 +25,18 @@ struct HueSlider: NSViewRepresentable {
     func updateNSView(_ nsView: MTKView, context: Context) {}
 }
 
+/// The coordinator responsible for rendering a``HueSlider`` using MetalKit.
+///
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HueSliderCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HueSliderVertexShader"
     static let fragmentShader: String = "HueSliderFragmentShader"
-    
-    private var color: HSBAColor
     
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
-    init(
-        color: HSBAColor,
-    ) {
-        self.color = color
+    override init() {
         
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device

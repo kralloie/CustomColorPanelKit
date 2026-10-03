@@ -8,7 +8,11 @@
 import SwiftUI
 import MetalKit
 
+/// A Metal-rendered slider that displays the current color with all possible alpha values from 0% to 100% opacity.
+///
+/// Rendering is performed by ``OpacitySliderCoordinator``.
 struct OpacitySlider: NSViewRepresentable {
+    /// The current color being edited.
     var color: HSBAColor
     
     func makeCoordinator() -> OpacitySliderCoordinator {
@@ -32,15 +36,23 @@ struct OpacitySlider: NSViewRepresentable {
     }
 }
 
+
+/// The coordinator responsible for rendering a ``OpacitySlider`` using MetalKit.
+///
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class OpacitySliderCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "OpacitySliderVertexShader"
     static let fragmentShader: String = "OpacitySliderFragmentShader"
     
+    /// The current color being edited.
     var color: HSBAColor
-    
+    /// The last hue passed to the shader.
     var hue: CGFloat = .nan
+    /// The last saturation passed to the shader.
     var saturation: CGFloat = .nan
+    /// The last brightness passed to the shader.
     var brightness: CGFloat = .nan
+    /// The last R, G, B values passed to the shader.
     var rgbComponents: SIMD3<Float> = .init(repeating: 0)
     
     var metalDevice: MTLDevice!

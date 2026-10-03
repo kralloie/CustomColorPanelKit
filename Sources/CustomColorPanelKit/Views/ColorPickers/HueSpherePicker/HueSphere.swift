@@ -1,5 +1,5 @@
 //
-//  HSVSphere.swift
+//  HueSphere.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 05/08/2026.
@@ -8,13 +8,14 @@
 import MetalKit
 import SwiftUI
 
-/// A Metal-rendered sphere where the magnitude of each pixel coordinate represents the saturation.
+/// A Metal-rendered sphere where the magnitude of each pixel
+/// coordinate represents the saturation and the angle represents the hue.
 ///
-/// Rendering is performed by ``HueSpherecOORDINATOR``.
+/// Rendering is performed by ``HueSphereCoordinator``.
 ///
 /// When creating the view, an ``ImmediatePanGestureRecognizer`` is added to the ``MTKView`` to modify the hue and saturation components with the gesture.
 struct HueSphere: NSViewRepresentable {
-    /// A binding to the current color being modified.
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
@@ -31,17 +32,40 @@ struct HueSphere: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: NSViewType, context: Context) {}
+    
+    /// Returns an overlay for the MTKView that indicates the hue and saturation values inside the hue sphere.
+    ///
+    /// - Parameters:
+    ///   - color: The current color used as fill for the indicator.
+    ///   - sphereRadius: The radius of the sphere being drawn.
+    func positionIndicator(color: HSBAColor, sphereRadius: CGFloat) -> some View {
+        overlay {
+            let indicatorSize: CGFloat = 10
+            Circle()
+                .fill(Color(hue: color.hue, saturation: color.saturation, brightness: 1))
+                .stroke(.black)
+                .frame(width: indicatorSize)
+                .offset(
+                    x: sphereRadius * cos(color.hue * 2 * .pi) * color.saturation,
+                    y: -(sphereRadius * sin (color.hue * 2 * .pi)) * color.saturation
+                )
+        }
+    }
 }
 
+
+/// The coordinator responsible for rendering an``HueSphere`` using MetalKit.
+///
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HueSphereCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "HueSphereVertexShader"
     static let fragmentShader: String = "HueSphereFragmentShader"
     
-    /// A binding to the current color being modified.
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
-    /// The point where the dragging gesture started, `nil` if no gesture is being performed.
+    /// The point where the most recent drag gesture began.
     private var draggingStart: CGPoint?
     
     var metalDevice: MTLDevice!
@@ -81,8 +105,10 @@ struct HueSphere: NSViewRepresentable {
     
     /// The action that handles the drag gesture inside the Hue Sphere.
     ///
-    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating the Hue and Saturation components
+    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating the hue and saturation components
     /// based on the angle and magnitude of the cursor coordinates.
+    ///
+    /// Drags outside that start outside the shape are ignored and the pointer is clamped when it leaves the shape.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let radius = min(view.bounds.width, view.bounds.height) * 0.5

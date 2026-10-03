@@ -7,14 +7,22 @@
 
 import SwiftUI
 
+/// A circular indicator that represents the current position in a slider determined by the component value.
 struct SliderThumb: View {
+    /// Whether the slider is vertical or horizontal.
     let orientation: SliderOrientation
+    /// The current color used to fill the cursor when dragging and the preview.
     let color: Color
+    /// The color component that determines the offset of this view inside the slider.
     let value: CGFloat
+    /// Whether this view is currently being pressed.
     let isPressed: Bool
+    /// The width of the slider.
     let width: CGFloat
+    /// The height of the slider.
     let height: CGFloat
-    var size: CGFloat { orientation == .horizontal ? height : width }
+    /// The thickness of the slider, if horizontal the thickness is `height`, and if vertical, the thickness is  `width`.
+    var thickness: CGFloat { orientation == .horizontal ? height : width }
     
     var body: some View {
         Circle()
@@ -23,21 +31,22 @@ struct SliderThumb: View {
                 if !isPressed {
                     Circle()
                         .fill(color)
-                        .frame(width: size * 0.6, height: size * 0.6)
+                        .frame(width: thickness * 0.6, height: thickness * 0.6)
                         .shadow(color: .black, radius: 1)
                 }
             }
             .glassEffect(isPressed ? .regular.tint(color) : .identity)
-            .frame(width: size, height: size)
+            .frame(width: thickness, height: thickness)
             .scaleEffect(isPressed ? 1.25 : 1)
             .animation(.easeInOut(duration: 0.1), value: isPressed)
             .offset(
-                x: orientation == .horizontal ? (width - size) * (value - 0.5) : 0,
-                y: orientation == .vertical ? (height - size) * -(value - 0.5) : 0
+                x: orientation == .horizontal ? (width - thickness) * (value - 0.5) : 0,
+                y: orientation == .vertical ? (height - thickness) * -(value - 0.5) : 0
             )
             .shadow(color: .black, radius: 1)
     }
     
+    /// A small enum used for changing values whether the slider is horizontal or vertical.
     enum SliderOrientation {
         case horizontal, vertical
     }

@@ -84,7 +84,7 @@ struct PickerModeSelectorView: View {
             HueRing()
                 .frame(width: 20, height: 20)
                 .overlay {
-                    HSVTriangle(color: accentColor, hueRotation: true, storeColor: {})
+                    HSVTriangle(color: accentColor, storeColor: {})
                         .frame(width: 14, height: 14)
                 }
         }
