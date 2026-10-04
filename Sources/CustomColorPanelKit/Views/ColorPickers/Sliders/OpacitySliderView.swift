@@ -17,7 +17,7 @@ struct OpacitySliderView: View {
     @GestureState var isDragging: Bool = false
     /// Whether the current drag has already reported its first change, so only the press animates.
     @State private var gestureBegan: Bool = false
-    /// The size reported by the geometry reader.
+    /// The size reported by the `onGeometryChange`.
     @State private var size: CGSize = .zero
     /// Whether the dragging should be affected by the center locking.
     @State private var centerLock: Bool = false
@@ -62,7 +62,7 @@ struct OpacitySliderView: View {
     
     /// The handler passed to ``scrollWheelRouter`` to be called when a scroll is detected while the cursor is hovering the slider.
     ///
-    /// Scrolling down decreases the opacity by 1% and scrolling up increases it by 1%.
+    /// Positive delta Y increases the opacity by 1% and negative delta Y decreases it by 1%.
     ///
     /// - Returns: `true` if the result should be stored to the color history, `false` if it shouldn't.
     ///
@@ -77,8 +77,6 @@ struct OpacitySliderView: View {
     
     /// Returns the alpha value based on the position inside the slider.
     ///
-    /// - Note: Always returns `0.5` if `centerLock` is `true`.
-    ///
     /// - Parameter pos: The position inside the slider.
     private func targetAlpha(at pos: CGFloat) -> CGFloat {
         let travel = size.width - size.height
@@ -90,6 +88,7 @@ struct OpacitySliderView: View {
         } else if centerLock && abs(pos - center) < snapDistance * 2  {
             return 0.5
         } else {
+            centerLock = false
             return ((pos - size.height * 0.5) / travel).clamped(to: 0...1)
         }
     }
@@ -101,6 +100,8 @@ struct OpacitySliderView: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($isDragging) { _, state, _ in state = true }
             .onChanged {
+                guard size.width > 0 else { return }
+                
                 let isFirst = !gestureBegan
                 
                 if !gestureBegan {

@@ -13,7 +13,7 @@ struct SliderThumb: View {
     let orientation: SliderOrientation
     /// The current color used to fill the cursor when dragging and the preview.
     let color: Color
-    /// The color component that determines the offset of this view inside the slider.
+    /// The color the thumb shows: a dot on the white thumb at rest, and the glass tint while pressed.
     let value: CGFloat
     /// Whether this view is currently being pressed.
     let isPressed: Bool
@@ -21,7 +21,7 @@ struct SliderThumb: View {
     let width: CGFloat
     /// The height of the slider.
     let height: CGFloat
-    /// The thickness of the slider, if horizontal the thickness is `height`, and if vertical, the thickness is  `width`.
+    /// The thickness of the slider, if horizontal the thickness is `height`, and if vertical, the thickness is `width`.
     var thickness: CGFloat { orientation == .horizontal ? height : width }
     
     var body: some View {
@@ -46,7 +46,7 @@ struct SliderThumb: View {
             .shadow(color: .black, radius: 1)
     }
     
-    /// A small enum used for changing values whether the slider is horizontal or vertical.
+    /// The axis a slider runs along.
     enum SliderOrientation {
         case horizontal, vertical
     }

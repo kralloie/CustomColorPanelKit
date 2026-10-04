@@ -13,20 +13,20 @@ struct VerticalSlider<Content: View>: View {
     var slider: Content
     /// A binding to the value that the slider controls.
     @Binding var value: CGFloat
-    /// The color used to fill the ``SliderThumb`` when dragging and the preview when not dragging.
+    /// The color used to tint the ``SliderThumb`` glass when dragging and its color preview.
     var thumbTint: Color
     
     /// The shared scroll router instance to pass the scroll handler to.
     private var scrollWheelRouter = ScrollWheelRouter.shared
     /// Whether the slider is being dragged, updated by the `dragGesture`.
     @GestureState private var isDragging: Bool = false
-    /// The size reported by the geometry reader.
+    /// The size reported by the `onGeometryChange`.
     @State private var size: CGSize = .zero
     /// Whether the current drag has already reported its first change, so only the press animates.
     @State private var gestureBegan: Bool = false
     /// The task running the animation that starts when the slider is pressed.
     @State private var valueAnimation: Task<Void, Never>? = nil
-    /// Called after the scroll or drag gestures finishes to store the color to the history.
+    /// Called after the drag gesture ends to store the color to the history.
     var storeColor: () -> Void
     
     var body: some View {
@@ -59,7 +59,7 @@ struct VerticalSlider<Content: View>: View {
     
     /// The handler passed to ``scrollWheelRouter`` to be called when a scroll is detected while the cursor is hovering the slider.
     ///
-    /// Scrolling down decreases the value by 1% and scrolling up increases it by 1%.
+    /// Positive delta Y increases the value by 1% and negative delta Y decreases it by 1%.
     ///
     /// - Returns: `true` if the result should be stored to the color history, `false` if it shouldn't.
     ///
@@ -79,8 +79,12 @@ struct VerticalSlider<Content: View>: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($isDragging) { _, state, _ in state = true }
             .onChanged {
+                guard size.height > 0 else { return }
+                
                 let isFirst = !gestureBegan
+                
                 if !gestureBegan { gestureBegan = true }
+                
                 let travel = size.height - size.width
                 let target = 1 - (($0.location.y - size.width * 0.5) / travel).clamped(to: 0...1)
                 
