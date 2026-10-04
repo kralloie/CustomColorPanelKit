@@ -1,6 +1,6 @@
 //
 //  Shaders.metal
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 05/06/2026.
 //

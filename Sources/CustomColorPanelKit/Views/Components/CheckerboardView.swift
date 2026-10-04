@@ -1,6 +1,6 @@
 //
 //  CheckerboardView.swift
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 08/06/2026.
 //

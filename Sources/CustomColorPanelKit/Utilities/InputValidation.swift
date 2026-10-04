@@ -7,9 +7,17 @@
 
 import CoreFoundation
 
+/// The input representation of a color component, used for validating input in text fields and formatting components to strings.
+///
+/// - Hex: "#FFFFFF"
+/// - Degrees: "360°"
+/// - Percentage: "100%"
+/// - Numerical: "255"
 enum InputType {
+    /// The available color component formats.
     case hex, degrees, percentage, numerical
     
+    /// A multiplier used for normalizing and for single unit steps in controls.
     var multiplier: Int {
         switch self {
         case .degrees: 360
@@ -19,6 +27,9 @@ enum InputType {
         }
     }
     
+    /// Returns a formatted string representation of a color component.
+    ///
+    /// - Parameter value: The value to be formatted into a string.
     func format(_ value: CGFloat) -> String {
         switch self {
         case .hex:
@@ -32,6 +43,9 @@ enum InputType {
         }
     }
     
+    /// Returns the integer value from a string if the text matches the regex otherwise returns `nil`.
+    ///
+    /// - Parameter text: The string to parse.
     func parse(_ text: String) -> Int? {
         switch self {
         case .hex:
@@ -43,6 +57,11 @@ enum InputType {
         }
     }
     
+    /// Parses a string into a normalized color component value.
+    ///
+    /// - Returns: The normalized value in the range of `0...1`, or `nil` if parsing fails.
+    ///
+    /// - Parameter text: The string to parse and normalize.
     func normalize(_ text: String) -> CGFloat? {
         switch self {
         case .degrees:

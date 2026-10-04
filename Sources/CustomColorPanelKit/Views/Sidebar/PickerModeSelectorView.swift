@@ -7,16 +7,25 @@
 
 import SwiftUI
 
+/// A custom sectioned control for selecting a color picker mode.
+///
+/// Displays the available picker modes and clicking or dragging the indicator allows the user to change between the modes.
 struct PickerModeSelectorView: View {
+    /// The currently selected picker mode.
     @Binding var selectedMode: PickerMode
+    /// The last location updated by the drag gesture.
     @GestureState private var dragX: CGFloat?
     
+    /// All the available picker modes.
     private let modes = PickerMode.allCases
+    /// The height of the view.
     private let height: CGFloat = 30
+    /// The slide animation when clicking one of the modes.
     private let slide: Animation = .easeInOut(duration: 0.25)
-    
+    /// Whether there is an ongoing drag gesture.
     private var isDragging: Bool { dragX != nil }
-    private var accentColor: Binding<HSBAColor> { .constant(HSBAColor(with: .accentColor))}
+    /// A constant binding to the accent color used to show the picker mode previews with the system accent color.
+    private var accentColor: Binding<HSBAColor> { .constant(HSBAColor(with: .accentColor)) }
     
     var body: some View {
         GeometryReader { proxy in
@@ -61,6 +70,11 @@ struct PickerModeSelectorView: View {
         .padding(.bottom, 8)
     }
     
+    /// Returns the offset to position the indicator behind the selected picker mode based on the current width of the control.
+    ///
+    /// - Parameters:
+    ///   - segmentWidth: The width of the view divided by the amount of available picker modes.
+    ///   - width: The width of the view.
     private func indicatorOffset(segmentWidth: CGFloat, width: CGFloat) -> CGFloat {
         if let dragX {
             return (dragX - segmentWidth / 2).clamped(to: 0...(width - segmentWidth))
@@ -68,11 +82,19 @@ struct PickerModeSelectorView: View {
         return CGFloat(modes.firstIndex(of: selectedMode) ?? 0) * segmentWidth
     }
     
+    /// Returns a picker mode based on a drag position.
+    ///
+    /// - Parameters:
+    ///   - x: The drag X location.
+    ///   - segmentWidth: The width of the view divided by the amount of available picker modes.
     private func mode(at x: CGFloat, segmentWidth: CGFloat) -> PickerMode {
         guard segmentWidth > 0 else { return selectedMode }
         return modes[min(max(Int(x / segmentWidth), 0), modes.count - 1)]
     }
     
+    /// Returns a preview of each picker mode to use as icon on the control segments.
+    ///
+    /// - Parameter mode: The mode that the returned view will represent.
     @ViewBuilder
     private func icon(for mode: PickerMode) -> some View {
         switch mode {

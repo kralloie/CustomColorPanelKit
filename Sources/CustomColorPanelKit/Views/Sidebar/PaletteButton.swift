@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// An enum representing a palette with a name and with a set of 12 colors.
 enum Palette: CaseIterable {
     case system, classic, pastel, neon, warm, cool
     
@@ -108,12 +109,17 @@ enum Palette: CaseIterable {
     }
 }
 
+/// A button that shows a pop-over with different color palettes to choose and use as reference.
 struct PaletteButton: View {
-    
+    /// A binding to the current color being edited.
     @Binding var color: HSBAColor
+    /// A closure that stores the current color to the history after a palette color is selected.
     let storeColor: () -> Void
+    /// Whether the pop-over is being shown.
     @State private var showingPopover: Bool = false
+    /// The index of the current palette being shown.
     @State private var paletteIndex: Int = 0
+    /// All the palette presets.
     private var palette: Palette { Palette.allCases[paletteIndex] }
     
     var body: some View {
@@ -173,10 +179,15 @@ struct PaletteButton: View {
 
     }
     
+    /// Represents one of the palette colors as a clickable swatch.
     private struct ColorSwatch: View {
+        /// The color that this swatch represents.
         let swatch: Color
+        /// A binding to the current color being edited.
         @Binding var color: HSBAColor
+        /// A closure that stores the current color to the history after the swatch is selected.
         let storeColor: () -> Void
+        /// Whether the cursor is hovering the swatch.
         @State private var isHovering: Bool = false
         
         init(_ swatch: Color, _ color: Binding<HSBAColor>, _ storeColor: @escaping () -> Void) {

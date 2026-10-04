@@ -8,7 +8,13 @@
 import SwiftUI
 import MetalKit
 
+/// A Metal-rendered color rectangle whose inferior triangle is affected by the alpha component but the superior triangle is not.
+///
+/// At 0% opacity it will only render the superior triangle, while the inferior triangle will be transparent.
+///
+/// Rendering is performed by ``ColorExampleCoordinator``.
 struct ColorExample: NSViewRepresentable {
+    /// The current color.
     var color: HSBAColor
     
     func makeCoordinator() -> ColorExampleCoordinator {
@@ -27,11 +33,16 @@ struct ColorExample: NSViewRepresentable {
     }
 }
 
+/// The coordinator responsible for rendering a``ColorExample`` using MetalKit.
+///
+/// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class ColorExampleCoordinator: NSObject, MTKViewDelegate {
     static let vertexShader: String = "ColorExampleVertexShader"
     static let fragmentShader: String = "ColorExampleFragmentShader"
     
+    /// The last color passed to the shader.
     var color: HSBAColor
+    
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState

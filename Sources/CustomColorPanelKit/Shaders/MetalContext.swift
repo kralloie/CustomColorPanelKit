@@ -1,18 +1,24 @@
 //
 //  MetalContext.swift
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 08/06/2026.
 //
 
 import MetalKit
 
+/// Manages the Metal resources shared by the views.
 @MainActor final class MetalContext {
+    /// The shared Metal rendering context.
     @MainActor static let shared = {
         do { return try MetalContext() }
         catch { fatalError("CustomColorPanelKit: failed to initialize Metal - \(error)") }
     }()
     
+    /// Creates an `MTKView` configured for Metal rendering within the color picker.
+    ///
+    /// The view is configured for manual drawing and transparent rendering,
+    /// and uses the context's Metal device.
     func makeDefaultMTKView(delegate: MTKViewDelegate) -> MTKView {
         let view = MTKView()
         view.delegate = delegate

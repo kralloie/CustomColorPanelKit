@@ -1,6 +1,6 @@
 //
 //  OpacitySlider.swift
-//  CustomColorPanel
+//  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 06/06/2026.
 //

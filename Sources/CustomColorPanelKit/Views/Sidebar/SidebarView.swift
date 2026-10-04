@@ -71,7 +71,7 @@ struct SidebarView: View {
                 HStack {
                     colorPreview
                     
-                    EyeDropperButton(pickedColor: $color, storeColor: { colorHistory.add(color) })
+                    EyeDropperButton(currentColor: $color, storeColor: { colorHistory.add(color) })
                     
                     DiceButton(color: $color, storeColor: { colorHistory.add(color) })
                     
@@ -117,7 +117,7 @@ struct SidebarView: View {
             .padding(SidebarLayout.panelInnerPadding)
         }
         .background {
-            SidebarBackground(material: .popover, blendingMode: .behindWindow)
+            SidebarBackground()
                    .ignoresSafeArea(.container, edges: .top)
         }
         .accessibilityLabel("Sidebar")

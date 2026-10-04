@@ -7,9 +7,12 @@
 
 import SwiftUI
 
+/// The representation of a picker mode.
 enum PickerMode: Int, CaseIterable, Hashable {
+    /// The available picker modes.
     case hueRing, hsvSquare, hsvSphere
     
+    /// The title for the picker mode.
     var string: String {
         switch self {
             case .hueRing: return "Hue Ring"
@@ -19,17 +22,61 @@ enum PickerMode: Int, CaseIterable, Hashable {
     }
 }
 
+/// A color panel for macOS with Metal-rendered pickers and a sidebar of precise color controls.
+///
+/// Bind it to a SwiftUI `Color`, and the panel edits that color as someone uses it.
+///
+/// ```swift
+/// struct ContentView: View {
+///     @State private var color = Color.red
+///
+///     var body: some View {
+///         ColorPanelView($color)
+///     }
+/// }
+/// ```
+///
+/// ## Pickers
+///
+/// A segmented control at the top of the sidebar switches between three pickers.
+/// Each has an opacity slider below it.
+///
+/// - **Hue ring:** a ring that sets the hue, with a triangle inside it for saturation and brightness.
+/// - **HSV square:** a square for saturation and brightness, with a vertical hue slider.
+/// - **Hue sphere:** a sphere where the angle sets the hue and the distance from the center sets the saturation, with a vertical brightness slider.
+///
+/// ## Sidebar
+///
+/// - A preview of the current color over a checkerboard, so opacity is visible, with a context menu for copying the color.
+/// - An eyedropper that samples a color from anywhere on the screen, a random color button, and a set of premade palettes.
+/// - An editable hex field, and collapsible HSV, HSL, RGB and CMYK groups. Each channel has a slider, a text field and a stepper.
+/// - An alpha field.
+/// - A history of up to 144 recently used colors.
+///
+/// Sliders and fields also respond to the scroll wheel, and the arrow keys step the value of a focused field.
+///
+/// - Note: Requires macOS 26 or later.
 public struct ColorPanelView: View {
+    /// A binding to the color being edited.
     @Binding var colorBinding: Color
+    /// The color that will be edited in the picker.
+    ///
+    /// When initializing the view, this color is set to be the same as ``colorBinding``.
+    /// Every time this color is modified, it will impact on the original color passed to this view.
     @State var color: HSBAColor {
         didSet { colorBinding = color.color }
     }
+    /// The main instance of the color history.
     @State var colorHistory = ColorHistory()
+    /// The selected picker mode, by default is ``.hueRing``.
     @State var pickerMode: PickerMode = .hueRing
         
-    public init(_ c: Binding<Color>) {
-        self._colorBinding = c
-        self.color = HSBAColor(with: c.wrappedValue)
+    /// Creates a ``ColorPanelView``.
+    ///
+    /// - Parameter color: The color that this color picker will be editing.
+    public init(_ color: Binding<Color>) {
+        self._colorBinding = color
+        self.color = HSBAColor(with: color.wrappedValue)
     }
     
     public var body: some View {

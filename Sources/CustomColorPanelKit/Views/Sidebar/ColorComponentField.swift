@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Layout values for ``ColorComponentField``
 private enum Layout {
     static let textFieldHeight: CGFloat = 24
     static let textFieldCornerRadius: CGFloat = 6
@@ -21,16 +22,25 @@ private enum Layout {
     static let sliderThumbSize: CGFloat = 12
 }
 
+/// A row that represents a single color component in the sidebar.
+/// Consisting on a label for the component letter, a slider, a text field and a stepper as controls for the component value.
 @MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View {
+    /// The shared scroll router instance to pass the scroll handler to.
     private var scrollWheelRouter = ScrollWheelRouter.shared
+    /// A binding to the color component.
     @Binding var value: T
+    /// The text displayed on the text field.
     @State private var text: String
+    /// Whether the text field is focused.
     @FocusState private var isFocused: Bool
+    /// The computed formatted string for `value`.
     private var valueString: String { inputType.format(value.cgFloatValue) }
-    
+    /// The format of this component text representation.
     let inputType: InputType
+    /// The label of the component (e.g. "H" for Hue).
     let label: String
+    /// A closure that stores the current color to history.
     let storeColor: () -> Void
     
     init(value: Binding<T>, inputType: InputType, label: String, storeColor: @escaping () -> Void = {}) {
@@ -69,7 +79,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     isFocused: _isFocused,
                     inputType: inputType,
                     handleArrows: handleArrows,
-                    submitText: submitText,
+                    submitText: commitColor,
                     cancelField: cancelField
                 )
                 .equatable()
@@ -103,13 +113,21 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
     }
     
+    /// The text field for the component value.
     struct ColorComponentTextField: View, @MainActor Equatable {
+        /// The label of the component used for accessibility.
         let label: String
+        /// A binding to the text of this field.
         @Binding var text: String
+        /// Whether the field is focused.
         @FocusState var isFocused: Bool
+        /// The format of this component text representation.
         let inputType: InputType
+        /// Handles arrows pressed while editing the text field.
         let handleArrows: (KeyPress) -> KeyPress.Result
+        /// Called when when text field is submitted.
         let submitText: () -> Void
+        /// Caled when text field is cancelled.
         let cancelField: () -> Void
         
         var body: some View {
@@ -135,14 +153,19 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .accessibilityLabel(label)
         }
         
+        /// The Equatable implementation for avoiding unnecessary updates.
         static func == (a: Self, b: Self) -> Bool {
             a.text == b.text && a.inputType == b.inputType && a.isFocused == b.isFocused
         }
     }
     
+    /// The stepper control for the component value.
     private struct ColorComponentStepper: View, @MainActor Equatable {
+        /// Called after a step is pressed if text field is not focused.
         var storeColor: () -> Void
+        /// Steps the component value by the passed parameter.
         var stepValue: (CGFloat) -> Void
+        /// Whether the text field is focused.
         var isFocused: Bool
         
         var body: some View {
@@ -161,18 +184,29 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             .accessibilityHidden(true)
         }
         
+        /// The Equatable implementation for avoiding unnecessary updates.
         static func == (a: Self, b: Self) -> Bool { a.isFocused == b.isFocused }
     }
     
+    /// The slider control for the component value.
     private struct ColorComponentSlider: View {
+        /// A custom binding that gets the normalized value from the text so it is between 0.0 and 1.0
+        /// setting the value if text field is not focused and the text if the text field is focused.
         @Binding var normalized: CGFloat
+        /// The format of this component text representation.
         let inputType: InputType
+        /// The label of the component used for accessibility.
         let label: String
+        /// Stores the edited color after the slider drag ends if the text field is not focused.
         var storeColor: () -> Void
         
+        /// The task running the animation that starts when the slider is pressed.
         @State private var valueAnimation: Task<Void, Never>? = nil
+        /// The available width reported by `onGeometryChange`.
         @State private var width: CGFloat = 0
+        /// Whether the current drag has already reported its first change, so only the press animates.
         @State private var gestureBegan: Bool = false
+        /// Whether the slider is being dragged, updated by the `dragGesture`.
         @GestureState private var isDragging = false
         
         var body: some View {
@@ -211,6 +245,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
         }
         
+        /// Indicates the slider current position.
         private var thumb: some View {
             Circle()
                 .fill(isDragging ? Color.clear : .white)
@@ -226,6 +261,9 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .offset(x: (width - Layout.sliderThumbSize) * (normalized - 0.5))
         }
         
+        /// The gesture that handles dragging inside the slider.
+        ///
+        /// The pointer is clamped when it leaves the slider shape.
         private var dragGesture: some Gesture {
             DragGesture(minimumDistance: 0, coordinateSpace: .local)
                 .updating($isDragging) { _, state, _ in state = true }
@@ -254,6 +292,9 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
     }
     
+    /// Modifies the text field value by pressing the up and down arrows while the text field is focused.
+    ///
+    /// Pressing the Command key while pressing the arrows will go to the minimum and maximum values directly.
     private func handleArrows(press: KeyPress) -> KeyPress.Result {
         guard !(inputType == .hex) else { return .handled }
         guard isFocused else { return .handled }
@@ -271,6 +312,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         return .handled
     }
     
+    /// Handles the scrolling on when the cursor is hovering the text field.
+    /// Modifies the text content if the text field is focused and the component value if the text field is not focused.
     private func handleScroll(event: NSEvent) -> Bool {
         guard inputType != .hex else { return false }
         let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
@@ -278,12 +321,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         return !isFocused
     }
     
-    private func submitText() {
-        commitColor()
+    /// Turns the text field content into a normalized value between 0 and 1
+    /// sets the component value to the result, updates the text field content after updating the value
+    /// and stores the color to history
+    ///
+    /// - Note: If parsing the text field content fails, fallback to the previous value.
+    func commitColor() {
         isFocused = false
-    }
-    
-    private func commitColor() {
         guard let normalized = inputType.normalize(text) else {
             text = valueString
             return
@@ -293,6 +337,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         storeColor()
     }
     
+    /// Blurs the text field and sets the text field content to the current component value.
     private func cancelField() {
         if isFocused {
             text = valueString
@@ -300,6 +345,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
     }
     
+    /// Increases a value by a step adapted to the current ``InputType`` multiplier and clamps it between 0 and 1.
+    ///
+    /// - Returns: The increased (decreased if `step` is negative) value clamped between 0 and 1.
+    ///
+    /// - Parameters:
+    ///   - value: The target value to be increased.
+    ///   - step: The increase amount (can be negative for decreasing).
     private func increaseValue(_ value: CGFloat, by step: CGFloat) -> CGFloat {
         let steppedValue = (value + step / CGFloat(inputType.multiplier))
         if inputType == .degrees {
@@ -310,6 +362,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         }
     }
     
+    /// Steps the component value if the text field is not focused and steps the text content if the text field is focused.
     private func stepValue(by amount: CGFloat) {
         if isFocused {
             let newValue = increaseValue(inputType.normalize(text) ?? value.cgFloatValue, by: amount)
@@ -321,6 +374,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     }
 }
 
+/// Contains a the letter representing the component along with the``ColorComponentField``.
 struct ColorComponentFieldContainer<Content: View>: View {
     let component: String
     @ViewBuilder let componentField: () -> Content

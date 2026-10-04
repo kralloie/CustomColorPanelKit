@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// The view used as background in the sidebar blending the content behind the window.
 struct SidebarBackground: NSViewRepresentable {
     var material: NSVisualEffectView.Material = .sidebar
     var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
