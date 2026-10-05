@@ -81,9 +81,6 @@ struct HSBAColor: Equatable, Hashable {
     var color: Color { Color(hue: hue, saturation: saturation, brightness: brightness, opacity: alpha) }
     
     /// The color as red, green and blue channels, each from 0 to 1.
-    ///
-    /// Setting it clamps the channels and recomputes the hue, saturation and brightness. RGB doesn't
-    /// record a hue for grays, so setting equal channels resets the hue and saturation to 0.
     var rgb: RGB {
         get {
             let h = hue
@@ -153,9 +150,6 @@ struct HSBAColor: Equatable, Hashable {
     }
     
     /// The color as hue, saturation and lightness, each from 0 to 1.
-    ///
-    /// Setting it clamps the components. Unlike ``rgb``, setting it keeps the hue it's given,
-    /// even when the lightness or saturation leaves the hue with no visible effect.
     var hsl: HSL {
         get {
             let sHsv = saturation.clamped(to: 0...1)
@@ -232,6 +226,35 @@ struct HSBAColor: Equatable, Hashable {
     
     /// The hex value as a string with a leading `#`, such as `"#FF4245"`.
     var hexString: String { String(format: "#%06X", hex) }
+    
+    /// Converts red, green and blue channels to hue, saturation and brightness.
+    ///
+    /// - Parameters:
+    ///   - r: The red channel, from 0 to 1.
+    ///   - g: The green channel, from 0 to 1.
+    ///   - b: The blue channel, from 0 to 1.
+    /// - Returns: The hue as a fraction of a full turn, and the saturation and brightness, each from 0 to 1.
+    private func rgbToHSV(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat) {
+        let maxV = max(r, g, b)
+        let minV = min(r, g, b)
+        let delta = maxV - minV
+
+        let brightness = maxV
+        let saturation = maxV == 0 ? self.saturation : delta / maxV
+
+        var hue: CGFloat = self.hue
+        if delta != 0 {
+            switch maxV {
+            case r: hue = (g - b) / delta
+            case g: hue = (b - r) / delta + 2
+            default: hue = (r - g) / delta + 4
+            }
+            hue /= 6
+            if hue < 0 { hue += 1 }
+        }
+
+        return (hue, saturation, brightness)
+    }
     
     static func == (a: Self, b: Self) -> Bool {
         a.hue == b.hue && a.saturation == b.saturation && a.brightness == b.brightness && a.alpha == b.alpha
@@ -312,35 +335,4 @@ extension UInt32: ColorComponentNumeric {
     init(value: CGFloat) {
         self = value.isFinite ? UInt32(value.clamped(to: 0...CGFloat(UInt32.max))) : 0
     }
-}
-
-/// Converts red, green and blue channels to hue, saturation and brightness.
-///
-/// Grays, where the channels are equal, return a hue and saturation of 0.
-///
-/// - Parameters:
-///   - r: The red channel, from 0 to 1.
-///   - g: The green channel, from 0 to 1.
-///   - b: The blue channel, from 0 to 1.
-/// - Returns: The hue as a fraction of a full turn, and the saturation and brightness, each from 0 to 1.
-private func rgbToHSV(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat) {
-    let maxV = max(r, g, b)
-    let minV = min(r, g, b)
-    let delta = maxV - minV
-
-    let brightness = maxV
-    let saturation = maxV == 0 ? 0 : delta / maxV
-
-    var hue: CGFloat = 0
-    if delta != 0 {
-        switch maxV {
-        case r: hue = (g - b) / delta
-        case g: hue = (b - r) / delta + 2
-        default: hue = (r - g) / delta + 4
-        }
-        hue /= 6
-        if hue < 0 { hue += 1 }
-    }
-
-    return (hue, saturation, brightness)
 }
