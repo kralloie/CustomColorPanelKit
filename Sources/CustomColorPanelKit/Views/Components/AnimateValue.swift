@@ -26,11 +26,8 @@ func animateValue(
     valueAnimation: Binding<Task<Void, Never>?>
 ) {
     valueAnimation.wrappedValue?.cancel()
-    /// Starting value of the component.
     let start = value.wrappedValue
-    /// Clock for tracking the duration of the animation.
     let clock = ContinuousClock()
-    /// Starting time of the animation.
     let begin = clock.now
 
     valueAnimation.wrappedValue = Task { @MainActor in

@@ -23,7 +23,7 @@ private enum Layout {
 }
 
 /// A row that represents a single color component in the sidebar.
-/// Consisting on a label for the component letter, a slider, a text field and a stepper as controls for the component value.
+/// Consists of a label for the component letter, a slider, a text field and a stepper as controls for the component value.
 @MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View {
     /// The shared scroll router instance to pass the scroll handler to.
@@ -127,7 +127,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         let handleArrows: (KeyPress) -> KeyPress.Result
         /// Called when when text field is submitted.
         let submitText: () -> Void
-        /// Caled when text field is cancelled.
+        /// Called when text field is cancelled.
         let cancelField: () -> Void
         
         var body: some View {

@@ -12,7 +12,7 @@ import SwiftUI
 /// The newest color comes first. Stored colors are always opaque, and no two share a hex value.
 /// When the history is full, adding a color removes the oldest one.
 ///
-/// The colors are compared by its hex value when deleted or checked for repetition.
+/// The colors are compared by their hex value when deleted or checked for repetition.
 @Observable
 final class ColorHistory {
     /// The stored colors, newest first.
