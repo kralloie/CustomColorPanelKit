@@ -44,15 +44,15 @@ import MetalKit
     
     private init() throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
-             fatalError("No Metal device available on this machine")
-         }
-         guard let queue = device.makeCommandQueue() else {
-             fatalError("Failed to create a Metal command queue")
-         }
-         self.device = device
-         self.commandQueue = queue
+            throw NSError(domain: "MetalSetup", code: 1, userInfo: [NSLocalizedDescriptionKey: "No Metal device available on this machine"])
+        }
+        guard let queue = device.makeCommandQueue() else {
+            throw NSError(domain: "MetalSetup", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to create a Metal command queue"])
+        }
+        self.device = device
+        self.commandQueue = queue
 
-         let library = try device.makeDefaultLibrary(bundle: .module)
+        let library = try device.makeDefaultLibrary(bundle: .module)
         
         func makePipeline(vertex: String, fragment: String) throws -> MTLRenderPipelineState {
             let descriptor = MTLRenderPipelineDescriptor()
