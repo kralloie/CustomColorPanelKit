@@ -15,14 +15,15 @@ import SwiftUI
 /// The colors are compared by their hex value when deleted or checked for repetition.
 @Observable
 final class ColorHistory {
+    /// The most colors the history keeps.
+    static let capacity = 144
+    
     /// The stored colors, newest first.
     private(set) var colors: [HSBAColor] = []
     /// The hex value of each color in ``colors``, in the same order.
     ///
     /// Used to find duplicates without comparing every color. It must always have the same length as ``colors``.
     private var hexes: [UInt32] = []
-    /// The most colors the history keeps.
-    private let capacity = 144
     /// A color chosen from the history that the color panel hasn't applied yet.
     ///
     /// Set when someone picks a swatch. The panel applies the color, keeping its own
@@ -30,7 +31,7 @@ final class ColorHistory {
     var pendingChange: HSBAColor?
     
     /// Creates an empty history.
-    init() { colors.reserveCapacity(capacity) }
+    init() { colors.reserveCapacity(Self.capacity) }
     
     /// Adds a color to the front of the history.
     ///
@@ -47,7 +48,7 @@ final class ColorHistory {
             hexes.remove(at: index)
         }
         
-        if colors.count == capacity { colors.removeLast(); hexes.removeLast() }
+        if colors.count == Self.capacity { colors.removeLast(); hexes.removeLast() }
         
         colors.insert(color, at: 0)
         hexes.insert(hex, at: 0)

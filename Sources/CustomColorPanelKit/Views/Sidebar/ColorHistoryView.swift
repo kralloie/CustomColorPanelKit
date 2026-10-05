@@ -17,9 +17,9 @@ struct ColorHistoryView: View {
     /// The spacing between each color swatch.
     private let spacing: CGFloat = 4
     /// The max amount of columns in the grid.
-    private let maxColumns: CGFloat = 12
+    private let maxColumns = 12
     /// The max width that the grid will take.
-    private var gridWidth: CGFloat { maxColumns * colorSize + (maxColumns - 1) * spacing }
+    private var gridWidth: CGFloat { CGFloat(maxColumns) * colorSize + (CGFloat(maxColumns) - 1) * spacing }
     /// A closure that sets the color being edited to the selected color in the grid.
     private func setColor(_ c: HSBAColor) { colorHistory.pendingChange = c }
     
@@ -30,7 +30,7 @@ struct ColorHistoryView: View {
             ],
             spacing: spacing
         ) {
-            ForEach(0..<144, id: \.self) { i in
+            ForEach(0..<ColorHistory.capacity, id: \.self) { i in
                 ColorHistoryEntry(
                     index: i,
                     colorSize: colorSize,
