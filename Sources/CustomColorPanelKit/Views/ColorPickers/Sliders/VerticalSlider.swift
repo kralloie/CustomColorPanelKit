@@ -66,6 +66,7 @@ struct VerticalSlider<Content: View>: View {
     /// - Parameter event: The event containing the information of the scroll.
     private func handleScroll(event: NSEvent) -> Bool {
         valueAnimation?.cancel()
+        guard event.scrollingDeltaY != 0 else { return false }
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         value = min(max(value + delta, 0), 1)

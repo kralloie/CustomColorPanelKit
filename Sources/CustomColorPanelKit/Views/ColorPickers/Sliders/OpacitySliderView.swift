@@ -69,6 +69,7 @@ struct OpacitySliderView: View {
     /// - Parameter event: The event containing the information of the scroll.
     private func handleScroll(event: NSEvent) -> Bool {
         alphaAnimation?.cancel()
+        guard event.scrollingDeltaY != 0 else { return false }
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         color.alpha = min(max(color.alpha + delta, 0), 1)

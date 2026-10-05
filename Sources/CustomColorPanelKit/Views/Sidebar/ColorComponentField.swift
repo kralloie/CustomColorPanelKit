@@ -315,6 +315,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     /// Handles the scrolling on when the cursor is hovering the text field.
     /// Modifies the text content if the text field is focused and the component value if the text field is not focused.
     private func handleScroll(event: NSEvent) -> Bool {
+        guard event.scrollingDeltaY != 0 else { return false }
         guard inputType != .hex else { return false }
         let delta = event.scrollingDeltaY > 0 ? 1.0 : -1.0
         stepValue(by: delta)
