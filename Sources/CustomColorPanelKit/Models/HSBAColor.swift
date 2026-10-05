@@ -41,7 +41,7 @@ struct HSBAColor: Equatable, Hashable {
     /// - Parameter color: The color to convert.
     init(with color: Color) {
         let nsColor = NSColor(color)
-        if let rgbColor = nsColor.usingColorSpace(.deviceRGB) {
+        if let rgbColor = nsColor.usingColorSpace(.sRGB) {
             var h: CGFloat = 0
             var s: CGFloat = 0
             var b: CGFloat = 0
