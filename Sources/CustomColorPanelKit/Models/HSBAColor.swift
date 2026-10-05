@@ -229,6 +229,8 @@ struct HSBAColor: Equatable, Hashable {
     
     /// Converts red, green and blue channels to hue, saturation and brightness.
     ///
+    /// Hue is undefined for grays, so the color's current hue is returned instead (this reads `self`).
+    /// Saturation is 0 for grays and black.
     /// - Parameters:
     ///   - r: The red channel, from 0 to 1.
     ///   - g: The green channel, from 0 to 1.
@@ -240,7 +242,7 @@ struct HSBAColor: Equatable, Hashable {
         let delta = maxV - minV
 
         let brightness = maxV
-        let saturation = maxV == 0 ? self.saturation : delta / maxV
+        let saturation = maxV == 0 ? 0 : delta / maxV
 
         var hue: CGFloat = self.hue
         if delta != 0 {
