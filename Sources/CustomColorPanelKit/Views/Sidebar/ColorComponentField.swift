@@ -94,6 +94,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     scrollWheelRouter.scrollHandler = nil
                 }
             }
+            .onDisappear { scrollWheelRouter.scrollHandler = nil }
             
             if inputType != .hex {
                 ColorComponentStepper(

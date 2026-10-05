@@ -56,6 +56,7 @@ struct OpacitySliderView: View {
                     scrollWheelRouter.scrollHandler = nil
                 }
             }
+            .onDisappear { scrollWheelRouter.scrollHandler = nil }
             .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
         }
     }
