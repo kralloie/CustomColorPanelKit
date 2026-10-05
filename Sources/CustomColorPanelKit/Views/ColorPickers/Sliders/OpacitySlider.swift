@@ -44,8 +44,6 @@ struct OpacitySlider: NSViewRepresentable {
     static let vertexShader: String = "OpacitySliderVertexShader"
     static let fragmentShader: String = "OpacitySliderFragmentShader"
     
-    /// The current color being edited.
-    var color: HSBAColor
     /// The last hue passed to the shader.
     var hue: CGFloat = .nan
     /// The last saturation passed to the shader.
@@ -60,7 +58,18 @@ struct OpacitySlider: NSViewRepresentable {
     var renderPipeline: MTLRenderPipelineState
     
     init(color: HSBAColor) {
-        self.color = color
+        self.hue = color.hue
+        self.saturation = color.saturation
+        self.brightness = color.brightness
+
+        let rgb = color.rgb
+        self.rgbComponents = SIMD3(
+            Float(rgb.red),
+            Float(rgb.green),
+            Float(rgb.blue)
+        )
+        
+        
         let ctx = MetalContext.shared
         self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
