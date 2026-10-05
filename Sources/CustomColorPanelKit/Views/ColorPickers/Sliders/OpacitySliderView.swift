@@ -100,7 +100,7 @@ struct OpacitySliderView: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($isDragging) { _, state, _ in state = true }
             .onChanged {
-                guard size.width > 0 else { return }
+                guard size.width > 0 && size.width > size.height else { return }
                 
                 let isFirst = !gestureBegan
                 

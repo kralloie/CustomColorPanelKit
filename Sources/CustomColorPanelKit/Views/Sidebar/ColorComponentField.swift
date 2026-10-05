@@ -202,8 +202,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         
         /// The task running the animation that starts when the slider is pressed.
         @State private var valueAnimation: Task<Void, Never>? = nil
-        /// The available width reported by `onGeometryChange`.
-        @State private var width: CGFloat = 0
+        /// The available size reported by `onGeometryChange`.
+        @State private var size: CGSize = .zero
         /// Whether the current drag has already reported its first change, so only the press animates.
         @State private var gestureBegan: Bool = false
         /// Whether the slider is being dragged, updated by the `dragGesture`.
@@ -213,11 +213,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             ZStack(alignment: .center) {
                 Capsule()
                     .fill(Color.primary)
-                    .frame(width: width, height: Layout.sliderTrackHeight)
+                    .frame(width: size.width, height: Layout.sliderTrackHeight)
                     .overlay(alignment: .leading) {
                         Capsule()
                             .fill(Color.accentColor)
-                            .frame(width: max(normalized * width, 0), height: Layout.sliderTrackHeight)
+                            .frame(width: max(normalized * size.width, 0), height: Layout.sliderTrackHeight)
                     }
                 
                 thumb
@@ -225,7 +225,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             }
             .frame(height: Layout.sliderTrackHeight)
             .frame(maxWidth: .infinity)
-            .position(x: width * 0.5, y: Layout.textFieldHeight * 0.5)
+            .position(x: size.width * 0.5, y: Layout.textFieldHeight * 0.5)
             .gesture(dragGesture)
             .accessibilityRepresentation {
                 Slider(
@@ -242,7 +242,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                     .accessibilityLabel(label)
                     .accessibilityValue(inputType.format(normalized))
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
         }
         
         /// Indicates the slider current position.
@@ -258,7 +258,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .scaleEffect(isDragging ? 1.25 : 1)
                 .shadow(radius: 1)
                 .animation(.easeInOut(duration: 0.1), value: isDragging)
-                .offset(x: (width - Layout.sliderThumbSize) * (normalized - 0.5))
+                .offset(x: (size.width - Layout.sliderThumbSize) * (normalized - 0.5))
         }
         
         /// The gesture that handles dragging inside the slider.
@@ -268,11 +268,11 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             DragGesture(minimumDistance: 0, coordinateSpace: .local)
                 .updating($isDragging) { _, state, _ in state = true }
                 .onChanged {
+                    guard size.width > 0 && size.width > size.height else { return }
                     let isFirst = !gestureBegan
                     if !gestureBegan { gestureBegan = true }
                     
-                    guard width > 0 else { return }
-                    let travel = width - Layout.sliderThumbSize
+                    let travel = size.width - Layout.sliderThumbSize
                     let target = (($0.location.x - Layout.sliderThumbSize * 0.5) / travel).clamped(to: 0...1)
                     
                     if isFirst {

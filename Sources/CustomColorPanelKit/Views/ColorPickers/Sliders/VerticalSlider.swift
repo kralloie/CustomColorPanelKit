@@ -79,7 +79,7 @@ struct VerticalSlider<Content: View>: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($isDragging) { _, state, _ in state = true }
             .onChanged {
-                guard size.height > 0 else { return }
+                guard size.height > 0 && size.height > size.width else { return }
                 
                 let isFirst = !gestureBegan
                 
