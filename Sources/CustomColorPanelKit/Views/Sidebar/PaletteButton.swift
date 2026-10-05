@@ -198,7 +198,9 @@ struct PaletteButton: View {
         
         var body: some View {
             Button {
+                let alpha = color.alpha
                 color = .init(with: swatch)
+                color.alpha = alpha
                 storeColor()
             } label: {
                 Circle()
