@@ -29,7 +29,8 @@ struct OpacitySlider: NSViewRepresentable {
             context.coordinator.hue = color.hue
             context.coordinator.saturation = color.saturation
             context.coordinator.brightness = color.brightness
-            context.coordinator.rgbComponents = SIMD3<Float>(Float(color.rgb.red), Float(color.rgb.green), Float(color.rgb.blue))
+            let rgb = color.rgb
+            context.coordinator.rgbComponents = SIMD3<Float>(Float(rgb.red), Float(rgb.green), Float(rgb.blue))
             
             nsView.setNeedsDisplay(nsView.bounds)
         }
