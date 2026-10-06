@@ -36,7 +36,7 @@ struct HSBAColor: Equatable, Hashable {
     
     /// Creates a color from a SwiftUI color.
     ///
-    /// The color is converted through device RGB. If that conversion fails, the result is opaque white.
+    /// The color is converted through sRGB. If that conversion fails, the result is opaque white.
     ///
     /// - Parameter color: The color to convert.
     init(with color: Color) {
