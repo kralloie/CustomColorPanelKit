@@ -58,14 +58,11 @@ enum PickerMode: Int, CaseIterable, Hashable {
 /// - Note: Requires macOS 26 or later.
 public struct ColorPanelView: View {
     /// A binding to the color being edited.
-    @Binding var colorBinding: Color
+    @Binding var selection: Color
     /// The color that will be edited in the picker.
+    @State var color: HSBAColor
     ///
-    /// When initializing the view, this color is set to be the same as ``colorBinding``.
-    /// Every time this color is modified, it will impact on the original color passed to this view.
-    @State var color: HSBAColor {
-        didSet { colorBinding = color.color }
-    }
+    @State private var publishedSelection: Color?
     /// The main instance of the color history.
     @State var colorHistory = ColorHistory()
     /// The selected picker mode, by default is ``.hueRing``.
@@ -75,7 +72,7 @@ public struct ColorPanelView: View {
     ///
     /// - Parameter color: The color that this color picker will be editing.
     public init(_ color: Binding<Color>) {
-        self._colorBinding = color
+        self._selection = color
         self.color = HSBAColor(with: color.wrappedValue)
     }
     
@@ -101,6 +98,23 @@ public struct ColorPanelView: View {
             newColor.alpha = color.alpha
             color = newColor
             colorHistory.pendingChange = nil
+        }
+        .onChange(of: color) {
+            let newSelection = color.color
+            
+            guard selection != newSelection else { return }
+            
+            publishedSelection = newSelection
+            selection = newSelection
+        }
+        .onChange(of: selection) {
+            if selection == publishedSelection {
+                publishedSelection = nil
+                return
+            }
+            
+            publishedSelection = nil
+            color = HSBAColor(with: selection)
         }
     }
 }
