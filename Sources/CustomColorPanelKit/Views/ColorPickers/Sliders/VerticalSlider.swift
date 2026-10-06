@@ -17,7 +17,7 @@ struct VerticalSlider<Content: View>: View {
     var thumbTint: Color
     
     /// The shared scroll router instance to pass the scroll handler to.
-    private var scrollWheelRouter = ScrollWheelRouter.shared
+    @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
     /// Whether the slider is being dragged, updated by the `dragGesture`.
     @GestureState private var isDragging: Bool = false
     /// The size reported by the `onGeometryChange`.

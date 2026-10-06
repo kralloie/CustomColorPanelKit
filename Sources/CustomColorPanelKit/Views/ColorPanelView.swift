@@ -67,6 +67,8 @@ public struct ColorPanelView: View {
     @State var colorHistory = ColorHistory()
     /// The selected picker mode, by default is ``.hueRing``.
     @State var pickerMode: PickerMode = .hueRing
+    
+    @State private var scrollWheelRouter = ScrollWheelRouter()
         
     /// Creates a ``ColorPanelView``.
     ///
@@ -90,8 +92,9 @@ public struct ColorPanelView: View {
             }
 
         }
+        .environment(scrollWheelRouter)
         .background {
-            ScrollWheelMonitor(router: ScrollWheelRouter.shared, color: $color, storeColor: { colorHistory.add($0) })
+            ScrollWheelMonitor(router: scrollWheelRouter, color: $color, storeColor: { colorHistory.add($0) })
         }
         .onChange(of: colorHistory.pendingChange) {
             guard var newColor = colorHistory.pendingChange else { return }

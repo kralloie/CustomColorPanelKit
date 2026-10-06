@@ -27,7 +27,7 @@ private enum Layout {
 @MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View {
     /// The shared scroll router instance to pass the scroll handler to.
-    private var scrollWheelRouter = ScrollWheelRouter.shared
+    @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
     /// A binding to the color component.
     @Binding var value: T
     /// The text displayed on the text field.

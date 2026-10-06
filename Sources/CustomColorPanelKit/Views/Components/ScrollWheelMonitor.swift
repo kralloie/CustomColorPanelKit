@@ -15,15 +15,13 @@ import SwiftUI
 /// and forwards events here.
 ///
 /// - Note: Only one handler can be registered at a time. Assigning a new ``scrollHandler`` replaces whatever was set before it.
-@MainActor
+@Observable
 final class ScrollWheelRouter {
     /// Handles a scroll event while a control is hovered, or `nil` when none is.
     ///
     /// Return `true` if the color should be stored after the scrolling stops. Return `false` for changes that shouldn't be recorded,
     /// such as editing text field contents. The event is consumed either way.
     var scrollHandler: ((NSEvent) -> Bool)?
-    
-    static let shared = ScrollWheelRouter()
 }
 
 /// An invisible view that installs a local scroll wheel event monitor and forwards received events through ``ScrollWheelRouter``.
