@@ -32,7 +32,7 @@ fragment float4 HueRingFragmentShader(HueRingVertexOut in [[stage_in]]) {
     float3 color = hsbToRGB(hue, 1.0, 1.0);
     float aa = fwidth(dist);
     float outerAlpha = 1.0 - smoothstep(1.0 - aa, 1.0, dist);
-    float innerAlpha = smoothstep(0.76 - aa, 0.76, dist);
+    float innerAlpha = smoothstep(0.75 - aa, 0.75, dist);
     return float4(color, outerAlpha * innerAlpha);
 }
 
