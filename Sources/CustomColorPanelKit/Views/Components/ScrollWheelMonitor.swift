@@ -7,14 +7,13 @@
 
 import SwiftUI
 
-/// A shared, app-wide destination for scroll wheel events.
+/// Routes scroll wheel events to the scroll-sensitive control currently under the pointer.
 ///
-/// Instead of each scroll-sensitive widget having its own AppKit
-/// event monitor, a control claims scroll events by assigning itself to ``shared``'s ``scrollHandler`` - typically while hovered -
-/// and clears itself when it's no longer the intended recipient. ``ScrollWheelMonitor`` is what actually installs the underlying event monitor
-/// and forwards events here.
+/// Each ``ColorPanelView`` owns one router and injects it into its view hierarchy.
+/// A control claims scroll events by assigning its handler while hovered and clears
+/// the handler when it is no longer the intended recipient.
 ///
-/// - Note: Only one handler can be registered at a time. Assigning a new ``scrollHandler`` replaces whatever was set before it.
+/// - Note: Only one handler can be registered within a color panel at a time.
 @Observable
 final class ScrollWheelRouter {
     /// Handles a scroll event while a control is hovered, or `nil` when none is.
