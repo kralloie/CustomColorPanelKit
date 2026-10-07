@@ -10,14 +10,14 @@ import SwiftUI
 /// The representation of a picker mode.
 enum PickerMode: Int, CaseIterable, Hashable {
     /// The available picker modes.
-    case hueRing, hsvSquare, hsvSphere
+    case hueRing, hsvSquare, hueSphere
     
     /// The title for the picker mode.
-    var string: String {
+    var string: LocalizedStringResource {
         switch self {
-            case .hueRing: return "Hue Ring"
-            case .hsvSquare: return "HSV Square"
-            case .hsvSphere: return "HSV Sphere"
+        case .hueRing: return .pickerHueRing
+        case .hsvSquare: return .pickerHsvSquare
+        case .hueSphere: return .pickerHueSphere
         }
     }
 }
@@ -87,7 +87,7 @@ public struct ColorPanelView: View {
                 HueRingPickerView(color: $color, colorHistory: colorHistory)
             case .hsvSquare:
                 HSVSquarePickerView(color: $color, colorHistory: colorHistory)
-            case .hsvSphere:
+            case .hueSphere:
                 HueSpherePickerView(color: $color, colorHistory: colorHistory)
             }
 

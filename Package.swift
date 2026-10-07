@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "CustomColorPanelKit",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     products: [
         .library(

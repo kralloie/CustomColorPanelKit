@@ -49,12 +49,12 @@ struct ColorHistoryView: View {
             Button() {
                 colorHistory.clear()
             } label: {
-                Label("Clear History", systemImage: "trash")
+                Label(.historyClear, systemImage: "trash")
             }
             .disabled(colorHistory.colors.isEmpty)
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Color History")
+        .accessibilityLabel(.historyTitle)
     }
 }
 
@@ -76,6 +76,7 @@ extension ColorHistoryView {
         var body: some View {
             if colorHistory.colors.indices.contains(index) {
                 let c = colorHistory.colors[index]
+                let entryString: LocalizedStringResource = .historyEntry(index + 1)
                 Button {
                     setColor(c)
                 } label: {
@@ -88,7 +89,11 @@ extension ColorHistoryView {
                 .scaleEffect(isHovering ? 1.25 : 1)
                 .animation(.easeInOut(duration: 0.1), value: isHovering)
                 .contextMenu{ ColorEntryContextMenu(color: c, colorHistory: colorHistory, setColor: setColor) }
-                .accessibilityLabel(Text("Entry \(index + 1) \(Text(c.hexString).speechSpellsOutCharacters(true))"))
+                .accessibilityLabel { _ in
+                    Text(entryString)
+                    Text(verbatim: c.hexString)
+                        .speechSpellsOutCharacters(true)
+                }
             } else {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(.separator, lineWidth: 1)
@@ -110,7 +115,7 @@ extension ColorHistoryView {
         let setColor: (HSBAColor) -> Void
         
         var body: some View {
-            Button("Select") { setColor(color) }
+            Button(.historySelect) { setColor(color) }
             
             CopyColorMenu(color: color)
             
@@ -119,7 +124,7 @@ extension ColorHistoryView {
             Button() {
                 colorHistory.delete(color)
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label(.historyDelete, systemImage: "trash")
             }
         }
     }

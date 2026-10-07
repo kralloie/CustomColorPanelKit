@@ -23,6 +23,6 @@ struct DiceButton: View {
                 .font(.system(size: 16))
         }
         .buttonStyle(.circleGlass)
-        .accessibilityLabel("Random Color")
+        .accessibilityLabel(.actionRandomColor)
     }
 }

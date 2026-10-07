@@ -16,36 +16,36 @@ struct CopyColorMenu: View {
         Menu {
             Button{ NSPasteboard.copy(color.hexString) }
             label: {
-                Text("HEX")
-                Text("\(color.hexString)")
+                Text(verbatim: "HEX")
+                Text(verbatim: color.hexString)
             }
             
             Button{ NSPasteboard.copy(color.hsvString) }
             label: {
-                Text("HSV")
-                Text("\(color.hsvString)")
+                Text(verbatim: "HSV")
+                Text(verbatim: color.hsvString)
             }
             
             Button { NSPasteboard.copy(color.hsl.string) }
             label: {
-                Text("HSL")
-                Text("\(color.hsl.string)")
+                Text(verbatim: "HSL")
+                Text(verbatim: color.hsl.string)
             }
             
             Button{ NSPasteboard.copy(color.rgb.string) }
             label: {
-                Text("RGB")
-                Text("\(color.rgb.string)")
+                Text(verbatim: "RGB")
+                Text(verbatim: color.rgb.string)
             }
             
             Button{ NSPasteboard.copy(color.cmyk.string) }
             label: {
-                Text("CMYK")
-                Text("\(color.cmyk.string)")
+                Text(verbatim: "CMYK")
+                Text(verbatim: color.cmyk.string)
             }
             
         } label: {
-            Label("Copy As", systemImage: "doc.on.doc")
+            Label(.copyTitle, systemImage: "doc.on.doc")
         }
     }
 }

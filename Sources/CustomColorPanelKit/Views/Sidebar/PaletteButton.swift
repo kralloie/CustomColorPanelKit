@@ -11,14 +11,14 @@ import SwiftUI
 enum Palette: CaseIterable {
     case system, classic, pastel, neon, warm, cool
     
-    var string: String {
+    var string: LocalizedStringResource {
         switch self {
-        case .system: "System"
-        case .classic: "Classic"
-        case .pastel: "Pastel"
-        case .neon: "Neon"
-        case .warm: "Warm"
-        case .cool: "Cool"
+        case .system: .paletteSystem
+        case .classic: .paletteClassic
+        case .pastel: .palettePastel
+        case .neon: .paletteNeon
+        case .warm: .paletteWarm
+        case .cool: .paletteCool
         }
     }
     
@@ -130,18 +130,19 @@ struct PaletteButton: View {
                 .font(.system(size: 16))
         }
         .buttonStyle(.circleGlass)
-        .accessibilityLabel("Palette")
+        .accessibilityLabel(.paletteButton)
         .popover(isPresented: $showingPopover, arrowEdge: .trailing) {
             VStack(spacing: 12) {
+                let paletteName = String(localized: palette.string)
                 HStack {
                     Button {
                         paletteIndex = abs(paletteIndex - 1 + Palette.allCases.count) % Palette.allCases.count
                     } label: {
-                        Image(systemName: "chevron.left")
+                        Image(systemName: "chevron.backward")
                             .bold()
                     }
                     .buttonStyle(.circleGlass)
-                    .accessibilityLabel("Previous Palette")
+                    .accessibilityLabel(.palettePrevious)
                     
                     Spacer()
                     
@@ -153,7 +154,7 @@ struct PaletteButton: View {
                         }
                     }
                     .accessibilityRepresentation {
-                        Text("\(palette.string) Palette")
+                        Text(.paletteAccessibilityTitle(paletteName))
                     }
                     
                     Spacer()
@@ -161,11 +162,11 @@ struct PaletteButton: View {
                     Button {
                         paletteIndex = abs(paletteIndex + 1) % Palette.allCases.count
                     } label: {
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .bold()
                     }
                     .buttonStyle(.circleGlass)
-                    .accessibilityLabel("Next Palette")
+                    .accessibilityLabel(.paletteNext)
                 }
                 .bold()
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 5) {

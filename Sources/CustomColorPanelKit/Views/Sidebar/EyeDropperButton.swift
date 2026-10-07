@@ -40,6 +40,6 @@ struct EyeDropperButton: View {
                 .font(.system(size: 16))
         }
         .buttonStyle(.circleGlass)
-        .accessibilityLabel("Eye Dropper")
+        .accessibilityLabel(.actionEyeDropper)
     }
 }

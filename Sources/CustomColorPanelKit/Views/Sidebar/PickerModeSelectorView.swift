@@ -55,7 +55,7 @@ struct PickerModeSelectorView: View {
                 }
                 .allowsHitTesting(false)
                 .accessibilityElement(children: .contain)
-                .accessibilityLabel("Color Picker Mode")
+                .accessibilityLabel(.pickerAccessibilityLabel)
             }
             .contentShape(.capsule)
             .gesture(
@@ -100,7 +100,7 @@ struct PickerModeSelectorView: View {
         switch mode {
         case .hsvSquare:
             HSVSquare(color: accentColor, storeColor: {}).frame(width: 20, height: 20)
-        case .hsvSphere:
+        case .hueSphere:
             HueSphere(color: accentColor, storeColor: {}).frame(width: 20, height: 20)
         case .hueRing:
             HueRing()

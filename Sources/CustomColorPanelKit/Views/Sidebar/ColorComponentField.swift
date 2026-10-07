@@ -38,12 +38,12 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     private var valueString: String { inputType.format(value.cgFloatValue) }
     /// The format of this component text representation.
     let inputType: InputType
-    /// The label of the component (e.g. "H" for Hue).
-    let label: String
+    /// The label of the component.
+    let label: LocalizedStringResource
     /// A closure that stores the current color to history.
     let storeColor: () -> Void
     
-    init(value: Binding<T>, inputType: InputType, label: String, storeColor: @escaping () -> Void = {}) {
+    init(value: Binding<T>, inputType: InputType, label: LocalizedStringResource, storeColor: @escaping () -> Void = {}) {
         self.inputType = inputType
         self._value = value
         self.label = label
@@ -117,7 +117,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     /// The text field for the component value.
     struct ColorComponentTextField: View, @MainActor Equatable {
         /// The label of the component used for accessibility.
-        let label: String
+        let label: LocalizedStringResource
         /// A binding to the text of this field.
         @Binding var text: String
         /// Whether the field is focused.
@@ -132,7 +132,9 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         let cancelField: () -> Void
         
         var body: some View {
-            TextField("", text: $text)
+            TextField(text: $text) {
+                EmptyView()
+            }
                 .multilineTextAlignment(.center)
                 .frame(width: inputType == .hex ? Layout.hexTextFieldWidth : Layout.textFieldWidth, height: Layout.textFieldHeight)
                 .textFieldStyle(.plain)
@@ -170,17 +172,15 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         var isFocused: Bool
         
         var body: some View {
-            Stepper(
-                "",
-                onIncrement: {
-                    stepValue(1)
-                    if !isFocused { storeColor() }
-                },
-                onDecrement:  {
-                    stepValue(-1)
-                    if !isFocused { storeColor() }
-                }
-            )
+            Stepper {
+                EmptyView()
+            } onIncrement: {
+                stepValue(1)
+                if !isFocused { storeColor() }
+            } onDecrement:  {
+                stepValue(-1)
+                if !isFocused { storeColor() }
+            }
             .frame(width: Layout.stepperWidth, height: Layout.stepperHeight)
             .accessibilityHidden(true)
         }
@@ -197,7 +197,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
         /// The format of this component text representation.
         let inputType: InputType
         /// The label of the component used for accessibility.
-        let label: String
+        let label: LocalizedStringResource
         /// Stores the edited color after the slider drag ends if the text field is not focused.
         var storeColor: () -> Void
         
@@ -382,7 +382,7 @@ struct ColorComponentFieldContainer<Content: View>: View {
     @ViewBuilder let componentField: () -> Content
     var body: some View {
         HStack {
-            Text("\(component)")
+            Text(verbatim: component)
                 .lineLimit(1)
                 .bold()
                 .frame(width: SidebarLayout.componentLabelWidth)

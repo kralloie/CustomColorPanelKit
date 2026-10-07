@@ -120,13 +120,14 @@ struct SidebarView: View {
             SidebarBackground()
                    .ignoresSafeArea(.container, edges: .top)
         }
-        .accessibilityLabel("Sidebar")
+        .accessibilityLabel(.sidebarAccessibilityLabel)
     }
 }
 
 extension SidebarView {
     /// The swatch representing the current color with a checkerboard pattern background and a context menu for copying the color.
     private var colorPreview: some View {
+        let colorCurrentString: LocalizedStringResource = .colorCurrent
         let size: CGFloat = SidebarLayout.colorPreviewSize
         return ColorExample(color: color)
             .frame(width: size, height: size)
@@ -141,7 +142,11 @@ extension SidebarView {
             .padding(.bottom, 10)
             .accessibilityRepresentation {
                 Rectangle()
-                    .accessibilityLabel(Text("Current Color: \(Text(color.hexString).speechSpellsOutCharacters(true))"))
+                    .accessibilityLabel { _ in
+                        Text(colorCurrentString)
+                        Text(verbatim: color.hexString)
+                            .speechSpellsOutCharacters(true)
+                    }
                     .contextMenu { CopyColorMenu(color: color) }
             }
     }
@@ -149,52 +154,52 @@ extension SidebarView {
     /// The row for editing the color's hex string.
     private var hexValue: some View {
         HStack {
-            Text("HEX")
+            Text(.componentHex)
                 .lineLimit(1)
                 .bold()
                 .frame(width: SidebarLayout.componentLabelWidth)
             
             Spacer()
             
-            ColorComponentField(value: $color.hex, inputType: .hex, label: "Hex", storeColor: storeColor)
+            ColorComponentField(value: $color.hex, inputType: .hex, label: .componentHex, storeColor: storeColor)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)
         .background(ColorComponentBackground())
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Hex")
+        .accessibilityLabel(.componentHex)
     }
     
     /// The row for editing the color's alpha channel.
     private var alphaValue: some View {
         HStack {
-            Text("Alpha")
+            Text(.componentAlpha)
                 .lineLimit(1)
                 .bold()
                 .frame(width: SidebarLayout.componentLabelWidth)
             
             Spacer()
             
-            ColorComponentField(value: $color.alpha, inputType: .percentage, label: "Alpha")
+            ColorComponentField(value: $color.alpha, inputType: .percentage, label: .componentAlpha)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)
         .background(ColorComponentBackground())
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Alpha")
+        .accessibilityLabel(.componentAlpha)
     }
     
     /// The fields shown when the HSV disclosure group is expanded.
     private var hsvValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hue, inputType: .degrees, label: "Hue", storeColor: storeColor)
+                ColorComponentField(value: $color.hue, inputType: .degrees, label: .componentHue, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.saturation, inputType: .percentage, label: "Saturation", storeColor: storeColor)
+                ColorComponentField(value: $color.saturation, inputType: .percentage, label: .componentSaturation, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "V") {
-                ColorComponentField(value: $color.brightness, inputType: .percentage, label: "Brightness", storeColor: storeColor)
+                ColorComponentField(value: $color.brightness, inputType: .percentage, label: .componentBrightness, storeColor: storeColor)
             }
         }
     }
@@ -203,13 +208,13 @@ extension SidebarView {
     private var hslValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, label: "Hue", storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, label: .componentHue, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, label: "Saturation", storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, label: .componentSaturation, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "L") {
-                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, label: "Lightness", storeColor: storeColor)
+                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, label: .componentLightness, storeColor: storeColor)
             }
         }
     }
@@ -218,13 +223,13 @@ extension SidebarView {
     private var rgbValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "R") {
-                ColorComponentField(value: $color.rgb.red, inputType: .numerical, label: "Red", storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.red, inputType: .numerical, label: .componentRed, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "G") {
-                ColorComponentField(value: $color.rgb.green, inputType: .numerical, label: "Green", storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.green, inputType: .numerical, label: .componentGreen, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "B") {
-                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, label: "Blue", storeColor: storeColor)
+                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, label: .componentBlue, storeColor: storeColor)
             }
         }
     }
@@ -233,16 +238,16 @@ extension SidebarView {
     private var cmykValues: some View {
         VStack(spacing: 10) {
             ColorComponentFieldContainer(component: "C") {
-                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, label: "Cyan", storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, label: .componentCyan, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "M") {
-                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, label: "Magenta", storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, label: .componentMagenta, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "Y") {
-                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, label: "Yellow", storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, label: .componentYellow, storeColor: storeColor)
             }
             ColorComponentFieldContainer(component: "K") {
-                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, label: "Black", storeColor: storeColor)
+                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, label: .componentBlack, storeColor: storeColor)
             }
         }
     }
@@ -266,7 +271,7 @@ extension SidebarView {
                     toggle()
                 } label: {
                     HStack(spacing: 4) {
-                        Text("\(title)")
+                        Text(verbatim: title)
                             .lineLimit(1)
                             .fontWeight(.bold)
                             .padding(.leading, SidebarLayout.componentRowPadding)
@@ -277,7 +282,7 @@ extension SidebarView {
                             .lineLimit(1)
                             .animation(nil, value: isOpen)
                         
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .foregroundStyle(.secondary)
                             .rotationEffect(isOpen ? Angle(degrees: 90) : Angle(degrees: 0))
                     }
