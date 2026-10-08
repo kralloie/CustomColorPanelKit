@@ -13,7 +13,7 @@ enum PickerMode: Int, CaseIterable, Hashable {
     case hueRing, hsvSquare, hueSphere
     
     /// The title for the picker mode.
-    var string: LocalizedStringResource {
+    var title: LocalizedStringResource {
         switch self {
         case .hueRing: return .pickerHueRing
         case .hsvSquare: return .pickerHsvSquare

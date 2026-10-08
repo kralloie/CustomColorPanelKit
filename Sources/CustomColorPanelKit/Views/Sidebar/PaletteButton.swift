@@ -11,7 +11,7 @@ import SwiftUI
 enum Palette: CaseIterable {
     case system, classic, pastel, neon, warm, cool
     
-    var string: LocalizedStringResource {
+    var title: LocalizedStringResource {
         switch self {
         case .system: .paletteSystem
         case .classic: .paletteClassic
@@ -133,7 +133,7 @@ struct PaletteButton: View {
         .accessibilityLabel(.paletteButton)
         .popover(isPresented: $showingPopover, arrowEdge: .trailing) {
             VStack(spacing: 12) {
-                let paletteName = String(localized: palette.string)
+                let paletteName = String(localized: palette.title)
                 HStack {
                     Button {
                         paletteIndex = abs(paletteIndex - 1 + Palette.allCases.count) % Palette.allCases.count
@@ -147,9 +147,9 @@ struct PaletteButton: View {
                     Spacer()
                     
                     ZStack {
-                        Text(palette.string)
+                        Text(palette.title)
                         ForEach(Palette.allCases, id: \.self) { p in
-                            Text(p.string)
+                            Text(p.title)
                                 .opacity(0)
                         }
                     }

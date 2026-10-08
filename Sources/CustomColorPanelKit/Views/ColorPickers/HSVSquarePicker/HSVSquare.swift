@@ -53,7 +53,7 @@ struct HSVSquare: NSViewRepresentable {
     }
 }
 
-/// The coordinator responsible for rendering an``HSVSquare`` using MetalKit.
+/// The coordinator responsible for rendering an ``HSVSquare`` using MetalKit.
 ///
 /// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HSVSquareCoordinator: NSObject, MTKViewDelegate {

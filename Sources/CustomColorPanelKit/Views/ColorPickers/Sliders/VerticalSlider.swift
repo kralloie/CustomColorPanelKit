@@ -16,7 +16,7 @@ struct VerticalSlider<Content: View>: View {
     /// The color used to tint the ``SliderThumb`` glass when dragging and its color preview.
     var thumbTint: Color
     
-    /// The shared scroll router instance to pass the scroll handler to.
+    /// The scroll router instance to pass the scroll handler to.
     @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
     /// Whether the slider is being dragged, updated by the `dragGesture`.
     @GestureState private var isDragging: Bool = false

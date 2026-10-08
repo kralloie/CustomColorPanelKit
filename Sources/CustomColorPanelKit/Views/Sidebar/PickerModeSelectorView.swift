@@ -47,7 +47,7 @@ struct PickerModeSelectorView: View {
                     ForEach(modes, id: \.self) { mode in
                         icon(for: mode).frame(maxWidth: .infinity)
                             .accessibilityRepresentation {
-                                Button(mode.string) {
+                                Button(mode.title) {
                                     selectedMode = mode
                                 }
                             }

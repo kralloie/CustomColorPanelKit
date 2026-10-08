@@ -25,7 +25,7 @@ struct HueSlider: NSViewRepresentable {
     func updateNSView(_ nsView: MTKView, context: Context) {}
 }
 
-/// The coordinator responsible for rendering a``HueSlider`` using MetalKit.
+/// The coordinator responsible for rendering a ``HueSlider`` using MetalKit.
 ///
 /// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HueSliderCoordinator: NSObject, MTKViewDelegate {

@@ -9,7 +9,7 @@ import SwiftUI
 
 /// An opacity slider with a checkerboard pattern background.
 struct OpacitySliderView: View {
-    /// The shared scroll router instance to pass the scroll handler to.
+    /// The scroll router instance to pass the scroll handler to.
     @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
     /// A binding to the current color being edited.
     @Binding var color: HSBAColor

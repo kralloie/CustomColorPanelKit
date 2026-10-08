@@ -8,9 +8,9 @@
 import SwiftUI
 import MetalKit
 
-/// A Metal-rendered color rectangle whose inferior triangle is affected by the alpha component but the superior triangle is not.
+/// A Metal-rendered color rectangle whose lower triangle is affected by the alpha component but the upper triangle is not.
 ///
-/// At 0% opacity it will only render the superior triangle, while the inferior triangle will be transparent.
+/// At 0% opacity it will only render the upper triangle, while the lower triangle will be transparent.
 ///
 /// Rendering is performed by ``ColorExampleCoordinator``.
 struct ColorExample: NSViewRepresentable {
@@ -33,7 +33,7 @@ struct ColorExample: NSViewRepresentable {
     }
 }
 
-/// The coordinator responsible for rendering a``ColorExample`` using MetalKit.
+/// The coordinator responsible for rendering a ``ColorExample`` using MetalKit.
 ///
 /// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class ColorExampleCoordinator: NSObject, MTKViewDelegate {

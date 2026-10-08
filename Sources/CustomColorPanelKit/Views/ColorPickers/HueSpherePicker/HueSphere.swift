@@ -54,7 +54,7 @@ struct HueSphere: NSViewRepresentable {
 }
 
 
-/// The coordinator responsible for rendering an``HueSphere`` using MetalKit.
+/// The coordinator responsible for rendering an ``HueSphere`` using MetalKit.
 ///
 /// The coordinator serves as the ``MTKViewDelegate`` for its underlying ``MTKView``.
 @MainActor final class HueSphereCoordinator: NSObject, MTKViewDelegate {

@@ -26,7 +26,7 @@ private enum Layout {
 /// Consists of a label for the component letter, a slider, a text field and a stepper as controls for the component value.
 @MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View {
-    /// The shared scroll router instance to pass the scroll handler to.
+    /// The scroll router instance to pass the scroll handler to.
     @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
     /// A binding to the color component.
     @Binding var value: T
@@ -376,7 +376,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     }
 }
 
-/// Contains a the letter representing the component along with the``ColorComponentField``.
+/// Displays a component label alongside a ``ColorComponentField``.
 struct ColorComponentFieldContainer<Content: View>: View {
     let component: String
     @ViewBuilder let componentField: () -> Content

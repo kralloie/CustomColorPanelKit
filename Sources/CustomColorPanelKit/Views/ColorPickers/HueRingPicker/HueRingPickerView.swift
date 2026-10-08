@@ -34,7 +34,7 @@ struct HueRingPickerView: View {
     /// Passed to the subviews as a closure, so they can commit a color without needing to know about the ``ColorHistory`` object.
     private func storeColor() { colorHistory.add(color) }
     
-    public var body: some View {
+    var body: some View {
         VStack {
             GeometryReader { proxy in
                 let size = proxy.size.width
