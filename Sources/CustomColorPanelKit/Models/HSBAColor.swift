@@ -77,6 +77,37 @@ struct HSBAColor: Equatable, Hashable {
         self.alpha = alpha
     }
     
+    /// Creates a color from an NSColor
+    ///
+    /// The color is converted through sRGB. If that conversion fails, the result is opaque white.
+    ///
+    /// - Parameter nsColor: The color to convert.
+    init(with nsColor: NSColor) {
+        guard let rgbColor = nsColor.usingColorSpace(.sRGB) else {
+            self.init(hue: 0, saturation: 0, brightness: 1)
+            return
+        }
+
+        var h: CGFloat = 0
+        var s: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+
+        rgbColor.getHue(
+            &h,
+            saturation: &s,
+            brightness: &b,
+            alpha: &a
+        )
+
+        self.init(
+            hue: h,
+            saturation: b == 0 ? 0 : s,
+            brightness: b,
+            alpha: a
+        )
+    }
+    
     /// The color as a SwiftUI `Color`.
     var color: Color { Color(hue: hue, saturation: saturation, brightness: brightness, opacity: alpha) }
     

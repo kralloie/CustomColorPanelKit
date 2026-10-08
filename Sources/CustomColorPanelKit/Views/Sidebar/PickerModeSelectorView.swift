@@ -25,7 +25,7 @@ struct PickerModeSelectorView: View {
     /// Whether there is an ongoing drag gesture.
     private var isDragging: Bool { dragX != nil }
     /// A constant binding to the accent color used to show the picker mode previews with the system accent color.
-    private var accentColor: Binding<HSBAColor> { .constant(HSBAColor(with: .accentColor)) }
+    private var accentColor: Binding<HSBAColor> { .constant(HSBAColor(with: NSColor.controlAccentColor)) }
     
     var body: some View {
         GeometryReader { proxy in

@@ -305,7 +305,7 @@ extension SidebarView {
 }
 
 #Preview {
-    SidebarView(color: .constant(HSBAColor(with: .orange)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
+    SidebarView(color: .constant(HSBAColor(with: .controlAccentColor)), pickerMode: .constant(.hsvSquare), colorHistory: ColorHistory())
         .frame(width: 200)
         .padding()
 }
