@@ -127,7 +127,7 @@ struct SidebarView: View {
 extension SidebarView {
     /// The swatch representing the current color with a checkerboard pattern background and a context menu for copying the color.
     private var colorPreview: some View {
-        let colorCurrentString: LocalizedStringResource = .colorCurrent
+        let alphaValue = Double(color.alpha).formatted(.percent.precision(.fractionLength(0)))
         let size: CGFloat = SidebarLayout.colorPreviewSize
         return ColorExample(color: color)
             .frame(width: size, height: size)
@@ -161,9 +161,10 @@ extension SidebarView {
             .accessibilityRepresentation {
                 Rectangle()
                     .accessibilityLabel { _ in
-                        Text(colorCurrentString)
+                        Text(.colorCurrent)
                         Text(verbatim: color.hexString)
                             .speechSpellsOutCharacters(true)
+                        Text(.accessibilityOpacityValue(alphaValue))
                     }
                     .contextMenu { CopyColorMenu(color: color) }
             }

@@ -83,7 +83,7 @@ extension ColorHistoryView {
         var body: some View {
             if colorHistory.colors.indices.contains(index) {
                 let c = colorHistory.colors[index]
-                let entryString: LocalizedStringResource = .historyEntry(index + 1)
+                let alphaValue = Double(c.alpha).formatted(.percent.precision(.fractionLength(0)))
                 Button {
                     setColor(c)
                 } label: {
@@ -112,9 +112,10 @@ extension ColorHistoryView {
                 .animation(.easeInOut(duration: 0.1), value: isHovering)
                 .contextMenu{ ColorEntryContextMenu(color: c, colorHistory: colorHistory, setColor: setColor) }
                 .accessibilityLabel { _ in
-                    Text(entryString)
+                    Text(.historyEntry(index + 1))
                     Text(verbatim: c.hexString)
                         .speechSpellsOutCharacters(true)
+                    Text(.accessibilityOpacityValue(alphaValue))
                 }
             } else {
                 RoundedRectangle(cornerRadius: 2)
