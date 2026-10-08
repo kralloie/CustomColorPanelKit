@@ -139,6 +139,24 @@ extension SidebarView {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .shadow(radius: 2)
             .contextMenu { CopyColorMenu(color: color) }
+            .dropDestination(for: Color.self) { colors, _ in
+                guard let droppedColor = colors.first else {
+                    return false
+                }
+                color = HSBAColor(with: droppedColor)
+                return true
+            }
+            .onDrag {
+                color.dragItemProvider
+            } preview: {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(color.color)
+                    .frame(width: 28, height: 28)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(.separator)
+                    }
+            }
             .padding(.bottom, 10)
             .accessibilityRepresentation {
                 Rectangle()

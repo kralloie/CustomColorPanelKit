@@ -45,6 +45,13 @@ struct ColorHistoryView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(.background.secondary)
         }
+        .dropDestination(for: Color.self) { colors, _ in
+            guard let droppedColor = colors.first else {
+                return false
+            }
+            colorHistory.add(HSBAColor(with: droppedColor))
+            return true
+        }
         .contextMenu {
             Button() {
                 colorHistory.clear()
@@ -85,6 +92,17 @@ extension ColorHistoryView {
                 }
                 .frame(width: colorSize, height: colorSize)
                 .buttonStyle(.plain)
+                .onDrag {
+                    c.dragItemProvider
+                } preview: {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(c.color)
+                        .frame(width: 10, height: 10)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(.separator)
+                        }
+                }
                 .onHover { isHovering = $0 }
                 .scaleEffect(isHovering ? 1.25 : 1)
                 .animation(.easeInOut(duration: 0.1), value: isHovering)

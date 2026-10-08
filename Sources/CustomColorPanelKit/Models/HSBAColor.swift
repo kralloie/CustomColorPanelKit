@@ -111,6 +111,12 @@ struct HSBAColor: Equatable, Hashable {
     /// The color as a SwiftUI `Color`.
     var color: Color { Color(hue: hue, saturation: saturation, brightness: brightness, opacity: alpha) }
     
+    /// The color as a `NSColor`.
+    var nsColor: NSColor {
+        let rgb = rgb
+        return NSColor(srgbRed: rgb.red, green: rgb.green, blue: rgb.blue, alpha: alpha)
+    }
+    
     /// The color as red, green and blue channels, each from 0 to 1.
     var rgb: RGB {
         get {
@@ -287,6 +293,22 @@ struct HSBAColor: Equatable, Hashable {
         }
 
         return (hue, saturation, brightness)
+    }
+    
+    /// An item provider containing the color's native macOS color representation.
+    var dragItemProvider: NSItemProvider {
+        let color = nsColor
+
+        guard let propertyList = color.pasteboardPropertyList(
+            forType: .color
+        ) else {
+            return NSItemProvider()
+        }
+
+        return NSItemProvider(
+            item: propertyList as? NSSecureCoding,
+            typeIdentifier: NSPasteboard.PasteboardType.color.rawValue
+        )
     }
     
     static func == (a: Self, b: Self) -> Bool {
