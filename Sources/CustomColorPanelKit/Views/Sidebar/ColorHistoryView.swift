@@ -87,15 +87,19 @@ extension ColorHistoryView {
                 Button {
                     setColor(c)
                 } label: {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(c.color)
+                    ColorExample(color: c)
+                        .background(
+                            Color.white
+                                .clipShape(RoundedRectangle(cornerRadius: 2).inset(by: 0.5))
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 2))
                 }
                 .frame(width: colorSize, height: colorSize)
                 .buttonStyle(.plain)
                 .onDrag {
                     c.dragItemProvider
                 } preview: {
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: 2)
                         .fill(c.color)
                         .frame(width: 10, height: 10)
                         .overlay {

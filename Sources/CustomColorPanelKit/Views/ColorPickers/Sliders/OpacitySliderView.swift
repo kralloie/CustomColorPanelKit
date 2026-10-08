@@ -25,6 +25,8 @@ struct OpacitySliderView: View {
     @State private var alphaAnimation: Task<Void, Never>?
     /// The snap distance used for exiting the center lock when dragging.
     private let snapDistance: CGFloat = 6
+    /// Called after the drag gesture ends to store the color to the history.
+    var storeColor: () -> Void
     
     var body: some View {
         GeometryReader { geo in
@@ -74,7 +76,7 @@ struct OpacitySliderView: View {
         let step: Double = 0.01
         let delta = event.scrollingDeltaY > 0 ? step : -step
         color.alpha = min(max(color.alpha + delta, 0), 1)
-        return false
+        return true
     }
     
     /// Returns the alpha value based on the position inside the slider.
@@ -120,6 +122,13 @@ struct OpacitySliderView: View {
                     color.alpha = target
                 }
             }
-            .onEnded { _ in gestureBegan = false }
+            .onEnded { _ in
+                gestureBegan = false
+                Task { @MainActor in
+                    await alphaAnimation?.value
+                    storeColor()
+                }
+
+            }
     }
 }

@@ -198,7 +198,7 @@ extension SidebarView {
             
             Spacer()
             
-            ColorComponentField(value: $color.alpha, inputType: .percentage, label: .componentAlpha)
+            ColorComponentField(value: $color.alpha, inputType: .percentage, label: .componentAlpha, storeColor: storeColor)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)

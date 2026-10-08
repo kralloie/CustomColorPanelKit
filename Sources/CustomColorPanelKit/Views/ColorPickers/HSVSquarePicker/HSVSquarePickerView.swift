@@ -54,7 +54,7 @@ struct HSVSquarePickerView: View {
                         )
                             .frame(width: sliderThickness, height: squareSize)
                     }
-                    OpacitySliderView(color: $color)
+                    OpacitySliderView(color: $color, storeColor: storeColor)
                         .frame(width: squareSize, height: sliderThickness)
                 }
             }

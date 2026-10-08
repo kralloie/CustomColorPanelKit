@@ -57,7 +57,7 @@ struct HueSpherePickerView: View {
                             .frame(width: sliderThickness, height: sphereSize)
                     }
                     
-                    OpacitySliderView(color: $color)
+                    OpacitySliderView(color: $color, storeColor: storeColor)
                         .frame(width: sphereSize, height: sliderThickness)
                 }
             }

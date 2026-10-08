@@ -64,7 +64,7 @@ struct HueRingPickerView: View {
                         )
                         .frame(width: geometry.triangleSize, height: geometry.triangleSize)
                     }
-                    OpacitySliderView(color: $color)
+                    OpacitySliderView(color: $color, storeColor: storeColor)
                         .frame(width: ringSize, height: sliderThickness)
                 }
 

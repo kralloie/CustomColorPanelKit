@@ -97,8 +97,7 @@ public struct ColorPanelView: View {
             ScrollWheelMonitor(router: scrollWheelRouter, color: $color, storeColor: { colorHistory.add($0) })
         }
         .onChange(of: colorHistory.pendingChange) {
-            guard var newColor = colorHistory.pendingChange else { return }
-            newColor.alpha = color.alpha
+            guard let newColor = colorHistory.pendingChange else { return }
             color = newColor
             colorHistory.pendingChange = nil
         }
