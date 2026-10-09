@@ -33,7 +33,10 @@ struct OpacitySliderView: View {
             ZStack(alignment: .center) {
                 OpacitySlider(color: color)
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .background { CheckerboardView(rows: 3) }
+                    .background {
+                        CheckerboardView(rows: 3)
+                            .clipShape(RoundedRectangle(cornerRadius: geo.size.width).inset(by: 0.5))
+                    }
                     .clipShape(RoundedRectangle(cornerRadius: geo.size.width))
                 
                 Rectangle()

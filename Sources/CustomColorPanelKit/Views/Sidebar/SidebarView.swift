@@ -133,8 +133,7 @@ extension SidebarView {
             .frame(width: size, height: size)
             .background(
                 CheckerboardView(rows: 5)
-                    .frame(width: size - 1, height: size - 1)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .clipShape(RoundedRectangle(cornerRadius: 6).inset(by: 0.5))
             )
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .shadow(radius: 2)
