@@ -112,7 +112,7 @@ struct SidebarView: View {
                 
                 Spacer()
                 
-                ColorHistoryView(colorHistory: colorHistory)
+                ColorHistoryView(color: $color, colorHistory: colorHistory)
             }
             .padding(SidebarLayout.panelInnerPadding)
         }

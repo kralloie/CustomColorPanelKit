@@ -9,6 +9,8 @@ import SwiftUI
 
 /// A grid that displays the colors stored in ``ColorHistory``.
 struct ColorHistoryView: View {
+    /// A binding to the current color being edited.
+    @Binding var color: HSBAColor
     /// The instance of the color history object that stores the colors.
     var colorHistory: ColorHistory
     
@@ -21,7 +23,7 @@ struct ColorHistoryView: View {
     /// The max width that the grid will take.
     private var gridWidth: CGFloat { CGFloat(maxColumns) * colorSize + (CGFloat(maxColumns) - 1) * spacing }
     /// A closure that sets the color being edited to the selected color in the grid.
-    private func setColor(_ c: HSBAColor) { colorHistory.pendingChange = c }
+    private func setColor(_ c: HSBAColor) { color = c }
     
     var body: some View {
         LazyVGrid(
@@ -81,8 +83,7 @@ extension ColorHistoryView {
         @State var isHovering: Bool = false
         
         var body: some View {
-            if colorHistory.colors.indices.contains(index) {
-                let c = colorHistory.colors[index]
+            if let c = colorHistory[safe: index] {
                 let alphaValue = Double(c.alpha).formatted(.percent.precision(.fractionLength(0)))
                 Button {
                     setColor(c)

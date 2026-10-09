@@ -8,6 +8,8 @@
 import Foundation
 import SwiftUI
 
+infix operator ≈≈ : ComparisonPrecedence
+
 /// A color stored as hue, saturation, brightness and alpha, with conversions to RGB, hex, HSL and CMYK.
 ///
 /// The stored components are expected to be in `0...1`. Hue is a fraction of a full turn, so `0` and `1`
@@ -309,6 +311,20 @@ struct HSBAColor: Equatable, Hashable {
             item: propertyList as? NSSecureCoding,
             typeIdentifier: NSPasteboard.PasteboardType.color.rawValue
         )
+    }
+    
+    /// The tolerance used for comparing colors.
+    private static let epsilon = 1.0 / 512.0
+    
+    /// Returns whether two colors are visually equivalent within ``epsilon``.
+    static func ≈≈ (a: Self, b: Self) -> Bool {
+        let lhs = a.rgb
+        let rhs = b.rgb
+
+        return abs(lhs.red - rhs.red) < epsilon &&
+               abs(lhs.green - rhs.green) < epsilon &&
+               abs(lhs.blue - rhs.blue) < epsilon &&
+               abs(a.alpha - b.alpha) < epsilon
     }
     
     static func == (a: Self, b: Self) -> Bool {

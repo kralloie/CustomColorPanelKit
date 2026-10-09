@@ -106,11 +106,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .padding(.trailing, 8)
             }
         }
-        .onChange(of: value.cgFloatValue) {
-            if !isFocused { text = inputType.format(value.cgFloatValue) }
+        .onChange(of: valueString) {
+            guard !isFocused, text != valueString else { return }
+            text = valueString
         }
         .onChange(of: isFocused) {
-            if !isFocused { text = inputType.format(value.cgFloatValue) }
+            guard !isFocused, text != valueString else { return }
+            text = valueString
         }
     }
     
