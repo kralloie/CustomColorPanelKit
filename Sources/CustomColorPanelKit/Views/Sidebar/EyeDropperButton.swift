@@ -18,9 +18,9 @@ func pickColorFromScreen(completion: @escaping @Sendable (Color?) -> Void) {
 
 /// A button that when pressed creates a color sampler instance letting the user pick a color from anywhere on the screen.
 @MainActor
-struct EyeDropperButton: View {
-    /// A binding to the current color being edited.
-    @Binding var currentColor: HSBAColor
+struct EyeDropperButton: View, @MainActor Equatable {
+    /// A function that sets the current color to the passed color.
+    let setColor: (HSBAColor) -> Void
     /// A closure that stores the current color to the history after the color sampler picks a color.
     let storeColor: () -> Void
     
@@ -30,7 +30,7 @@ struct EyeDropperButton: View {
                 if let color {
                     let c = HSBAColor(with: color)
                     Task { @MainActor in
-                        currentColor = c
+                        setColor(c)
                         storeColor()
                     }
                 }
@@ -42,4 +42,6 @@ struct EyeDropperButton: View {
         .buttonStyle(.circleGlass)
         .accessibilityLabel(.actionEyeDropper)
     }
+    
+    static func == (a: Self, b: Self) -> Bool { true }
 }

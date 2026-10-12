@@ -66,15 +66,21 @@ struct SidebarView: View {
             VStack(spacing: 8) {
                 PickerModeSelectorView(selectedMode: $pickerMode)
                 
-                HStack {
+                VStack {
                     colorPreview
                     
-                    EyeDropperButton(currentColor: $color, storeColor: { colorHistory.add(color) })
-                    
-                    DiceButton(color: $color, storeColor: { colorHistory.add(color) })
-                    
-                    PaletteButton(color: $color, storeColor: { colorHistory.add(color) })
+                    HStack {
+                        EyeDropperButton(setColor: { color = $0 }, storeColor: { colorHistory.add(color) })
+                            .equatable()
+                        
+                        DiceButton(setColor: { color = $0 }, storeColor: { colorHistory.add(color) })
+                            .equatable()
+                        
+                        PaletteButton(setColor: { color = $0 }, storeColor: { colorHistory.add(color) })
+                            .equatable()
+                    }
                 }
+                .padding(.bottom, 10)
                 
                 hexValue
             

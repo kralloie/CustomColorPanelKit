@@ -110,9 +110,9 @@ enum Palette: CaseIterable {
 }
 
 /// A button that shows a pop-over with different color palettes to choose and use as reference.
-struct PaletteButton: View {
-    /// A binding to the current color being edited.
-    @Binding var color: HSBAColor
+struct PaletteButton: View, @MainActor Equatable {
+    /// A function that sets the current color to the passed color.
+    let setColor: (HSBAColor) -> Void
     /// A closure that stores the current color to the history after a palette color is selected.
     let storeColor: () -> Void
     /// Whether the pop-over is being shown.
@@ -171,7 +171,7 @@ struct PaletteButton: View {
                 .bold()
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 5) {
                     ForEach(palette.colors, id: \.self) { swatch in
-                        ColorSwatch(swatch, $color, storeColor)
+                        ColorSwatch(swatch: swatch, setColor: setColor, storeColor: storeColor)
                     }
                 }
             }
@@ -184,24 +184,16 @@ struct PaletteButton: View {
     private struct ColorSwatch: View {
         /// The color that this swatch represents.
         let swatch: Color
-        /// A binding to the current color being edited.
-        @Binding var color: HSBAColor
+        /// A function that sets the current color to the passed color.
+        let setColor: (HSBAColor) -> Void
         /// A closure that stores the current color to the history after the swatch is selected.
         let storeColor: () -> Void
         /// Whether the cursor is hovering the swatch.
         @State private var isHovering: Bool = false
         
-        init(_ swatch: Color, _ color: Binding<HSBAColor>, _ storeColor: @escaping () -> Void) {
-            self.swatch = swatch
-            self._color = color
-            self.storeColor = storeColor
-        }
-        
         var body: some View {
             Button {
-                let alpha = color.alpha
-                color = .init(with: swatch)
-                color.alpha = alpha
+                setColor(HSBAColor(with: swatch))
                 storeColor()
             } label: {
                 Circle()
@@ -217,4 +209,6 @@ struct PaletteButton: View {
             .accessibilityLabel(Text(HSBAColor(with: swatch).hexString).speechSpellsOutCharacters(true))
         }
     }
+    
+    static func == (a: Self, b: Self) -> Bool { true }
 }
