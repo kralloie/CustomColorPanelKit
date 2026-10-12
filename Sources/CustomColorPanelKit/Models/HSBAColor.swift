@@ -387,7 +387,7 @@ struct CMYK {
 }
 
 /// A number that a ``ColorComponentField`` can edit, converted to and from a `CGFloat`.
-protocol ColorComponentNumeric {
+protocol ColorComponentNumeric: Equatable {
     var cgFloatValue: CGFloat { get }
     init(value: CGFloat)
 }

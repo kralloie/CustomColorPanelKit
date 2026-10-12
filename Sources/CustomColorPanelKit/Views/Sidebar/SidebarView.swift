@@ -10,9 +10,7 @@ import SwiftUI
 
 /// Layout constants shared by every piece of ``SidebarView``.
 enum SidebarLayout {
-    static let panelInnerPadding: CGFloat = 10
     static let panelOuterPadding: CGFloat = 8
-    static let sidebarCornerRadius: CGFloat = 12
     static let componentLabelWidth: CGFloat = 45
     static let colorComponentRowCornerRadius: CGFloat = 12
     static let colorComponentRowMinWidth: CGFloat = 210
@@ -79,8 +77,7 @@ struct SidebarView: View {
                 }
                 
                 hexValue
-                
-                    
+            
                 VStack(spacing: 0) {
                     ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
                         .background(alignment: .bottom) {
@@ -112,7 +109,8 @@ struct SidebarView: View {
                 
                 Spacer()
                 
-                ColorHistoryView(color: $color, colorHistory: colorHistory)
+                ColorHistoryView(colorHistory: colorHistory, setColor: { color = $0 })
+                    .equatable()
             }
             .padding(SidebarLayout.panelInnerPadding)
         }
@@ -179,7 +177,7 @@ extension SidebarView {
             
             Spacer()
             
-            ColorComponentField(value: $color.hex, inputType: .hex, label: .componentHex, storeColor: storeColor)
+            componentField(.hex)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)
@@ -198,7 +196,7 @@ extension SidebarView {
             
             Spacer()
             
-            ColorComponentField(value: $color.alpha, inputType: .percentage, label: .componentAlpha, storeColor: storeColor)
+            componentField(.alpha)
         }
         .frame(minWidth: SidebarLayout.colorComponentRowMinWidth)
         .padding(SidebarLayout.componentRowPadding)
@@ -210,63 +208,37 @@ extension SidebarView {
     /// The fields shown when the HSV disclosure group is expanded.
     private var hsvValues: some View {
         VStack(spacing: 10) {
-            ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hue, inputType: .degrees, label: .componentHue, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.saturation, inputType: .percentage, label: .componentSaturation, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "V") {
-                ColorComponentField(value: $color.brightness, inputType: .percentage, label: .componentBrightness, storeColor: storeColor)
-            }
+            componentField(.hsvHue)
+            componentField(.hsvSaturation)
+            componentField(.brightness)
         }
     }
     
     /// The fields shown when the HSL disclosure group is expanded.
     private var hslValues: some View {
         VStack(spacing: 10) {
-            ColorComponentFieldContainer(component: "H") {
-                ColorComponentField(value: $color.hsl.hue, inputType: .degrees, label: .componentHue, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "S") {
-                ColorComponentField(value: $color.hsl.saturation, inputType: .percentage, label: .componentSaturation, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "L") {
-                ColorComponentField(value: $color.hsl.lightness, inputType: .percentage, label: .componentLightness, storeColor: storeColor)
-            }
+            componentField(.hslHue)
+            componentField(.hslSaturation)
+            componentField(.lightness)
         }
     }
     
     /// The fields shown when the RGB disclosure group is expanded.
     private var rgbValues: some View {
         VStack(spacing: 10) {
-            ColorComponentFieldContainer(component: "R") {
-                ColorComponentField(value: $color.rgb.red, inputType: .numerical, label: .componentRed, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "G") {
-                ColorComponentField(value: $color.rgb.green, inputType: .numerical, label: .componentGreen, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "B") {
-                ColorComponentField(value: $color.rgb.blue, inputType: .numerical, label: .componentBlue, storeColor: storeColor)
-            }
+            componentField(.red)
+            componentField(.green)
+            componentField(.blue)
         }
     }
     
     /// The fields shown when the CMYK disclosure group is expanded.
     private var cmykValues: some View {
         VStack(spacing: 10) {
-            ColorComponentFieldContainer(component: "C") {
-                ColorComponentField(value: $color.cmyk.cyan, inputType: .percentage, label: .componentCyan, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "M") {
-                ColorComponentField(value: $color.cmyk.magenta, inputType: .percentage, label: .componentMagenta, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "Y") {
-                ColorComponentField(value: $color.cmyk.yellow, inputType: .percentage, label: .componentYellow, storeColor: storeColor)
-            }
-            ColorComponentFieldContainer(component: "K") {
-                ColorComponentField(value: $color.cmyk.key, inputType: .percentage, label: .componentBlack, storeColor: storeColor)
-            }
+            componentField(.cyan)
+            componentField(.magenta)
+            componentField(.yellow)
+            componentField(.black)
         }
     }
 
@@ -281,7 +253,13 @@ extension SidebarView {
         /// The value of the group to show when collapsed.
         let value: String
         /// The rows for each component shown while the group is expanded.
-        @ViewBuilder let content: () -> Content
+        let content: Content
+        
+        init(title: String, value: String, @ViewBuilder content: () -> Content) {
+            self.title = title
+            self.value = value
+            self.content = content()
+        }
         
         var body: some View {
             VStack(spacing: 0) {
@@ -308,7 +286,7 @@ extension SidebarView {
                 .buttonStyle(ColorComponentGroupButtonStyle())
                 
                 if isOpen {
-                    content()
+                    content
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 8)
                         .padding(.top, 6)
@@ -319,6 +297,37 @@ extension SidebarView {
         }
         
         func toggle() { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
+    }
+    
+    /// Creates a field using the component's current value from the selected color.
+    ///
+    /// - Parameter component: The component to display and edit.
+    @ViewBuilder
+    private func componentField<Value: ColorComponentNumeric>(_ component: ColorComponent<Value>) -> some View {
+        let keyPath = component.keyPath
+        let value = color[keyPath: keyPath]
+
+        let field = ColorComponentField(
+            value: value,
+            getValue: {
+                color[keyPath: keyPath]
+            },
+            setValue: {
+                color[keyPath: keyPath] = $0
+            },
+            inputType: component.inputType,
+            label: component.label,
+            storeColor: storeColor
+        )
+        .equatable()
+
+        if let symbol = component.symbol {
+            ColorComponentFieldContainer(component: symbol) {
+                field
+            }
+        } else {
+            field
+        }
     }
 }
 

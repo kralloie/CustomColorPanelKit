@@ -61,8 +61,7 @@ public struct ColorPanelView: View {
     @Binding var selection: Color
     /// The color that will be edited in the picker.
     @State var color: HSBAColor
-    ///
-    @State private var publishedSelection: Color?
+    @State private var selectionSync = SelectionSync()
     /// The main instance of the color history.
     @State var colorHistory = ColorHistory()
     /// The selected picker mode, by default is ``.hueRing``.
@@ -101,17 +100,22 @@ public struct ColorPanelView: View {
             
             guard selection != newSelection else { return }
             
-            publishedSelection = newSelection
+            selectionSync.publishedSelection = newSelection
             selection = newSelection
         }
         .onChange(of: selection) {
-            if selection == publishedSelection {
-                publishedSelection = nil
+            if selection == selectionSync.publishedSelection {
+                selectionSync.publishedSelection = nil
                 return
             }
             
-            publishedSelection = nil
+            selectionSync.publishedSelection = nil
             color = HSBAColor(with: selection)
         }
+    }
+    
+    @MainActor
+    private final class SelectionSync {
+        var publishedSelection: Color?
     }
 }

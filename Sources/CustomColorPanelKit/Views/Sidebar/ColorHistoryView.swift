@@ -8,11 +8,11 @@
 import SwiftUI
 
 /// A grid that displays the colors stored in ``ColorHistory``.
-struct ColorHistoryView: View {
-    /// A binding to the current color being edited.
-    @Binding var color: HSBAColor
+struct ColorHistoryView: View, @MainActor Equatable {
     /// The instance of the color history object that stores the colors.
     var colorHistory: ColorHistory
+    /// A closure that sets the current color to the selected history entry.
+    var setColor: (HSBAColor) -> Void
     
     /// The size of each color swatch.
     private let colorSize: CGFloat = 10
@@ -23,7 +23,6 @@ struct ColorHistoryView: View {
     /// The max width that the grid will take.
     private var gridWidth: CGFloat { CGFloat(maxColumns) * colorSize + (CGFloat(maxColumns) - 1) * spacing }
     /// A closure that sets the color being edited to the selected color in the grid.
-    private func setColor(_ c: HSBAColor) { color = c }
     
     var body: some View {
         LazyVGrid(
@@ -65,6 +64,8 @@ struct ColorHistoryView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(.historyTitle)
     }
+    
+    static func == (a: Self, b: Self) -> Bool { a.colorHistory === b.colorHistory }
 }
 
 extension ColorHistoryView {

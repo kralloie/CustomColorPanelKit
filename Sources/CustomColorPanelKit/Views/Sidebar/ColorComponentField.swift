@@ -25,13 +25,17 @@ private enum Layout {
 /// A row that represents a single color component in the sidebar.
 /// Consists of a label for the component letter, a slider, a text field and a stepper as controls for the component value.
 @MainActor
-struct ColorComponentField<T: ColorComponentNumeric>: View {
+struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable {
     /// The scroll router instance to pass the scroll handler to.
     @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
-    /// A binding to the color component.
-    @Binding var value: T
+    /// The current color component value.
+    let value: T
+    /// Gets the live value of the component.
+    let getValue: () -> T
+    /// Updates the color component value.
+    let setValue: (T) -> Void
     /// The text displayed on the text field.
-    @State private var text: String
+    @State private var text: String = ""
     /// Whether the text field is focused.
     @FocusState private var isFocused: Bool
     /// The computed formatted string for `value`.
@@ -43,12 +47,27 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
     /// A closure that stores the current color to history.
     let storeColor: () -> Void
     
-    init(value: Binding<T>, inputType: InputType, label: LocalizedStringResource, storeColor: @escaping () -> Void = {}) {
+    private var textBinding: Binding<String> {
+        Binding(
+            get: { isFocused ? text : valueString },
+            set: { text = $0 }
+        )
+    }
+    
+    init(
+        value: T,
+        getValue: @escaping () -> T,
+        setValue: @escaping (T) -> Void,
+        inputType: InputType,
+        label: LocalizedStringResource,
+        storeColor: @escaping () -> Void = {}
+    ) {
+        self.value = value
+        self.getValue = getValue
+        self.setValue = setValue
         self.inputType = inputType
-        self._value = value
         self.label = label
         self.storeColor = storeColor
-        self._text = .init(initialValue: inputType.format(value.wrappedValue.cgFloatValue))
     }
     
     var body: some View {
@@ -61,7 +80,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                             if isFocused {
                                 text = inputType.format($0)
                             } else {
-                                value = T(value: $0)
+                                setValue(T(value: $0))
                             }
                         }
                     ),
@@ -75,7 +94,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             ZStack(alignment: .leading) {
                 ColorComponentTextField(
                     label: label,
-                    text: $text,
+                    text: textBinding,
                     isFocused: _isFocused,
                     inputType: inputType,
                     handleArrows: handleArrows,
@@ -86,10 +105,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             }
             .contentShape(Rectangle())
             .onHover { hovering in
-                if hovering {
-                    if inputType != .hex {
-                        scrollWheelRouter.scrollHandler = handleScroll
-                    }
+                if hovering && inputType != .hex {
+                    scrollWheelRouter.scrollHandler = handleScroll
                 } else {
                     scrollWheelRouter.scrollHandler = nil
                 }
@@ -106,13 +123,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
                 .padding(.trailing, 8)
             }
         }
-        .onChange(of: valueString) {
-            guard !isFocused, text != valueString else { return }
-            text = valueString
-        }
         .onChange(of: isFocused) {
-            guard !isFocused, text != valueString else { return }
-            text = valueString
+            if isFocused { text = valueString }
         }
     }
     
@@ -187,7 +199,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             .accessibilityHidden(true)
         }
         
-        /// The Equatable implementation for avoiding unnecessary updates.
         static func == (a: Self, b: Self) -> Bool { a.isFocused == b.isFocused }
     }
     
@@ -336,7 +347,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             text = valueString
             return
         }
-        value = T(value: normalized)
+        setValue(T(value: normalized))
         text = valueString
         storeColor()
     }
@@ -372,23 +383,31 @@ struct ColorComponentField<T: ColorComponentNumeric>: View {
             let newValue = increaseValue(inputType.normalize(text) ?? value.cgFloatValue, by: amount)
             text = inputType.format(newValue)
         } else {
-            let newValue = increaseValue(value.cgFloatValue, by: amount)
-            value = T(value: newValue)
+            let newValue = increaseValue(getValue().cgFloatValue, by: amount)
+            setValue(T(value: newValue))
         }
     }
+    
+    static func == (a: Self, b: Self) -> Bool { a.value == b.value && a.inputType == b.inputType }
 }
 
 /// Displays a component label alongside a ``ColorComponentField``.
 struct ColorComponentFieldContainer<Content: View>: View {
     let component: String
-    @ViewBuilder let componentField: () -> Content
+    let componentField: Content
+    
+    init(component: String, @ViewBuilder componentField: () -> Content) {
+        self.component = component
+        self.componentField = componentField()
+    }
+    
     var body: some View {
         HStack {
             Text(verbatim: component)
                 .lineLimit(1)
                 .bold()
                 .frame(width: SidebarLayout.componentLabelWidth)
-            componentField()
+            componentField
         }
     }
 }
