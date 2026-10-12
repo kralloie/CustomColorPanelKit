@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Layout constants shared by every piece of ``SidebarView``.
 enum SidebarLayout {
-    static let panelOuterPadding: CGFloat = 8
+    static let panelInnerPadding: CGFloat = 10
     static let componentLabelWidth: CGFloat = 45
     static let colorComponentRowCornerRadius: CGFloat = 12
     static let colorComponentRowMinWidth: CGFloat = 210
