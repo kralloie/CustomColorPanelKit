@@ -57,65 +57,79 @@ enum PickerMode: Int, CaseIterable, Hashable {
 ///
 /// - Note: Requires macOS 26 or later.
 public struct ColorPanelView: View {
+    @Environment(\.self) var environment
     /// A binding to the color being edited.
     @Binding var selection: Color
-    /// The color that will be edited in the picker.
-    @State var color: HSBAColor
-    @State private var selectionSync = SelectionSync()
-    /// The main instance of the color history.
-    @State var colorHistory = ColorHistory()
-    /// The selected picker mode, by default is ``.hueRing``.
-    @State var pickerMode: PickerMode = .hueRing
     
-    @State private var scrollWheelRouter = ScrollWheelRouter()
-        
-    /// Creates a ``ColorPanelView``.
-    ///
-    /// - Parameter color: The color that this color picker will be editing.
-    public init(_ color: Binding<Color>) {
-        self._selection = color
-        self.color = HSBAColor(with: color.wrappedValue)
+    public init(_ selection: Binding<Color>) {
+        _selection = selection
     }
     
     public var body: some View {
-        NavigationSplitView {
-            SidebarView(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
-        } detail : {
-            switch pickerMode {
-            case .hueRing:
-                HueRingPickerView(color: $color, colorHistory: colorHistory)
-            case .hsvSquare:
-                HSVSquarePickerView(color: $color, colorHistory: colorHistory)
-            case .hueSphere:
-                HueSpherePickerView(color: $color, colorHistory: colorHistory)
-            }
-
-        }
-        .environment(scrollWheelRouter)
-        .background {
-            ScrollWheelMonitor(router: scrollWheelRouter, color: $color, storeColor: { colorHistory.add($0) })
-        }
-        .onChange(of: color) {
-            let newSelection = color.color
-            
-            guard selection != newSelection else { return }
-            
-            selectionSync.publishedSelection = newSelection
-            selection = newSelection
-        }
-        .onChange(of: selection) {
-            if selection == selectionSync.publishedSelection {
-                selectionSync.publishedSelection = nil
-                return
-            }
-            
-            selectionSync.publishedSelection = nil
-            color = HSBAColor(with: selection)
-        }
+        PanelContent(selection: $selection, environmentValues: environment)
     }
     
     @MainActor
     private final class SelectionSync {
         var publishedSelection: Color?
+    }
+    
+    struct PanelContent: View {
+        /// The color that will be edited in the picker.
+        @State private var color: HSBAColor
+        /// The selected picker mode, by default is ``.hueRing``.
+        @State var pickerMode: PickerMode = .hueRing
+        /// The main instance of the color history.
+        @State var colorHistory = ColorHistory()
+        /// The router that stores the event called when the user scrolls on scrollable controls.
+        @State private var scrollWheelRouter = ScrollWheelRouter()
+        /// A binding to the color being edited.
+        @Binding var selection: Color
+        /// The object that handles the synchronization between the color used in the picker and the color passed by the user.
+        @State private var selectionSync = SelectionSync()
+        
+        init(selection: Binding<Color>, environmentValues: EnvironmentValues) {
+            _selection = selection
+            _color = State(
+                initialValue: HSBAColor(with: selection.wrappedValue, in: environmentValues)
+            )
+        }
+
+        var body: some View {
+            NavigationSplitView {
+                SidebarView(color: $color, pickerMode: $pickerMode, colorHistory: colorHistory)
+            } detail : {
+                switch pickerMode {
+                case .hueRing:
+                    HueRingPickerView(color: $color, colorHistory: colorHistory)
+                case .hsvSquare:
+                    HSVSquarePickerView(color: $color, colorHistory: colorHistory)
+                case .hueSphere:
+                    HueSpherePickerView(color: $color, colorHistory: colorHistory)
+                }
+
+            }
+            .environment(scrollWheelRouter)
+            .background {
+                ScrollWheelMonitor(router: scrollWheelRouter, color: $color, storeColor: { colorHistory.add($0) })
+            }
+            .onChange(of: color) {
+                let newSelection = color.color
+                
+                guard selection != newSelection else { return }
+                
+                selectionSync.publishedSelection = newSelection
+                selection = newSelection
+            }
+            .onChange(of: selection) {
+                if selection == selectionSync.publishedSelection {
+                    selectionSync.publishedSelection = nil
+                    return
+                }
+                
+                selectionSync.publishedSelection = nil
+                color = HSBAColor(with: selection)
+            }
+        }
     }
 }
