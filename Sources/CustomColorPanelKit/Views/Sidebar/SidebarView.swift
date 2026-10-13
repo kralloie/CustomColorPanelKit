@@ -85,25 +85,25 @@ struct SidebarView: View {
                 hexValue
             
                 VStack(spacing: 0) {
-                    ColorDisclosureGroup(title: "HSV", value: color.hsvString, content: { hsvValues })
+                    ColorDisclosureGroup(title: "HSV", value: { color.hsvString }, content: { hsvValues })
                         .background(alignment: .bottom) {
                             Divider()
                                 .padding(.horizontal, 6)
                         }
                     
-                    ColorDisclosureGroup(title: "HSL", value: color.hsl.string, content: { hslValues })
+                    ColorDisclosureGroup(title: "HSL", value: { color.hsl.string }, content: { hslValues })
                         .background(alignment: .bottom) {
                             Divider()
                                 .padding(.horizontal, 6)
                         }
                     
-                    ColorDisclosureGroup(title: "RGB", value: color.rgb.string, content: { rgbValues })
+                    ColorDisclosureGroup(title: "RGB", value: { color.rgb.string }, content: { rgbValues })
                         .background(alignment: .bottom) {
                             Divider()
                                 .padding(.horizontal, 6)
                         }
                     
-                    ColorDisclosureGroup(title: "CMYK", value: color.cmyk.string, content: { cmykValues })
+                    ColorDisclosureGroup(title: "CMYK", value: { color.cmyk.string }, content: { cmykValues })
                 }
                 .background {
                     RoundedRectangle(cornerRadius: SidebarLayout.colorComponentRowCornerRadius)
@@ -257,14 +257,14 @@ extension SidebarView {
         /// The title of the group (e.g. "HSV").
         let title: String
         /// The value of the group to show when collapsed.
-        let value: String
+        let value: () -> String
         /// The rows for each component shown while the group is expanded.
-        let content: Content
+        let content: () -> Content
         
-        init(title: String, value: String, @ViewBuilder content: () -> Content) {
+        init(title: String, value: @escaping () -> String, @ViewBuilder content: @escaping () -> Content) {
             self.title = title
             self.value = value
-            self.content = content()
+            self.content = content
         }
         
         var body: some View {
@@ -280,9 +280,10 @@ extension SidebarView {
                         
                         Spacer()
                         
-                        Text(!isOpen ? value : "")
-                            .lineLimit(1)
-                            .animation(nil, value: isOpen)
+                        if !isOpen {
+                            Text(value())
+                                .animation(nil, value: isOpen)
+                        }
                         
                         Image(systemName: "chevron.forward")
                             .foregroundStyle(.secondary)
@@ -292,7 +293,7 @@ extension SidebarView {
                 .buttonStyle(ColorComponentGroupButtonStyle())
                 
                 if isOpen {
-                    content
+                    content()
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 8)
                         .padding(.top, 6)
