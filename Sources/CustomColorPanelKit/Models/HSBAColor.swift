@@ -63,6 +63,26 @@ struct HSBAColor: Equatable, Hashable {
         }
     }
     
+    /// Creates a color from a SwiftUI color using the environment values.
+    ///
+    /// This is a faster version than the `init` that does not use ``EnvironmentValues`` since it skips the conversion to ``NSColor``.
+    ///
+    /// - Parameters:
+    ///   - color: The color to convert.
+    ///   - environment: The environment values used to resolve the color.
+    init(with color: Color, in environment: EnvironmentValues) {
+        let resolved = color.resolve(in: environment)
+        let hsv = Self.rgbToHSV(
+            CGFloat(resolved.red).clamped(to: 0...1),
+            CGFloat(resolved.green).clamped(to: 0...1),
+            CGFloat(resolved.blue).clamped(to: 0...1)
+        )
+        self.hue = hsv.hue
+        self.saturation = hsv.saturation
+        self.brightness = hsv.brightness
+        self.alpha = CGFloat(resolved.opacity)
+    }
+    
     /// Creates a color from its components.
     ///
     /// The values aren't clamped, so pass components in `0...1`.
@@ -149,7 +169,7 @@ struct HSBAColor: Equatable, Hashable {
         }
         
         set {
-            let hsv = rgbToHSV(
+            let hsv = Self.rgbToHSV(
                 newValue.red.clamped(to: 0...1),
                 newValue.green.clamped(to: 0...1),
                 newValue.blue.clamped(to: 0...1)
@@ -181,7 +201,7 @@ struct HSBAColor: Equatable, Hashable {
             let g = CGFloat(value >> 8 & 0xff) / 255
             let b = CGFloat(value & 0xff) / 255
             
-            let hsv = rgbToHSV(r, g, b)
+            let hsv = Self.rgbToHSV(r, g, b)
             self.hue = hsv.hue
             self.saturation = hsv.saturation
             self.brightness = hsv.brightness
@@ -247,7 +267,7 @@ struct HSBAColor: Equatable, Hashable {
             let g = (1 - m) * (1 - k)
             let b = (1 - y) * (1 - k)
 
-            let hsv = rgbToHSV(r, g, b)
+            let hsv = Self.rgbToHSV(r, g, b)
             self.hue = hsv.hue
             self.saturation = hsv.saturation
             self.brightness = hsv.brightness
@@ -275,7 +295,7 @@ struct HSBAColor: Equatable, Hashable {
     ///   - g: The green channel, from 0 to 1.
     ///   - b: The blue channel, from 0 to 1.
     /// - Returns: The hue as a fraction of a full turn, and the saturation and brightness, each from 0 to 1.
-    private func rgbToHSV(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat) {
+    private static func rgbToHSV(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat) {
         let maxV = max(r, g, b)
         let minV = min(r, g, b)
         let delta = maxV - minV
@@ -283,7 +303,7 @@ struct HSBAColor: Equatable, Hashable {
         let brightness = maxV
         let saturation = maxV == 0 ? 0 : delta / maxV
 
-        var hue: CGFloat = self.hue
+        var hue: CGFloat = 0
         if delta != 0 {
             switch maxV {
             case r: hue = (g - b) / delta
