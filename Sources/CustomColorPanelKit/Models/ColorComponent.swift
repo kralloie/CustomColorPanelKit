@@ -1,5 +1,5 @@
 //
-//  Component.swift
+//  ColorComponent.swift
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 10/10/2026.
