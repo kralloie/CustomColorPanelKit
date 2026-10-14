@@ -57,9 +57,9 @@ enum PickerMode: Int, CaseIterable, Hashable {
 ///
 /// - Note: Requires macOS 26 or later.
 public struct ColorPanelView: View {
-    @Environment(\.self) var environment
+    @Environment(\.self) private var environment
     /// A binding to the color being edited.
-    @Binding var selection: Color
+    @Binding private var selection: Color
     
     public init(_ selection: Binding<Color>) {
         _selection = selection
@@ -75,6 +75,7 @@ public struct ColorPanelView: View {
     }
     
     struct PanelContent: View {
+        @Environment(\.self) var environment
         /// The color that will be edited in the picker.
         @State private var color: HSBAColor
         /// The selected picker mode, by default is ``.hueRing``.
@@ -128,7 +129,7 @@ public struct ColorPanelView: View {
                 }
                 
                 selectionSync.publishedSelection = nil
-                color = HSBAColor(with: selection)
+                color = HSBAColor(with: selection, in: environment)
             }
         }
     }
