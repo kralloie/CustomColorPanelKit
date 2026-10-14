@@ -9,7 +9,6 @@ import SwiftUI
 
 /// A button style that displays its content as a rectangular row tinting it on pressed.
 struct ColorComponentGroupButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) private var colorScheme
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
