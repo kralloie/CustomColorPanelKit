@@ -288,7 +288,6 @@ struct HSBAColor: Equatable, Hashable {
     
     /// Converts red, green and blue channels to hue, saturation and brightness.
     ///
-    /// Hue is undefined for grays, so the color's current hue is returned instead (this reads `self`).
     /// Saturation is 0 for grays and black.
     /// - Parameters:
     ///   - r: The red channel, from 0 to 1.
