@@ -9,10 +9,10 @@ import SwiftUI
 import AppKit
 
 /// Creates an instance of ``NSColorSampler`` and shows it on the screen.
-func pickColorFromScreen(completion: @escaping @Sendable (Color?) -> Void) {
+func pickColorFromScreen(completion: @escaping @Sendable (NSColor?) -> Void) {
     let sampler = NSColorSampler()
     sampler.show { nsColor in
-        completion(nsColor.map { Color($0) })
+        completion(nsColor)
     }
 }
 
