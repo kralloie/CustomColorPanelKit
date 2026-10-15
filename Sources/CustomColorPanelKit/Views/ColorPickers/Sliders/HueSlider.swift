@@ -32,14 +32,12 @@ struct HueSlider: NSViewRepresentable {
     static let vertexShader: String = "HueSliderVertexShader"
     static let fragmentShader: String = "HueSliderFragmentShader"
     
-    var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
     override init() {
         
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.hueSliderPipeline
         

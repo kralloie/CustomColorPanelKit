@@ -49,7 +49,6 @@ struct BrightnessSlider: NSViewRepresentable {
     /// The last saturation passed to the shader.
     var saturation: CGFloat = .nan
     
-    var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
@@ -60,7 +59,6 @@ struct BrightnessSlider: NSViewRepresentable {
         self.saturation = color.saturation
         
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.brightnessSliderPipeline
         

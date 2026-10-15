@@ -43,7 +43,6 @@ struct ColorExample: NSViewRepresentable {
     /// The last color passed to the shader.
     var color: HSBAColor
     
-    var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
@@ -51,7 +50,6 @@ struct ColorExample: NSViewRepresentable {
         self.color = color
         
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.colorExamplePipeline
         

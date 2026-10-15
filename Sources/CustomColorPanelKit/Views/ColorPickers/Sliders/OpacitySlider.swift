@@ -54,7 +54,6 @@ struct OpacitySlider: NSViewRepresentable {
     /// The last R, G, B values passed to the shader.
     var rgbComponents: SIMD3<Float> = .init(repeating: 0)
     
-    var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
@@ -72,7 +71,6 @@ struct OpacitySlider: NSViewRepresentable {
         
         
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.opacitySliderPipeline
         

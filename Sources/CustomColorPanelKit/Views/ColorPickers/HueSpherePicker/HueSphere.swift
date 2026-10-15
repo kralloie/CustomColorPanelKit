@@ -68,7 +68,6 @@ struct HueSphere: NSViewRepresentable {
     /// The point where the most recent drag gesture began.
     private var draggingStart: CGPoint?
     
-    var metalDevice: MTLDevice!
     private var metalCommandQueue: MTLCommandQueue!
     private var renderPipeline: MTLRenderPipelineState
     
@@ -77,7 +76,6 @@ struct HueSphere: NSViewRepresentable {
         self.storeColor = storeColor
         
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.hueSpherePipeline
         

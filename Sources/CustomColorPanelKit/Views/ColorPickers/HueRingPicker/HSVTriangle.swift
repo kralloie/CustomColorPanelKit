@@ -71,7 +71,6 @@ struct HSVTriangle: NSViewRepresentable {
     /// The last hue passed to the shader.
     var hue: CGFloat = .nan
     
-    var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var renderPipeline: MTLRenderPipelineState
     
@@ -84,7 +83,6 @@ struct HSVTriangle: NSViewRepresentable {
         self.hue = color.wrappedValue.hue
         
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.hsvTrianglePipeline
         

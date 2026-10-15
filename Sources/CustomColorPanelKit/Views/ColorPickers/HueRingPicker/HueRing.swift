@@ -59,13 +59,11 @@ struct HueRing: NSViewRepresentable {
     static let vertexShader: String = "HueRingVertexShader"
     static let fragmentShader: String = "HueRingFragmentShader"
     
-    var metalDevice: MTLDevice!
     private var metalCommandQueue: MTLCommandQueue!
     private var renderPipeline: MTLRenderPipelineState
     
     override init() {
         let ctx = MetalContext.shared
-        self.metalDevice = ctx.device
         self.metalCommandQueue = ctx.commandQueue
         self.renderPipeline = ctx.hueRingPipeline
         
