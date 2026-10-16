@@ -127,7 +127,8 @@ public struct ColorPanelView: View {
             }
             .environment(scrollWheelRouter)
             .background {
-                ScrollWheelMonitor(router: scrollWheelRouter, color: $color, storeColor: { colorHistory.add($0) })
+                ScrollWheelMonitor(router: scrollWheelRouter, color: { color }, storeColor: { colorHistory.add($0) })
+                    .equatable()
             }
             .onChange(of: color) {
                 let newSelection = color.color

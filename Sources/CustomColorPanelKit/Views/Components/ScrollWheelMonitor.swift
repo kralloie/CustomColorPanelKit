@@ -31,23 +31,21 @@ final class ScrollWheelRouter {
 /// along the responder chain. Events pass through untouched whenever no handler is set.
 /// - Note: After forwarding an event, `storeColor` fires once scrolling has been idle for 250ms, so a color commits to the history
 /// only after the user stops scrolling rather than on every tick.
-struct ScrollWheelMonitor: NSViewRepresentable {
+struct ScrollWheelMonitor: NSViewRepresentable, @MainActor Equatable {
     /// The router this monitor forwards the scroll wheel events through.
     let router: ScrollWheelRouter
     /// Called once scrolling has been idle for a short delay, to commit the resulting color to history.
     let storeColor: (HSBAColor) -> Void
     /// A binding to the current color for storing before committing to history.
-    @Binding var color: HSBAColor
+    let color: () -> HSBAColor
     
-    init(router: ScrollWheelRouter, color: Binding<HSBAColor>, storeColor: @escaping (HSBAColor) -> Void) {
+    init(router: ScrollWheelRouter, color: @escaping () -> HSBAColor, storeColor: @escaping (HSBAColor) -> Void) {
         self.router = router
-        _color = color
+        self.color = color
         self.storeColor = storeColor
     }
     
-    func makeCoordinator() -> Coordinator {
-        Coordinator(router)
-    }
+    func makeCoordinator() -> Coordinator { Coordinator(router) }
     
     /// Creates an invisible placeholder view and installs the scroll wheel event monitor as a side effect.
     ///
@@ -57,7 +55,7 @@ struct ScrollWheelMonitor: NSViewRepresentable {
         context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
             guard let handler = context.coordinator.router.scrollHandler else { return event }
             guard handler(event) else { return nil }
-            let committed = color
+            let committed = color()
             context.coordinator.historyTask?.cancel()
             context.coordinator.historyTask = Task { @MainActor in
                 do {
@@ -89,4 +87,6 @@ struct ScrollWheelMonitor: NSViewRepresentable {
             self.router = router
         }
     }
+    
+    static func == (a: Self, b: Self) -> Bool { a.router === b.router }
 }
