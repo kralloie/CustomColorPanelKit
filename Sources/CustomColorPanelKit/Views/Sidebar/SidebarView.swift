@@ -67,7 +67,7 @@ struct SidebarView: View {
                 PickerModeSelectorView(selectedMode: $pickerMode)
                 
                 VStack {
-                    colorPreview
+                    ColorPreview(color: $color)
                     
                     HStack {
                         EyeDropperButton(setColor: { color = $0 }, storeColor: { colorHistory.add(color) })
@@ -130,47 +130,62 @@ struct SidebarView: View {
 
 extension SidebarView {
     /// The swatch representing the current color with a checkerboard pattern background and a context menu for copying the color.
-    private var colorPreview: some View {
-        let alphaValue = Double(color.alpha).formatted(.percent.precision(.fractionLength(0)))
-        let size: CGFloat = SidebarLayout.colorPreviewSize
-        return ColorExample(color: color)
-            .frame(width: size, height: size)
-            .background(
-                CheckerboardView(rows: 5)
-                    .clipShape(RoundedRectangle(cornerRadius: 6).inset(by: 0.5))
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .shadow(radius: 2)
-            .contextMenu { CopyColorMenu(color: color) }
-            .dropDestination(for: Color.self) { colors, _ in
-                guard let droppedColor = colors.first else {
-                    return false
+    private struct ColorPreview: View {
+        @Environment(\.accessibilityEnabled) private var accessibilityEnabled
+        @Binding var color: HSBAColor
+        private let size: CGFloat = SidebarLayout.colorPreviewSize
+        
+        var body: some View {
+            if accessibilityEnabled {
+                let alphaValue = Double(color.alpha)
+                    .formatted(.percent.precision(.fractionLength(0)))
+                preview
+                    .accessibilityRepresentation {
+                        let _ = print("Accessibility rendered")
+                        Rectangle()
+                            .accessibilityLabel { _ in
+                                Text(.colorCurrent)
+                                Text(verbatim: color.hexString)
+                                    .speechSpellsOutCharacters(true)
+                                Text(.accessibilityOpacityValue(alphaValue))
+                            }
+                            .contextMenu { CopyColorMenu(color: color) }
+                    }
+            } else {
+                preview
+            }
+        }
+        
+        private var preview: some View {
+            ColorExample(color: color)
+                .frame(width: size, height: size)
+                .background(
+                    CheckerboardView(rows: 5)
+                        .clipShape(RoundedRectangle(cornerRadius: 6).inset(by: 0.5))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .shadow(radius: 2)
+                .contextMenu { CopyColorMenu(color: color) }
+                .dropDestination(for: Color.self) { colors, _ in
+                    guard let droppedColor = colors.first else {
+                        return false
+                    }
+                    color = HSBAColor(with: droppedColor)
+                    return true
                 }
-                color = HSBAColor(with: droppedColor)
-                return true
-            }
-            .onDrag {
-                color.dragItemProvider
-            } preview: {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(color.color)
-                    .frame(width: 28, height: 28)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.separator)
-                    }
-            }
-            .padding(.bottom, 10)
-            .accessibilityRepresentation {
-                Rectangle()
-                    .accessibilityLabel { _ in
-                        Text(.colorCurrent)
-                        Text(verbatim: color.hexString)
-                            .speechSpellsOutCharacters(true)
-                        Text(.accessibilityOpacityValue(alphaValue))
-                    }
-                    .contextMenu { CopyColorMenu(color: color) }
-            }
+                .onDrag {
+                    color.dragItemProvider
+                } preview: {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(color.color)
+                        .frame(width: 28, height: 28)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(.separator)
+                        }
+                }
+                .padding(.bottom, 10)
+        }
     }
     
     /// The row for editing the color's hex string.
@@ -222,29 +237,32 @@ extension SidebarView {
     
     /// The fields shown when the HSL disclosure group is expanded.
     private var hslValues: some View {
-        VStack(spacing: 10) {
-            componentField(.hslHue)
-            componentField(.hslSaturation)
-            componentField(.lightness)
+        let hsl = color.hsl
+        return VStack(spacing: 10) {
+            componentField(.hslHue, value: hsl.hue)
+            componentField(.hslSaturation, value: hsl.saturation)
+            componentField(.lightness, value: hsl.lightness)
         }
     }
     
     /// The fields shown when the RGB disclosure group is expanded.
     private var rgbValues: some View {
-        VStack(spacing: 10) {
-            componentField(.red)
-            componentField(.green)
-            componentField(.blue)
+        let rgb = color.rgb
+        return VStack(spacing: 10) {
+            componentField(.red, value: rgb.red)
+            componentField(.green, value: rgb.green)
+            componentField(.blue, value: rgb.blue)
         }
     }
     
     /// The fields shown when the CMYK disclosure group is expanded.
     private var cmykValues: some View {
-        VStack(spacing: 10) {
-            componentField(.cyan)
-            componentField(.magenta)
-            componentField(.yellow)
-            componentField(.black)
+        let cmyk = color.cmyk
+        return VStack(spacing: 10) {
+            componentField(.cyan, value: cmyk.cyan)
+            componentField(.magenta, value: cmyk.magenta)
+            componentField(.yellow, value: cmyk.yellow)
+            componentField(.black, value: cmyk.key)
         }
     }
 
@@ -304,6 +322,38 @@ extension SidebarView {
         }
         
         func toggle() { withAnimation(.easeInOut(duration: 0.1)) { isOpen.toggle() } }
+    }
+    
+    /// Creates a field using the given value for display.
+    ///
+    /// - Parameters:
+    ///   - component: The component to display and edit.
+    ///   - value: The snapshot of the value to display.
+    @ViewBuilder
+    private func componentField<Value: ColorComponentNumeric>(_ component: ColorComponent<Value>, value: Value) -> some View {
+        let keyPath = component.keyPath
+
+        let field = ColorComponentField(
+            value: value,
+            getValue: {
+                color[keyPath: keyPath]
+            },
+            setValue: {
+                color[keyPath: keyPath] = $0
+            },
+            inputType: component.inputType,
+            label: component.label,
+            storeColor: storeColor
+        )
+        .equatable()
+
+        if let symbol = component.symbol {
+            ColorComponentFieldContainer(component: symbol) {
+                field
+            }
+        } else {
+            field
+        }
     }
     
     /// Creates a field using the component's current value from the selected color.
