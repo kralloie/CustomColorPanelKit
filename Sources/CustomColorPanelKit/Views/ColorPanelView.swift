@@ -60,18 +60,31 @@ public struct ColorPanelView: View {
     @Environment(\.self) private var environment
     /// A binding to the color being edited.
     @Binding private var selection: Color
+    /// The main instance of the color history.
+    @State var colorHistory = ColorHistory()
+    /// The router that stores the event called when the user scrolls on scrollable controls.
+    @State private var scrollWheelRouter = ScrollWheelRouter()
     
     public init(_ selection: Binding<Color>) {
         _selection = selection
     }
     
     public var body: some View {
-        PanelContent(selection: $selection, environmentValues: environment)
+        PanelContent(
+            selection: $selection,
+            environmentValues: environment,
+            colorHistory: colorHistory,
+            scrollWheelRouter: scrollWheelRouter
+        )
     }
     
     @MainActor
     private final class SelectionSync {
         var publishedSelection: Color?
+        
+        init() {
+            print("SelectionSync init")
+        }
     }
     
     struct PanelContent: View {
@@ -80,20 +93,22 @@ public struct ColorPanelView: View {
         @State private var color: HSBAColor
         /// The selected picker mode, by default is ``.hueRing``.
         @State var pickerMode: PickerMode = .hueRing
-        /// The main instance of the color history.
-        @State var colorHistory = ColorHistory()
-        /// The router that stores the event called when the user scrolls on scrollable controls.
-        @State private var scrollWheelRouter = ScrollWheelRouter()
         /// A binding to the color being edited.
         @Binding var selection: Color
         /// The object that handles the synchronization between the color used in the picker and the color passed by the user.
         @State private var selectionSync = SelectionSync()
+        /// The main instance of the color history.
+        let colorHistory: ColorHistory
+        /// The router that stores the event called when the user scrolls on scrollable controls.
+        let scrollWheelRouter: ScrollWheelRouter
         
-        init(selection: Binding<Color>, environmentValues: EnvironmentValues) {
+        init(selection: Binding<Color>, environmentValues: EnvironmentValues, colorHistory: ColorHistory, scrollWheelRouter: ScrollWheelRouter) {
             _selection = selection
             _color = State(
                 initialValue: HSBAColor(with: selection.wrappedValue, in: environmentValues)
             )
+            self.colorHistory = colorHistory
+            self.scrollWheelRouter = scrollWheelRouter
         }
 
         var body: some View {
