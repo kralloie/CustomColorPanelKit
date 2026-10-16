@@ -204,6 +204,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
     
     /// The slider control for the component value.
     private struct ColorComponentSlider: View {
+        @Environment(\.accessibilityEnabled) private var accessibilityEnabled
         /// A custom binding that gets the normalized value from the text so it is between 0.0 and 1.0
         /// setting the value if text field is not focused and the text if the text field is focused.
         @Binding var normalized: CGFloat
@@ -224,6 +225,29 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
         @GestureState private var isDragging = false
         
         var body: some View {
+            if accessibilityEnabled {
+                slider
+                    .accessibilityRepresentation {
+                        Slider(
+                            value: Binding(
+                                get: { normalized },
+                                set: {
+                                    normalized = $0
+                                    storeColor()
+                                }
+                            ),
+                            in: 0...1,
+                            step: 1 / CGFloat(inputType.multiplier)
+                        )
+                        .accessibilityLabel(label)
+                        .accessibilityValue(inputType.format(normalized))
+                    }
+            } else {
+                slider
+            }
+        }
+        
+        var slider: some View {
             ZStack(alignment: .center) {
                 Capsule()
                     .fill(Color.primary)
@@ -241,21 +265,6 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
             .frame(maxWidth: .infinity)
             .position(x: size.width * 0.5, y: Layout.textFieldHeight * 0.5)
             .gesture(dragGesture)
-            .accessibilityRepresentation {
-                Slider(
-                    value: Binding(
-                        get: { normalized },
-                        set: {
-                            normalized = $0
-                            storeColor()
-                        }
-                    ),
-                    in: 0...1,
-                    step: 1 / CGFloat(inputType.multiplier)
-                )
-                    .accessibilityLabel(label)
-                    .accessibilityValue(inputType.format(normalized))
-            }
             .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
         }
         
