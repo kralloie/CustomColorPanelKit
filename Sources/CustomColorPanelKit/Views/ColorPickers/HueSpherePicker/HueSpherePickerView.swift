@@ -44,7 +44,8 @@ struct HueSpherePickerView: View {
                 VStack(alignment: .leading, spacing: Layout.stackSpacing) {
                     HStack(spacing: Layout.stackSpacing) {
                         
-                        HueSphere(color: $color, storeColor: storeColor)
+                        HueSphere(getColor: { color }, setColor: { color = $0 }, storeColor: storeColor)
+                            .equatable()
                             .positionIndicator(color: color, sphereRadius: sphereRadius)
                             .frame(width: sphereSize, height: sphereSize)
                         

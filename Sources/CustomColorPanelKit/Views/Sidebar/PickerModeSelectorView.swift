@@ -101,7 +101,7 @@ struct PickerModeSelectorView: View {
         case .hsvSquare:
             HSVSquare(color: accentColor, storeColor: {}).frame(width: 20, height: 20)
         case .hueSphere:
-            HueSphere(color: accentColor, storeColor: {}).frame(width: 20, height: 20)
+            HueSphere(getColor: { accentColor.wrappedValue }, setColor: { _ in }, storeColor: {}).frame(width: 20, height: 20)
         case .hueRing:
             HueRing()
                 .frame(width: 20, height: 20)

@@ -14,14 +14,16 @@ import SwiftUI
 /// Rendering is performed by ``HueSphereCoordinator``.
 ///
 /// When creating the view, an ``ImmediatePanGestureRecognizer`` is added to the ``MTKView`` to modify the hue and saturation components with the gesture.
-struct HueSphere: NSViewRepresentable {
-    /// A binding to the current color being edited.
-    @Binding var color: HSBAColor
+struct HueSphere: NSViewRepresentable, @MainActor Equatable {
+    /// A live getter to the color being edited.
+    let getColor: () -> HSBAColor
+    /// A setter for the color being edited.
+    let setColor: (HSBAColor) -> Void
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
     
     func makeCoordinator() -> HueSphereCoordinator {
-        HueSphereCoordinator(color: $color, storeColor: storeColor)
+        HueSphereCoordinator(getColor: getColor, setColor: setColor, storeColor: storeColor)
     }
     
     func makeNSView(context: Context) -> some NSView {
@@ -33,6 +35,10 @@ struct HueSphere: NSViewRepresentable {
     
     func updateNSView(_ nsView: NSViewType, context: Context) {}
     
+    static func == (a: Self, b: Self) -> Bool { return true }
+}
+
+extension View {
     /// Returns an overlay for the MTKView that indicates the hue and saturation values inside the hue sphere.
     ///
     /// - Parameters:
@@ -61,8 +67,10 @@ struct HueSphere: NSViewRepresentable {
     static let vertexShader: String = "HueSphereVertexShader"
     static let fragmentShader: String = "HueSphereFragmentShader"
     
-    /// A binding to the current color being edited.
-    @Binding var color: HSBAColor
+    /// A live getter to the color being edited.
+    let getColor: () -> HSBAColor
+    /// A setter for the color being edited.
+    let setColor: (HSBAColor) -> Void
     /// Called after the gesture finishes to store the color to the history.
     var storeColor: () -> Void
     /// The point where the most recent drag gesture began.
@@ -71,8 +79,9 @@ struct HueSphere: NSViewRepresentable {
     private var metalCommandQueue: MTLCommandQueue!
     private var renderPipeline: MTLRenderPipelineState
     
-    init(color: Binding<HSBAColor>, storeColor: @escaping () -> Void) {
-        _color = color
+    init(getColor: @escaping () -> HSBAColor, setColor: @escaping (HSBAColor) -> Void, storeColor: @escaping () -> Void) {
+        self.getColor = getColor
+        self.setColor = setColor
         self.storeColor = storeColor
         
         let ctx = MetalContext.shared
@@ -126,7 +135,7 @@ struct HueSphere: NSViewRepresentable {
             if draggingStartPointLen > 1.0 { return }
         }
         
-        var c = color
+        var c = getColor()
         var len = hypot(x, y)
         if len > 1.0 { x /= len; y /= len; len = 1.0 }
         c.saturation = len
@@ -135,7 +144,7 @@ struct HueSphere: NSViewRepresentable {
         if hue < 0 { hue += 1 }
         c.hue = hue
         
-        color = c
+        setColor(c)
         
         if gesture.state == .ended { storeColor() }
     }
