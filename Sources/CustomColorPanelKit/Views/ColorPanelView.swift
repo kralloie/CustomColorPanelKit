@@ -81,10 +81,6 @@ public struct ColorPanelView: View {
     @MainActor
     private final class SelectionSync {
         var publishedSelection: Color?
-        
-        init() {
-            print("SelectionSync init")
-        }
     }
     
     struct PanelContent: View {

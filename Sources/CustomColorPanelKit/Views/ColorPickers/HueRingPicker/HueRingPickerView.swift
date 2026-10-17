@@ -48,10 +48,10 @@ struct HueRingPickerView: View {
                 VStack(spacing: Layout.stackSpacing) {
                     ZStack {
                         HueRing()
-                        .positionIndicator(geometry: geometry)
-                        .frame(width: ringSize, height: ringSize)
-                        .modifier(HueRingDragModifier(color: $color, ringSize: ringSize, storeColor: storeColor))
-                        .frame(maxWidth: .infinity)
+                            .positionIndicator(geometry: geometry)
+                            .frame(width: ringSize, height: ringSize)
+                            .modifier(HueRingDragModifier(color: $color, ringSize: ringSize, storeColor: storeColor))
+                            .frame(maxWidth: .infinity)
                         
                         HSVTriangle(
                             color: $color,
@@ -82,8 +82,6 @@ struct HueRingPickerView: View {
 struct HueRingPickerGeometry {
     /// The current color the indicators are positioned for.
     let color: HSBAColor
-    /// The size of the hue ring.
-    let viewSize: CGSize
     /// The radius of the hue ring.
     let viewRadius: CGFloat
     /// The side length of the square the triangle is drawn in.
@@ -128,7 +126,6 @@ struct HueRingPickerGeometry {
 
     init(color: HSBAColor, viewSize: CGSize) {
         self.color = color
-        self.viewSize = viewSize
         self.viewRadius = viewSize.width * 0.5
         self.triangleSize = viewRadius * 1.25
         self.hueAngle = color.hue * 2 * .pi

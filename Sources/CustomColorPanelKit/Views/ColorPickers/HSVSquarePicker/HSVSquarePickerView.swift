@@ -10,7 +10,6 @@ import SwiftUI
 /// Layout values for ``HSVSquarePickerView``.
 private enum Layout {
     static let hsvSquareMinSize: CGFloat = 250
-    static let hsvSquareIndicatorSize: CGFloat = 10
     static let stackSpacing: CGFloat = 10
     static let outerPadding: CGFloat = 20
 }

@@ -41,9 +41,6 @@ struct BrightnessSlider: NSViewRepresentable {
     static let vertexShader: String = "BrightnessSliderVertexShader"
     static let fragmentShader: String = "BrightnessSliderFragmentShader"
     
-    /// The current color being edited.
-    var color: HSBAColor
-    
     /// The last hue passed to the shader.
     var hue: CGFloat = .nan
     /// The last saturation passed to the shader.
@@ -53,8 +50,6 @@ struct BrightnessSlider: NSViewRepresentable {
     var renderPipeline: MTLRenderPipelineState
     
     init(color: HSBAColor) {
-        self.color = color
-        
         self.hue = color.hue
         self.saturation = color.saturation
         

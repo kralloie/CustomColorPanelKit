@@ -141,7 +141,6 @@ extension SidebarView {
                     .formatted(.percent.precision(.fractionLength(0)))
                 preview
                     .accessibilityRepresentation {
-                        let _ = print("Accessibility rendered")
                         Rectangle()
                             .accessibilityLabel { _ in
                                 Text(.colorCurrent)
