@@ -35,10 +35,6 @@ struct HueSphere: NSViewRepresentable, @MainActor Equatable {
     
     func updateNSView(_ nsView: NSViewType, context: Context) {}
     
-    static func == (a: Self, b: Self) -> Bool { return true }
-}
-
-extension View {
     /// Returns an overlay for the MTKView that indicates the hue and saturation values inside the hue sphere.
     ///
     /// - Parameters:
@@ -57,8 +53,9 @@ extension View {
                 )
         }
     }
+    
+    static func == (a: Self, b: Self) -> Bool { return true }
 }
-
 
 /// The coordinator responsible for rendering an ``HueSphere`` using MetalKit.
 ///
