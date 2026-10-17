@@ -19,6 +19,10 @@ let package = Package(
                 .process("Shaders/Metal"),
                 .process("Resources")
             ]
+        ),
+        .testTarget(
+            name: "CustomColorPanelKitTests",
+            dependencies: ["CustomColorPanelKit"]
         )
     ]
 )

@@ -8,7 +8,11 @@
 import SwiftUI
 import MetalKit
 
-/// A Metal-rendered triangle with each corner representing one of the HSV components.
+/// A Metal-rendered triangle with a hue-colored vertex,
+/// a black vertex and a white vertex.
+///
+/// The triangle allows selecting saturation and brightness
+/// while its hue is controlled by the surrounding hue ring.
 ///
 /// Rendering is performed by ``HSVTriangleCoordinator``.
 ///

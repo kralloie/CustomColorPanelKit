@@ -22,8 +22,10 @@ private enum Layout {
     static let sliderThumbSize: CGFloat = 12
 }
 
-/// A row that represents a single color component in the sidebar.
-/// Consists of a label for the component letter, a slider, a text field and a stepper as controls for the component value.
+/// A row containing controls for displaying and editing a color component.
+///
+/// Numeric components provide a slider, text field and stepper,
+/// while hexadecimal input uses only a text field.
 @MainActor
 struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable {
     /// The scroll router instance to pass the scroll handler to.
@@ -140,7 +142,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
         let inputType: InputType
         /// Handles arrows pressed while editing the text field.
         let handleArrows: (KeyPress) -> KeyPress.Result
-        /// Called when when text field is submitted.
+        /// Called when the text field is submitted.
         let submitText: () -> Void
         /// Called when text field is cancelled.
         let cancelField: () -> Void
@@ -345,11 +347,13 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
         return !isFocused
     }
     
-    /// Turns the text field content into a normalized value between 0 and 1
-    /// sets the component value to the result, updates the text field content after updating the value
-    /// and stores the color to history
+    /// Parses and commits the current text field value.
     ///
-    /// - Note: If parsing the text field content fails, fallback to the previous value.
+    /// Updates the component, refreshes the displayed text,
+    /// and stores the resulting color in history.
+    ///
+    /// - Note: If parsing fails, the field reverts to the
+    ///   current component value.
     func commitColor() {
         isFocused = false
         guard let normalized = inputType.normalize(text) else {
@@ -369,13 +373,16 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
         }
     }
     
-    /// Increases a value by a step adapted to the current ``InputType`` multiplier and clamps it between 0 and 1.
+    /// Adjusts a normalized component value using the step size
+    /// determined by its ``InputType``.
     ///
-    /// - Returns: The increased (decreased if `step` is negative) value clamped between 0 and 1.
+    /// Degree values wrap around the unit interval, while other
+    /// component values are clamped to `0...1`.
     ///
     /// - Parameters:
-    ///   - value: The target value to be increased.
-    ///   - step: The increase amount (can be negative for decreasing).
+    ///   - value: The current normalized value.
+    ///   - step: The number of steps to apply, positive or negative.
+    /// - Returns: The adjusted normalized value.
     private func increaseValue(_ value: CGFloat, by step: CGFloat) -> CGFloat {
         let steppedValue = (value + step / CGFloat(inputType.multiplier))
         if inputType == .degrees {

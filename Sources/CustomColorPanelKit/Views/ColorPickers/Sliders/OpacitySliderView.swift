@@ -23,7 +23,7 @@ struct OpacitySliderView: View {
     @State private var centerLock: Bool = false
     /// The task running the animation that starts when the slider is pressed.
     @State private var alphaAnimation: Task<Void, Never>?
-    /// The snap distance used for exiting the center lock when dragging.
+    /// The distance threshold used for entering and exiting the center lock.
     private let snapDistance: CGFloat = 6
     /// Called after the drag gesture ends to store the color to the history.
     var storeColor: () -> Void

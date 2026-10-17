@@ -63,9 +63,11 @@ struct HSBAColor: Equatable, Hashable {
         }
     }
     
-    /// Creates a color from a SwiftUI color using the environment values.
+    /// Creates a color from a SwiftUI color resolved using the
+    /// provided environment values.
     ///
-    /// This is a faster version than the `init` that does not use ``EnvironmentValues`` since it skips the conversion to ``NSColor``.
+    /// The resolved RGB components are converted to HSV without
+    /// creating an intermediate `NSColor`.
     ///
     /// - Parameters:
     ///   - color: The color to convert.
@@ -184,7 +186,8 @@ struct HSBAColor: Equatable, Hashable {
     ///
     /// Alpha isn't part of the value. Setting it ignores bits above the lowest 24 and updates the hue,
     /// saturation and brightness the same way setting ``rgb`` does.
-    /// Colors that differ by less than one 8-bit step share a hex value.
+    /// Colors are quantized to 8 bits per channel, so different
+    /// floating-point colors may produce the same hex value.
     var hex: UInt32 {
         get {
             let rgb = self.rgb

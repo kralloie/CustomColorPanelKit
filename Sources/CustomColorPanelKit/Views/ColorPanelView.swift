@@ -65,6 +65,11 @@ public struct ColorPanelView: View {
     /// The router that stores the event called when the user scrolls on scrollable controls.
     @State private var scrollWheelRouter = ScrollWheelRouter()
     
+    
+    /// Creates a color picker panel bound to a SwiftUI color.
+    ///
+    /// - Parameter selection: A binding to the color displayed
+    ///   and modified by the panel.
     public init(_ selection: Binding<Color>) {
         _selection = selection
     }

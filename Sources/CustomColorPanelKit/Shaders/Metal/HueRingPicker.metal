@@ -1,5 +1,5 @@
 //
-//  Shaders.metal
+//  HueRingPicker.metal
 //  CustomColorPanelKit
 //
 //  Created by Franco Gargiulo on 05/06/2026.

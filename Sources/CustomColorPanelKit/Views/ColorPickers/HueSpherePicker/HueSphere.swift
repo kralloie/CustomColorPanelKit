@@ -38,7 +38,7 @@ struct HueSphere: NSViewRepresentable, @MainActor Equatable {
     /// Returns an overlay for the MTKView that indicates the hue and saturation values inside the hue sphere.
     ///
     /// - Parameters:
-    ///   - color: The current color used as fill for the indicator.
+    ///   - color: The color providing the hue and saturation used to fill and position the indicator.
     ///   - sphereRadius: The radius of the sphere being drawn.
     func positionIndicator(color: HSBAColor, sphereRadius: CGFloat) -> some View {
         overlay {

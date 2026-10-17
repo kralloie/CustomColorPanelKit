@@ -36,7 +36,7 @@ struct ScrollWheelMonitor: NSViewRepresentable, @MainActor Equatable {
     let router: ScrollWheelRouter
     /// Called once scrolling has been idle for a short delay, to commit the resulting color to history.
     let storeColor: (HSBAColor) -> Void
-    /// A binding to the current color for storing before committing to history.
+    /// A live getter of the current color being edited.
     let color: () -> HSBAColor
     
     init(router: ScrollWheelRouter, color: @escaping () -> HSBAColor, storeColor: @escaping (HSBAColor) -> Void) {

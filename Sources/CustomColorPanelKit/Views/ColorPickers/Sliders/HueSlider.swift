@@ -8,7 +8,8 @@
 import SwiftUI
 import MetalKit
 
-/// A Metal-rendered slider that displays the current color with all possible hue values from 0° to 360°.
+/// A Metal-rendered slider displaying the full hue spectrum
+/// from 0° to 360°, at full saturation and brightness.
 ///
 /// Rendering is performed by ``HueSliderCoordinator``.
 struct HueSlider: NSViewRepresentable {

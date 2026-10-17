@@ -208,7 +208,9 @@ private struct HueRingDragModifier: ViewModifier {
     ///
     /// Modifies the hue based on the angle of the position indicator.
     ///
-    /// Drags outside that start outside the ring bounds are ignored and the pointer is clamped when it leaves the shape.
+    /// Drags that begin outside the ring are ignored.
+    /// Once a valid drag begins, hue follows the angle of
+    /// the pointer around the ring's center, even outside its bounds.
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .onChanged { value in

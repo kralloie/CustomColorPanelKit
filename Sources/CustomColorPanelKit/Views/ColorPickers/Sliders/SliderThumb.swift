@@ -13,7 +13,7 @@ struct SliderThumb: View {
     let orientation: SliderOrientation
     /// The current color used to fill the cursor when dragging and the preview.
     let color: Color
-    /// The color the thumb shows: a dot on the white thumb at rest, and the glass tint while pressed.
+    /// The normalized slider value, used to position the thumb.
     let value: CGFloat
     /// Whether this view is currently being pressed.
     let isPressed: Bool

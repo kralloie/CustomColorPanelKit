@@ -10,7 +10,7 @@ import CoreFoundation
 /// The input representation of a color component, used for validating input in text fields and formatting components to strings.
 ///
 /// - Hex: "#FFFFFF"
-/// - Degrees: "360°"
+/// - Degrees: "359°"
 /// - Percentage: "100%"
 /// - Numerical: "255"
 enum InputType {
@@ -59,7 +59,9 @@ enum InputType {
     
     /// Parses a string into a normalized color component value.
     ///
-    /// - Returns: The normalized value in the range of `0...1`, or `nil` if parsing fails.
+    /// - Returns: A value in `0...1` for degrees, percentages,
+    ///   and numerical components, or a 24-bit integer value
+    ///   for hexadecimal colors. Returns `nil` if parsing fails.
     ///
     /// - Parameter text: The string to parse and normalize.
     func normalize(_ text: String) -> CGFloat? {

@@ -108,10 +108,12 @@ struct HSVSquare: NSViewRepresentable {
     
     /// The action that handles the drag gesture inside the HSV Square.
     ///
-    /// Modifies the color based on the position of the cursor when the gesture is recognized calculating
-    /// the saturation and brightness components the X position for saturation and Y position for brightness.
+    /// Updates saturation and brightness based on the pointer's position.
     ///
-    /// Drags outside that start outside the shape are ignored and the pointer is clamped when it leaves the shape.
+    /// The horizontal position determines saturation, while the
+    /// vertical position determines brightness.
+    ///
+    /// The pointer coordinates are clamped to the square's bounds.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
         guard let view = gesture.view else { return }
         let loc = gesture.location(in: view)

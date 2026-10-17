@@ -12,7 +12,8 @@ import SwiftUI
 /// Its purpose is to be used as background of the color preview and sliders to give a better contrast
 /// when previewing opacity.
 struct CheckerboardView: View {
-    /// The number of tile rows used to size each square based on the view's shorter dimension.
+    /// The number of tiles along the view's shorter dimension,
+    /// used to calculate the size of each square.
     let rows: UInt8
     
     private let color1: Color = .white

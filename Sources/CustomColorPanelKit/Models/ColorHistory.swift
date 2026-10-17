@@ -56,6 +56,10 @@ final class ColorHistory {
         return colors.firstIndex(where: { c in c ≈≈ color })
     }
     
+    /// Returns the color at the specified index, or `nil` if the
+    /// index is outside the history's bounds.
+    ///
+    /// - Parameter index: The index of the color to retrieve.
     subscript(safe index: Int) -> HSBAColor? {
         return colors.indices.contains(index) ? colors[index] : nil
     }

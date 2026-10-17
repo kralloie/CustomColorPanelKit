@@ -22,7 +22,6 @@ struct ColorHistoryView: View, @MainActor Equatable {
     private let maxColumns = 12
     /// The max width that the grid will take.
     private var gridWidth: CGFloat { CGFloat(maxColumns) * colorSize + (CGFloat(maxColumns) - 1) * spacing }
-    /// A closure that sets the color being edited to the selected color in the grid.
     
     var body: some View {
         LazyVGrid(
