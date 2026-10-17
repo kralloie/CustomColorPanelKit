@@ -88,7 +88,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
                     ),
                     inputType: inputType,
                     label: label,
-                    storeColor: { if !isFocused { storeColor() } }
+                    storeColor: { if !isFocused { storeColor() } },
+                    isFocused: isFocused
                 )
                 .padding(.trailing, 4)
             }
@@ -216,6 +217,8 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
         let label: LocalizedStringResource
         /// Stores the edited color after the slider drag ends if the text field is not focused.
         var storeColor: () -> Void
+        /// Whether the text field is focused.
+        let isFocused: Bool
         
         /// The task running the animation that starts when the slider is pressed.
         @State private var valueAnimation: Task<Void, Never>? = nil
@@ -242,7 +245,16 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
                             step: 1 / CGFloat(inputType.multiplier)
                         )
                         .accessibilityLabel(label)
-                        .accessibilityValue(inputType.format(normalized))
+                        .accessibilityValue(
+                            isFocused
+                                ? Text(.accessibilitySliderValueFocused(inputType.format(normalized)))
+                                : Text(inputType.format(normalized))
+                        )
+                        .accessibilityHint(
+                            isFocused
+                                ? Text(.accessibilityHintSliderFocused)
+                                : Text(.accessibilityHintSliderUnfocused)
+                        )
                     }
             } else {
                 slider
