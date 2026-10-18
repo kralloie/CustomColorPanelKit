@@ -25,5 +25,8 @@ jobs:
         run: swift --version
 
       - name: Run tests
-        run: swift test
+        run: |
+          xcodebuild test \
+            -scheme CustomColorPanelKit \
+            -destination 'platform=macOS'
 
