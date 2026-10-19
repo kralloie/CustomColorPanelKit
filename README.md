@@ -1,9 +1,9 @@
 # CustomColorPanelKit 🎨
 A color-picking panel for macOS, built with SwiftUI and Metal. It combines GPU-rendered color pickers with precise component controls in a native macOS interface.
 
-<img width="1896" height="1165" alt="image" src="https://github.com/user-attachments/assets/7cd9a9f4-d7f4-4ce2-9efc-8a9d5c7e26a4" />
-<img width="1896" height="1165" alt="image" src="https://github.com/user-attachments/assets/2786ff37-7686-4ca6-95e4-47dbd6150ec6" />
-<img width="1896" height="1165" alt="image" src="https://github.com/user-attachments/assets/2d60cd47-9972-4663-9dfe-072919c9ff16" />
+![Hue Ring](Screenshots/HueRing.png)
+![HSV Square](Screenshots/HSVSquare.png)
+![Hue Sphere](Screenshots/HueSphere.png)
 
 ## Features:
 
