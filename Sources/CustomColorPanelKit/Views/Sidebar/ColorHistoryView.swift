@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+/// Layout values for ``ColorHistoryView``.
+private enum Layout {
+    static let columns = 12
+    static let colorSize: CGFloat = 12
+    static let gridSpacing: CGFloat = 4
+}
+
 /// A grid that displays the colors stored in ``ColorHistory``.
 struct ColorHistoryView: View, @MainActor Equatable {
     /// The instance of the color history object that stores the colors.
@@ -14,26 +21,23 @@ struct ColorHistoryView: View, @MainActor Equatable {
     /// A closure that sets the current color to the selected history entry.
     var setColor: (HSBAColor) -> Void
     
-    /// The size of each color swatch.
-    private let colorSize: CGFloat = 10
-    /// The spacing between each color swatch.
-    private let spacing: CGFloat = 4
-    /// The max amount of columns in the grid.
-    private let maxColumns = 12
     /// The max width that the grid will take.
-    private var gridWidth: CGFloat { CGFloat(maxColumns) * colorSize + (CGFloat(maxColumns) - 1) * spacing }
+    private var gridWidth: CGFloat { CGFloat(Layout.columns) * Layout.colorSize + (CGFloat(Layout.columns) - 1) * Layout.gridSpacing }
+    
+    /// The array of items representing the columns for the history grid.
+    private var columns: [GridItem] {
+        Array(
+            repeating: GridItem(.fixed(Layout.colorSize), spacing: Layout.gridSpacing),
+            count: Layout.columns
+        )
+    }
     
     var body: some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.adaptive(minimum: colorSize, maximum: colorSize), spacing: spacing)
-            ],
-            spacing: spacing
-        ) {
+        LazyVGrid(columns: columns, spacing: Layout.gridSpacing) {
             ForEach(0..<ColorHistory.capacity, id: \.self) { i in
                 ColorHistoryEntry(
                     index: i,
-                    colorSize: colorSize,
+                    colorSize: Layout.colorSize,
                     colorHistory: colorHistory,
                     setColor: setColor
                 )
@@ -94,6 +98,10 @@ extension ColorHistoryView {
                                 .clipShape(RoundedRectangle(cornerRadius: 2).inset(by: 0.5))
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 2))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 2)
+                                .stroke(.separator, lineWidth: 1)
+                        }
                 }
                 .frame(width: colorSize, height: colorSize)
                 .buttonStyle(.plain)
