@@ -1,5 +1,14 @@
+<div align="center">
+  
 # CustomColorPanelKit 🎨
+
+[![Swift Tests](https://github.com/kralloie/CustomColorPanelKit/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/kralloie/CustomColorPanelKit/actions/workflows/tests.yml)
+![macOS](https://img.shields.io/badge/macOS-26%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-6.2-orange)
+
 A color-picking panel for macOS, built with SwiftUI and Metal. It combines GPU-rendered color pickers with precise component controls in a native macOS interface.
+
+</div>
 
 ![Hue Ring](Screenshots/HueRing.png)
 ![HSV Square](Screenshots/HSVSquare.png)
