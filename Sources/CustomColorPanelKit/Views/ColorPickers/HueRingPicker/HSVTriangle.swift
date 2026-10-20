@@ -206,21 +206,12 @@ struct HSVTriangle: NSViewRepresentable {
             return
         }
         
-        let angle = self.hue * 2 * .pi
-        let triangle = getVerticesForTriangle(size: size, angle: angle)
-        
         let c0 = max(0, w0)
         let c1 = max(0, w1)
         let c2 = max(0, w2)
         let sum = c0 + c1 + c2
         
-        (w0, w1, w2) = getBarycentricCoordinates(for:
-            CGPoint(
-                x: (c0 * triangle[0].x + c1 * triangle[1].x + c2 * triangle[2].x) / sum,
-                y: (c0 * triangle[0].y + c1 * triangle[1].y + c2 * triangle[2].y) / sum
-            ),
-            size: size
-        )
+        (w0, w1, w2) = (c0 / sum, c1 / sum, c2 / sum)
         
         let (brightness, saturation) = saturationAndBrightness(hueWeight: w0, saturationWeight: w2)
         var c = color

@@ -22,6 +22,7 @@ import MetalKit
     func makeDefaultMTKView(delegate: MTKViewDelegate) -> MTKView {
         let view = MTKView()
         view.delegate = delegate
+        view.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
         view.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0)
         view.layer?.isOpaque = false
         view.enableSetNeedsDisplay = true
