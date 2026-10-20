@@ -21,7 +21,9 @@ struct CheckerboardView: View {
     
     var body: some View {
         Canvas { ctx, size in
-            let tileSize = min(size.height, size.width) / CGFloat(rows)
+            let shortSide = min(size.width, size.height)
+            guard rows > 0, shortSide > 0, shortSide.isFinite else { return }
+            let tileSize = shortSide / CGFloat(rows)
             let cols = Int(ceil(size.width / tileSize))
             let rows = Int(ceil(size.height / tileSize))
             

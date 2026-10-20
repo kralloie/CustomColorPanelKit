@@ -114,7 +114,7 @@ struct HueSphere: NSViewRepresentable, @MainActor Equatable {
     ///
     /// Drags outside that start outside the shape are ignored and the pointer is clamped when it leaves the shape.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view else { return }
+        guard let view = gesture.view, view.bounds.width > 0 && view.bounds.height > 0 else { return }
         let radius = min(view.bounds.width, view.bounds.height) * 0.5
         
         let loc = gesture.location(in: view)

@@ -115,7 +115,7 @@ struct HSVSquare: NSViewRepresentable {
     ///
     /// The pointer coordinates are clamped to the square's bounds.
     @objc func handleDrag(_ gesture: NSPanGestureRecognizer) {
-        guard let view = gesture.view else { return }
+        guard let view = gesture.view, view.bounds.width > 0 && view.bounds.height > 0 else { return }
         let loc = gesture.location(in: view)
         
         let x = min(max(loc.x, 0), view.bounds.width)
