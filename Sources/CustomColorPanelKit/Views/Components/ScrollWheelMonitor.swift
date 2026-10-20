@@ -52,7 +52,8 @@ struct ScrollWheelMonitor: NSViewRepresentable, @MainActor Equatable {
     /// The returned view has no visual presence or event handling of its own - it exists only because `NSViewRepresentable` requires a view to return.
     func makeNSView(context: Context) -> some NSView {
         let view = NSView(frame: .zero)
-        context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+        context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak view] event in
+            guard let view, let window = view.window, event.window === window else { return event }
             guard let handler = context.coordinator.router.scrollHandler else { return event }
             guard handler(event) else { return nil }
             let committed = color()
