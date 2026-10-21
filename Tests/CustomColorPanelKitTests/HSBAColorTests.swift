@@ -47,12 +47,9 @@ final class HSBAColorTests: XCTestCase {
     }
 
     func testWhiteGrayAndBlackAreAchromatic() {
-        assertRGB(HSBAColor(hue: 0.7, saturation: 0, brightness: 1),
-                  red: 1, green: 1, blue: 1)
-        assertRGB(HSBAColor(hue: 0.7, saturation: 0, brightness: 0.4),
-                  red: 0.4, green: 0.4, blue: 0.4)
-        assertRGB(HSBAColor(hue: 0.7, saturation: 1, brightness: 0),
-                  red: 0, green: 0, blue: 0)
+        assertRGB(HSBAColor(hue: 0.7, saturation: 0, brightness: 1), red: 1, green: 1, blue: 1)
+        assertRGB(HSBAColor(hue: 0.7, saturation: 0, brightness: 0.4), red: 0.4, green: 0.4, blue: 0.4)
+        assertRGB(HSBAColor(hue: 0.7, saturation: 1, brightness: 0), red: 0, green: 0, blue: 0)
     }
 
     func testHueWrapsWhenConvertedToRGB() {
@@ -99,10 +96,7 @@ final class HSBAColorTests: XCTestCase {
         for original in samples {
             var restored = HSBAColor(hue: 0, saturation: 0, brightness: 0, alpha: 0.2)
             restored.hsl = original.hsl
-            assertRGB(restored,
-                      red: original.rgb.red,
-                      green: original.rgb.green,
-                      blue: original.rgb.blue)
+            assertRGB(restored, red: original.rgb.red, green: original.rgb.green, blue: original.rgb.blue)
             XCTAssertEqual(restored.alpha, 0.2)
         }
     }
@@ -125,10 +119,7 @@ final class HSBAColorTests: XCTestCase {
         XCTAssertEqual(color.hex, 0x112233)
         XCTAssertEqual(color.hexString, "#112233")
         XCTAssertEqual(color.alpha, 0.4)
-        assertRGB(color,
-                  red: 0x11 / 255.0,
-                  green: 0x22 / 255.0,
-                  blue: 0x33 / 255.0)
+        assertRGB(color, red: 0x11 / 255.0, green: 0x22 / 255.0, blue: 0x33 / 255.0)
     }
 
     func testHexRoundsChannelsToEightBits() {
@@ -156,10 +147,7 @@ final class HSBAColorTests: XCTestCase {
         for original in samples {
             var restored = HSBAColor(hue: 0, saturation: 0, brightness: 1, alpha: 0.3)
             restored.cmyk = original.cmyk
-            assertRGB(restored,
-                      red: original.rgb.red,
-                      green: original.rgb.green,
-                      blue: original.rgb.blue)
+            assertRGB(restored, red: original.rgb.red, green: original.rgb.green, blue: original.rgb.blue)
             XCTAssertEqual(restored.alpha, 0.3)
         }
     }
@@ -199,10 +187,7 @@ final class HSBAColorTests: XCTestCase {
     func testEqualityAndHashIgnoreRememberedCMYKKey() {
         var withKey = HSBAColor(hue: 0, saturation: 0, brightness: 0)
         withKey.cmyk = CMYK(cyan: 0.1, magenta: 0.2, yellow: 0.3, key: 0.2)
-        let withoutKey = HSBAColor(hue: withKey.hue,
-                                   saturation: withKey.saturation,
-                                   brightness: withKey.brightness,
-                                   alpha: withKey.alpha)
+        let withoutKey = HSBAColor(hue: withKey.hue, saturation: withKey.saturation, brightness: withKey.brightness, alpha: withKey.alpha)
         XCTAssertEqual(withKey, withoutKey)
         XCTAssertEqual(Set([withKey, withoutKey]).count, 1)
     }

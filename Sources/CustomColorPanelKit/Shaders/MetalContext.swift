@@ -43,7 +43,7 @@ import MetalKit
     let hueSpherePipeline: MTLRenderPipelineState
     let brightnessSliderPipeline: MTLRenderPipelineState
     
-    private init() throws {
+    init() throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
             throw NSError(domain: "MetalSetup", code: 1, userInfo: [NSLocalizedDescriptionKey: "No Metal device available on this machine"])
         }
