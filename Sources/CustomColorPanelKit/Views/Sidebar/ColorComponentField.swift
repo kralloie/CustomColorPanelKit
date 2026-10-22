@@ -207,6 +207,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
     
     /// The slider control for the component value.
     private struct ColorComponentSlider: View {
+        @Environment(\.isEnabled) private var isEnabled
         @Environment(\.accessibilityEnabled) private var accessibilityEnabled
         /// A custom binding that gets the normalized value from the text so it is between 0.0 and 1.0
         /// setting the value if text field is not focused and the text if the text field is focused.
@@ -268,7 +269,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
                     .frame(width: size.width, height: Layout.sliderTrackHeight)
                     .overlay(alignment: .leading) {
                         Capsule()
-                            .fill(Color.accentColor)
+                            .fill(isEnabled ? Color.accentColor : Color.gray)
                             .frame(width: max(normalized * size.width, 0), height: Layout.sliderTrackHeight)
                     }
                 
