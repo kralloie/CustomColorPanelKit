@@ -131,6 +131,7 @@ struct PaletteButton: View, @MainActor Equatable {
         }
         .buttonStyle(.circleGlass)
         .accessibilityLabel(.paletteButton)
+        .help(.paletteButton)
         .popover(isPresented: $showingPopover, arrowEdge: .trailing) {
             VStack(spacing: 12) {
                 let paletteName = String(localized: palette.title)

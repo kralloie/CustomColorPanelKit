@@ -51,9 +51,11 @@ struct PickerModeSelectorView: View {
                                     selectedMode = mode
                                 }
                             }
+                            .allowsHitTesting(false)
+                            .contentShape(Rectangle())
+                            .help(mode.title)
                     }
                 }
-                .allowsHitTesting(false)
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel(.pickerAccessibilityLabel)
             }

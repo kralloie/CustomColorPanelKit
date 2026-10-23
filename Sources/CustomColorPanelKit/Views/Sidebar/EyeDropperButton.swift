@@ -41,6 +41,7 @@ struct EyeDropperButton: View, @MainActor Equatable {
         }
         .buttonStyle(.circleGlass)
         .accessibilityLabel(.actionEyeDropper)
+        .help(.actionEyeDropper)
     }
     
     static func == (a: Self, b: Self) -> Bool { true }

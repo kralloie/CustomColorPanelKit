@@ -24,6 +24,7 @@ struct DiceButton: View, @MainActor Equatable {
         }
         .buttonStyle(.circleGlass)
         .accessibilityLabel(.actionRandomColor)
+        .help(.actionRandomColor)
     }
     
     static func == (a: Self, b: Self) -> Bool { true }
