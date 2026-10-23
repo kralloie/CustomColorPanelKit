@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// The representation of a picker mode.
-enum PickerMode: Int, CaseIterable, Hashable {
+public enum PickerMode: Int, CaseIterable, Hashable {
     /// The available picker modes.
     case hueRing, hsvSquare, hueSphere
     
@@ -60,6 +60,8 @@ public struct ColorPanelView: View {
     @Environment(\.self) private var environment
     /// A binding to the color being edited.
     @Binding private var selection: Color
+    /// The selected picker mode.
+    @State var pickerMode: PickerMode
     /// The main instance of the color history.
     @State var colorHistory = ColorHistory()
     /// The router that stores the event called when the user scrolls on scrollable controls.
@@ -70,13 +72,15 @@ public struct ColorPanelView: View {
     ///
     /// - Parameter selection: A binding to the color displayed
     ///   and modified by the panel.
-    public init(_ selection: Binding<Color>) {
+    public init(_ selection: Binding<Color>, initialMode: PickerMode = .hueRing) {
         _selection = selection
+        self._pickerMode = State(initialValue: initialMode)
     }
     
     public var body: some View {
         PanelContent(
             selection: $selection,
+            pickerMode: $pickerMode,
             environmentValues: environment,
             colorHistory: colorHistory,
             scrollWheelRouter: scrollWheelRouter
@@ -92,8 +96,8 @@ public struct ColorPanelView: View {
         @Environment(\.self) var environment
         /// The color that will be edited in the picker.
         @State private var color: HSBAColor
-        /// The selected picker mode, by default is ``.hueRing``.
-        @State var pickerMode: PickerMode = .hueRing
+        /// The selected picker mode.
+        @Binding var pickerMode: PickerMode
         /// A binding to the color being edited.
         @Binding var selection: Color
         /// The object that handles the synchronization between the color used in the picker and the color passed by the user.
@@ -103,8 +107,9 @@ public struct ColorPanelView: View {
         /// The router that stores the event called when the user scrolls on scrollable controls.
         let scrollWheelRouter: ScrollWheelRouter
         
-        init(selection: Binding<Color>, environmentValues: EnvironmentValues, colorHistory: ColorHistory, scrollWheelRouter: ScrollWheelRouter) {
+        init(selection: Binding<Color>, pickerMode: Binding<PickerMode>, environmentValues: EnvironmentValues, colorHistory: ColorHistory, scrollWheelRouter: ScrollWheelRouter) {
             _selection = selection
+            _pickerMode = pickerMode
             _color = State(
                 initialValue: HSBAColor(with: selection.wrappedValue, in: environmentValues)
             )
