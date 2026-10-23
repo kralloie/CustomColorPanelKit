@@ -26,6 +26,8 @@ public enum PickerMode: Int, CaseIterable, Hashable {
 ///
 /// Bind it to a SwiftUI `Color`, and the panel edits that color as someone uses it.
 ///
+/// Passing the optional `initialMode` parameter to `ColorPanelView` can set the starting `PickerMode` to any of the three available modes, by default it is set `.hueRing`.
+///
 /// ```swift
 /// struct ContentView: View {
 ///     @State private var color = Color.red
@@ -70,8 +72,9 @@ public struct ColorPanelView: View {
     
     /// Creates a color picker panel bound to a SwiftUI color.
     ///
-    /// - Parameter selection: A binding to the color displayed
-    ///   and modified by the panel.
+    /// - Parameters:
+    ///   - selection: A binding to the color displayed and modified by the panel.
+    ///   - initialMode: The starting picker mode of the color panel, `.hueRing` by default.
     public init(_ selection: Binding<Color>, initialMode: PickerMode = .hueRing) {
         _selection = selection
         self._pickerMode = State(initialValue: initialMode)
