@@ -9,6 +9,7 @@ import SwiftUI
 
 /// An opacity slider with a checkerboard pattern background.
 struct OpacitySliderView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The scroll router instance to pass the scroll handler to.
     @Environment(ScrollWheelRouter.self) private var scrollWheelRouter
     /// A binding to the current color being edited.
@@ -119,7 +120,7 @@ struct OpacitySliderView: View {
                 let target = targetAlpha(at: $0.location.x)
                 
                 if isFirst {
-                    animateValue($color.alpha, to: target, valueAnimation: $alphaAnimation)
+                    animateValue(reduceMotion: reduceMotion, $color.alpha, to: target, valueAnimation: $alphaAnimation)
                 } else {
                     alphaAnimation?.cancel()
                     color.alpha = target

@@ -14,18 +14,25 @@ import SwiftUI
 /// the one stored in `valueAnimation`.
 ///
 /// - Parameters:
+///   - reduceMotion: Whether the reduce motion setting is enabled.
 ///   - value: The binding to animate. Its current value is the starting point.
 ///   - target: The value to animate toward.
 ///   - duration: How long the animation takes.
 ///   - valueAnimation: A binding that holds the running task, so callers can cancel or await it.
 ///     Any task already stored there is cancelled first.
 func animateValue(
+    reduceMotion: Bool,
     _ value: Binding<CGFloat>,
     to target: CGFloat,
     duration: Duration = .milliseconds(125),
     valueAnimation: Binding<Task<Void, Never>?>
 ) {
     valueAnimation.wrappedValue?.cancel()
+    if reduceMotion {
+        value.wrappedValue = target
+        return
+    }
+    
     let start = value.wrappedValue
     let clock = ContinuousClock()
     let begin = clock.now

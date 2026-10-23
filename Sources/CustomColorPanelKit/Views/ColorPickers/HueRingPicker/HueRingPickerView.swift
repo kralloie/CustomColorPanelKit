@@ -24,6 +24,7 @@ private enum Layout {
 /// The view keeps a square aspect ratio and has a minimum size. The slider is as wide as the ring, and
 /// its thickness is a small fraction of the available width.
 struct HueRingPickerView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// A binding to the current color being edited.
     @Binding var color: HSBAColor
     /// The object storing and managing previously selected colors through the picker session.
@@ -42,7 +43,7 @@ struct HueRingPickerView: View {
                 let ringSize = size - sliderThickness
                 let geometry = HueRingPickerGeometry(
                     color: color,
-                    viewSize: CGSize(width: ringSize, height: ringSize)
+                    viewSize: CGSize(width: ringSize, height: ringSize),
                 )
                 
                 VStack(spacing: Layout.stackSpacing) {
@@ -50,7 +51,7 @@ struct HueRingPickerView: View {
                         HueRing()
                             .positionIndicator(geometry: geometry)
                             .frame(width: ringSize, height: ringSize)
-                            .modifier(HueRingDragModifier(color: $color, ringSize: ringSize, storeColor: storeColor))
+                            .modifier(HueRingDragModifier(reduceMotion: reduceMotion, color: $color, ringSize: ringSize, storeColor: storeColor))
                             .frame(maxWidth: .infinity)
                         
                         HSVTriangle(
@@ -140,6 +141,8 @@ struct HueRingPickerGeometry {
 ///
 /// Pressing animates the hue to the pressed angle, taking the shorter way around the circle while dragging changes the value instantly.
 private struct HueRingDragModifier: ViewModifier {
+    /// Whether the reduce motion setting is enabled.
+    let reduceMotion: Bool
     /// A binding to the current color being edited.
     @Binding var color: HSBAColor
     /// The side length of the ring's square view.
@@ -184,12 +187,17 @@ private struct HueRingDragModifier: ViewModifier {
     ///   - duration: How long the animation takes.
     private func animateHue(to target: CGFloat, duration: Duration = .milliseconds(100)) {
         hueAnimation?.cancel()
+        if reduceMotion {
+            color.hue = target
+            return
+        }
+        
         let start = color.hue
         var delta = target - start
         if delta > 0.5 { delta -= 1 } else if delta < -0.5 { delta += 1 }
         let clock = ContinuousClock()
         let begin = clock.now
-
+        
         hueAnimation = Task { @MainActor in
             while !Task.isCancelled {
                 let t = min(1, (clock.now - begin) / duration)

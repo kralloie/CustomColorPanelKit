@@ -9,6 +9,7 @@ import SwiftUI
 
 /// A view that hosts a Metal-rendered vertical slider.
 struct VerticalSlider<Content: View>: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The Metal-rendered slider that this view hosts.
     var slider: Content
     /// A binding to the value that the slider controls.
@@ -91,7 +92,7 @@ struct VerticalSlider<Content: View>: View {
                 let target = 1 - (($0.location.y - size.width * 0.5) / travel).clamped(to: 0...1)
                 
                 if isFirst {
-                    animateValue($value, to: target, valueAnimation: $valueAnimation)
+                    animateValue(reduceMotion: reduceMotion, $value, to: target, valueAnimation: $valueAnimation)
                 } else {
                     valueAnimation?.cancel()
                     value = target

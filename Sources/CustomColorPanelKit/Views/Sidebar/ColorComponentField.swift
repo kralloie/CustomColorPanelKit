@@ -209,6 +209,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
     private struct ColorComponentSlider: View {
         @Environment(\.isEnabled) private var isEnabled
         @Environment(\.accessibilityEnabled) private var accessibilityEnabled
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
         /// A custom binding that gets the normalized value from the text so it is between 0.0 and 1.0
         /// setting the value if text field is not focused and the text if the text field is focused.
         @Binding var normalized: CGFloat
@@ -314,7 +315,7 @@ struct ColorComponentField<T: ColorComponentNumeric>: View, @MainActor Equatable
                     let target = (($0.location.x - Layout.sliderThumbSize * 0.5) / travel).clamped(to: 0...1)
                     
                     if isFirst {
-                        animateValue($normalized, to: target, valueAnimation: $valueAnimation)
+                        animateValue(reduceMotion: reduceMotion, $normalized, to: target, valueAnimation: $valueAnimation)
                     } else {
                         valueAnimation?.cancel()
                         normalized = target
