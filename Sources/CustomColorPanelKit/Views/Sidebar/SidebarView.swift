@@ -134,6 +134,7 @@ extension SidebarView {
         @Environment(\.accessibilityEnabled) private var accessibilityEnabled
         @Binding var color: HSBAColor
         private let size: CGFloat = SidebarLayout.colorPreviewSize
+        @State private var isHovering = false
         
         var body: some View {
             if accessibilityEnabled {
@@ -150,8 +151,12 @@ extension SidebarView {
                             }
                             .contextMenu { CopyColorMenu(color: color) }
                     }
+                    .onHover { isHovering = $0 }
+                    .help(isHovering ? color.hexString : "")
             } else {
                 preview
+                    .onHover { isHovering = $0 }
+                    .help(isHovering ? color.hexString : "")
             }
         }
         

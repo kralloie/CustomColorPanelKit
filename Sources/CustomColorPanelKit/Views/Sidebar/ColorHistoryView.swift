@@ -89,6 +89,7 @@ extension ColorHistoryView {
         var body: some View {
             if let c = colorHistory[safe: index] {
                 let alphaValue = Double(c.alpha).formatted(.percent.precision(.fractionLength(0)))
+                let hexString = c.hexString
                 Button {
                     setColor(c)
                 } label: {
@@ -122,10 +123,11 @@ extension ColorHistoryView {
                 .contextMenu{ ColorEntryContextMenu(color: c, colorHistory: colorHistory, setColor: setColor) }
                 .accessibilityLabel { _ in
                     Text(.historyEntry(index + 1))
-                    Text(verbatim: c.hexString)
+                    Text(verbatim: hexString)
                         .speechSpellsOutCharacters(true)
                     Text(.accessibilityOpacityValue(alphaValue))
                 }
+                .help(hexString)
             } else {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(.separator, lineWidth: 1)
