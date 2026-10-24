@@ -3,8 +3,9 @@
 # CustomColorPanelKit 🎨
 
 [![Swift Tests](https://github.com/kralloie/CustomColorPanelKit/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/kralloie/CustomColorPanelKit/actions/workflows/tests.yml)
-![macOS](https://img.shields.io/badge/macOS-26%2B-blue)
-![Swift](https://img.shields.io/badge/Swift-6.2-orange)
+![macOS](https://img.shields.io/badge/macOS-26%2B-blue?logo=apple&logoColor=white)
+![Swift](https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=orange)
+[![Release](https://img.shields.io/github/v/release/kralloie/CustomColorPanelKit)](https://github.com/kralloie/CustomColorPanelKit/releases/latest)
 
 A color-picking panel for macOS, built with SwiftUI and Metal. It combines GPU-rendered color pickers with precise component controls in a native macOS interface.
 
